@@ -1,0 +1,7 @@
+README.md
+iowa_football.egg-info/PKG-INFO
+iowa_football.egg-info/SOURCES.txt
+iowa_football.egg-info/dependency_links.txt
+iowa_football.egg-info/entry_points.txt
+iowa_football.egg-info/requires.txt
+iowa_football.egg-info/top_level.txt

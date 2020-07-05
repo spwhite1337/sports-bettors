@@ -1,0 +1,10 @@
+pandas
+numpy
+matplotlib
+requests
+plotly
+dash
+ipykernel
+scikit-learn
+statsmodels
+tqdm
