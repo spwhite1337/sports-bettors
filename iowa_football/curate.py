@@ -16,6 +16,10 @@ def curate_data():
     df_rankings = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'df_rankings.csv'))
 
     logger.info('Wrangle stats.')
+
+    # Drop data errors
+    df_stats = df_stats[df_stats['away_totalPenaltieYards'] != '7--4953']
+
     for home_away in ['home', 'away']:
         # Pass completion - attempts
         df_stats[home_away + '_passCompletions'] = df_stats[home_away + '_completionAttempts'].\
