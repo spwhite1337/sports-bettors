@@ -1,5 +1,6 @@
 import os
 import requests
+import argparse
 from datetime import datetime
 from typing import Tuple
 
@@ -18,10 +19,28 @@ class DownloadCollegeFootballData(object):
 
     years = [int(2000 + year) for year in range(int(pd.Timestamp(datetime.now()).year - 2000))]
 
-    endpoints = {
-        'games':  'games/',
-        'stats': 'games/teams'
-    }
+    # Stats to retain as features
+    features = [
+        'yardsPerRushAttempt',
+        'yardsPerPass',
+        'turnovers',
+        'totalYards',
+        'totalPenaltiesYards',
+        'thirdDownEff',
+        'rushingYards',
+        'rushingTDs',
+        'rushingAttempts',
+        'possessionTime',
+        'passingTDs',
+        'netPassingYards',
+        'interceptions',
+        'fumblesRecovered',
+        'fumblesLost',
+        'fourthDownEff',
+        'firstDowns',
+        'completionAttempts',
+        'kickingPoints'
+    ]
 
     def download_games(self) -> pd.DataFrame:
         """
@@ -31,7 +50,7 @@ class DownloadCollegeFootballData(object):
         df = []
         for year in tqdm(self.years):
             # Return data
-            r = requests.get(self.base_url + self.endpoints['games'], params={'year': year})
+            r = requests.get(self.base_url + 'games/', params={'year': year})
 
             # Convert to dataframe
             df_year = pd.DataFrame.from_records(r.json())
@@ -51,7 +70,45 @@ class DownloadCollegeFootballData(object):
 
         return df
 
-    def download_stats(self, df_games: pd.DataFrame = None) -> Tuple[pd.DataFrame, list]:
+    def download_rankings(self) -> Tuple[pd.DataFrame, list]:
+        """
+        Download team rankings by week based on various polls
+        """
+        df, df_fails = [], []
+        for year in self.years:
+
+            # Try a download, catch connection failures
+            try:
+                params = {'year': year}
+                r = requests.get(self.base_url + 'rankings', params=params)
+            except Exception as err:
+                logger.info('{}, {}'.format(year, err))
+                df_fail = pd.DataFrame({'year': year, 'error': err}, index=[0])
+                df_fails.append(df_fail)
+                continue
+
+            if r.status_code != 200:
+                logger.info('{}, {}'.format(year, r.status_code))
+                df_fail = pd.DataFrame({'year': year, 'error': r.status_code}, index=[0])
+                df_fails.append(df_fail)
+                continue
+
+            if len(r.json()) == 0:
+                df_fail = pd.DataFrame({'year': year, 'error': 'No Data'}, index=[0])
+                df_fails.append(df_fail)
+                continue
+
+            for week_record in r.json():
+                week = week_record['week']
+                for poll in week_record['polls']:
+                    poll_name = poll['poll']
+                    df_ranks = pd.DataFrame.from_records(poll['ranks']).assign(poll=poll_name, week=week, year=year)
+                    df.append(df_ranks)
+        df = pd.concat(df).reset_index(drop=True)
+
+        return df, df_fails
+
+    def download_stats(self, df_games: pd.DataFrame = None) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """
         Download stats for each game
         """
@@ -66,7 +123,7 @@ class DownloadCollegeFootballData(object):
 
             # Try a download, catch connection failures
             try:
-                r = requests.get(self.base_url + self.endpoints['stats'], params=params)
+                r = requests.get(self.base_url + 'games/teams', params=params)
             except Exception as err:
                 logger.info('{}, {}'.format(game_id, err))
                 df_fail = pd.DataFrame({'game_id': game_id, 'error': err}, index=[0])
@@ -74,12 +131,13 @@ class DownloadCollegeFootballData(object):
                 continue
 
             if r.status_code != 200:
+                logger.info('{}, {}'.format(game_id, r.status_code))
                 df_fail = pd.DataFrame({'game_id': game_id, 'error': r.status_code}, index=[0])
                 df_fails.append(df_fail)
                 continue
 
             if len(r.json()) == 0:
-                df_fail = pd.DataFrame({'game_id': game_id, 'error': 'No Response'}, index=[0])
+                df_fail = pd.DataFrame({'game_id': game_id, 'error': 'No Data'}, index=[0])
                 df_fails.append(df_fail)
                 continue
 
@@ -88,9 +146,15 @@ class DownloadCollegeFootballData(object):
             df_game = []
             for team in stats_by_team:
                 df_game_long = pd.DataFrame.from_records(team['stats'])
+
+                # Subset for useful stats
+                df_game_long = df_game_long[df_game_long['category'].isin(self.features)]
+
+                # Append home/away to category
                 df_game_long['category'] = team['homeAway'] + '_' + df_game_long['category']
                 df_game.append(df_game_long)
             df_game = pd.concat(df_game)
+
             # Pivot
             df_game = pd.pivot_table(df_game, columns='category', values='stat', aggfunc='first').reset_index(drop=True)
             df_stats.append(df_game.assign(game_id=game_id))
@@ -105,7 +169,44 @@ class DownloadCollegeFootballData(object):
 
         return df_stats, df_fails
 
+    def retry_stats(self):
+        """
+        Some games fail due to connection issues with the API; retry these games here
+        """
+        failed_ids = os.path.join(ROOT_DIR, 'data', 'df_failed_stats.csv')
+        if not os.path.exists(failed_ids):
+            logger.info('Download stats before retrying.')
+            return
+        df = pd.read_csv(failed_ids)
 
-def download():
+        # Get games with previously downloaded stats
+        original_stats = os.path.join(ROOT_DIR, 'data', 'df_stats.csv')
+        df_original = pd.read_csv(original_stats)
+
+        # Retry failed games
+        df_stats, df_fails = self.download_stats(df)
+
+        # Append
+        df_retried = df_original.append(df_stats)
+
+        # Save
+        df_retried.to_csv(original_stats, index=False)
+        df_fails.to_csv(failed_ids, index=False)
+
+
+def download_cli():
+    parser = argparse.ArgumentParser(prog='Download College Football Data')
+    parser.add_argument('--retry', action='store_true')
+    args = parser.parse_args()
+
+    download(retry=args.retry)
+
+
+def download(retry: bool):
     downloader = DownloadCollegeFootballData()
-    downloader.download_stats()
+    if not retry:
+        df_games = downloader.download_games()
+        downloader.download_stats(df_games)
+        downloader.download_rankings()
+    else:
+        downloader.retry_stats()
