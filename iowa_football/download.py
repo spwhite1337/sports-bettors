@@ -102,6 +102,9 @@ class DownloadCollegeFootballData(object):
                 week = week_record['week']
                 for poll in week_record['polls']:
                     poll_name = poll['poll']
+                    # Only use polls you've heard of
+                    if poll_name not in ['AP Top 25', 'BCS Standings', 'Coaches Poll']:
+                        continue
                     df_ranks = pd.DataFrame.from_records(poll['ranks']).assign(poll=poll_name, week=week, year=year)
                     # Subset
                     df_ranks = df_ranks[['year', 'week', 'poll', 'rank', 'school', 'conference']]
