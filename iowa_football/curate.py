@@ -79,5 +79,14 @@ def curate_data():
                                       on=['season', 'week', home_away + '_team'],
                                       how='left')
 
+    # Create Matchup columns
+    df_stats['home_team'] = df_stats['home_team'].apply(lambda team: re.sub(' ', '', team))
+    df_stats['away_team'] = df_stats['away_team'].apply(lambda team: re.sub(' ', '', team))
+
+    def _define_matchup(home_team, away_team):
+        teams = sorted([home_team, away_team])
+        return ''.join(teams)
+    df_stats['matchup'] = df_stats.apply(lambda row: _define_matchup(row['home_team'], row['away_team']), axis=1)
+
     logger.info('Save Curated data for {} games.'.format(df_stats.shape))
     df_stats.to_csv(os.path.join(ROOT_DIR, 'data', 'df_curated.csv'), index=False)
