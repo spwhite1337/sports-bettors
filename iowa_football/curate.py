@@ -75,5 +75,5 @@ def curate_data():
                                       on=['season', 'week', home_away + '_team'],
                                       how='left')
 
-    logger.info('Save Curated data.')
+    logger.info('Save Curated data for {} games.'.format(df_stats.shape))
     df_stats.to_csv(os.path.join(ROOT_DIR, 'data', 'df_curated.csv'), index=False)
