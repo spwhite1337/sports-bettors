@@ -84,9 +84,6 @@ def curate_data():
     df_stats['home_team'] = df_stats['home_team'].apply(lambda team: re.sub(' ', '', team))
     df_stats['away_team'] = df_stats['away_team'].apply(lambda team: re.sub(' ', '', team))
 
-    logger.info('Save Curated data for {} games.'.format(df_stats.shape))
-    df_stats.to_csv(os.path.join(ROOT_DIR, 'data', 'df_curated.csv'), index=False)
-
     # Define winner
     logger.info('Define Modeling Dataset.')
     # Drop ties
@@ -119,5 +116,5 @@ def curate_data():
         return '_vs_'.join(sorted([main_team, opponent]))
     df_modeling['matchup'] = df_modeling.apply(lambda row: _define_matchup(row['team'], row['opponent']), axis=1)
 
-    logger.info('Saving Modeling Dataset.')
-    df_modeling.to_csv(os.path.join(ROOT_DIR, 'data', 'df_modeling.csv'), index=False)
+    logger.info('Save Curated data for {} games.'.format(df_modeling.shape))
+    df_modeling.to_csv(os.path.join(ROOT_DIR, 'data', 'df_curated.csv'), index=False)
