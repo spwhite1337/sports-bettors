@@ -3,4 +3,4 @@
 *.xml
 .idea/
 *.egg-info
-
+.ipynb_checkpoints/
