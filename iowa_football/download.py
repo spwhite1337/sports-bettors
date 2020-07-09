@@ -74,8 +74,9 @@ class DownloadCollegeFootballData(object):
         """
         Download team rankings by week based on various polls
         """
+        logger.info('Downloading Rankings.')
         df, df_fails = [], []
-        for year in self.years:
+        for year in tqdm(self.years):
 
             # Try a download, catch connection failures
             try:
@@ -103,8 +104,17 @@ class DownloadCollegeFootballData(object):
                 for poll in week_record['polls']:
                     poll_name = poll['poll']
                     df_ranks = pd.DataFrame.from_records(poll['ranks']).assign(poll=poll_name, week=week, year=year)
+                    # Subset
+                    df_ranks = df_ranks[['year', 'week', 'poll', 'rank', 'school', 'conference']]
+
                     df.append(df_ranks)
         df = pd.concat(df).reset_index(drop=True)
+        df_fails = pd.concat(df_fails).reset_index(drop=True) if len(df_fails) > 0 else pd.DataFrame()
+
+        # Save
+        logger.info('Saving Rankings.')
+        df.to_csv(os.path.join(ROOT_DIR, 'data', 'df_rankings.csv'), index=False)
+        df_fails.to_csv(os.path.join(ROOT_DIR, 'data', 'df_failed_rankings.csv'), index=False)
 
         return df, df_fails
 
@@ -160,7 +170,7 @@ class DownloadCollegeFootballData(object):
             df_stats.append(df_game.assign(game_id=game_id))
 
         df_stats = pd.concat(df_stats).reset_index(drop=True)
-        df_fails = pd.concat(df_fails).reset_index(drop=True)
+        df_fails = pd.concat(df_fails).reset_index(drop=True) if len(df_fails) > 0 else pd.DataFrame()
 
         # Saving stats
         logger.info('Saving Stats.')
@@ -205,8 +215,8 @@ def download_cli():
 def download(retry: bool):
     downloader = DownloadCollegeFootballData()
     if not retry:
-        df_games = downloader.download_games()
-        downloader.download_stats(df_games)
+        # df_games = downloader.download_games()
+        # downloader.download_stats(df_games)
         downloader.download_rankings()
     else:
         downloader.retry_stats()
