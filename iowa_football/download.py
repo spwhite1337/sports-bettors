@@ -7,13 +7,12 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-from config import logger
+from config import ROOT_DIR, logger
 
 
 class DownloadCollegeFootballData(object):
     """
     Object to download data from college football data api
-
     """
     base_url = 'https://api.collegefootballdata.com/'
 
@@ -46,6 +45,10 @@ class DownloadCollegeFootballData(object):
             df.append(df_year)
         df = pd.concat(df).reset_index(drop=True)
 
+        # Save
+        logger.info('Saving games data.')
+        df.to_csv(os.path.join(ROOT_DIR, 'data', 'df_games.csv'), index=False)
+
         return df
 
     def download_stats(self, df_games: pd.DataFrame = None) -> Tuple[pd.DataFrame, list]:
@@ -56,24 +59,53 @@ class DownloadCollegeFootballData(object):
             df_games = self.download_games()
         assert 'game_id' in df_games.columns
 
-        df_stats, didnt_work = [], []
-        for game_id in set(df_games['game_id']):
+        logger.info('Downloading Stats.')
+        df_stats, df_fails = [], []
+        for game_id in tqdm(set(df_games['game_id'])):
             params = {'gameId': game_id}
+
+            # Try a download, catch connection failures
             try:
                 r = requests.get(self.base_url + self.endpoints['stats'], params=params)
-                stats_by_team = r.json()[0]['teams']
-                df_game = []
-                for team in stats_by_team:
-                    df_game_long = pd.DataFrame.from_records(team['stats'])
-                    df_game_long['category'] = team['homeAway'] + '_' + df_game_long['category']
-                    df_game.append(df_game_long)
-                df_game = pd.concat(df_game)
-                # Pivot
-                df_game = pd.pivot_table(df_game, columns='category', values='stat', aggfunc='first').reset_index(drop=True)
-                df_stats.append(df_game.assign(game_id=game_id))
             except Exception as err:
-                logger.info(err)
-                didnt_work.append(game_id)
-        df_stats = pd.concat(df_stats).reset_index(drop=True)
+                logger.info('{}, {}'.format(game_id, err))
+                df_fail = pd.DataFrame({'game_id': game_id, 'error': err}, index=[0])
+                df_fails.append(df_fail)
+                continue
 
-        return df_stats, didnt_work
+            if r.status_code != 200:
+                df_fail = pd.DataFrame({'game_id': game_id, 'error': r.status_code}, index=[0])
+                df_fails.append(df_fail)
+                continue
+
+            if len(r.json()) == 0:
+                df_fail = pd.DataFrame({'game_id': game_id, 'error': 'No Response'}, index=[0])
+                df_fails.append(df_fail)
+                continue
+
+            # Get list of stats where each entry is a team
+            stats_by_team = r.json()[0]['teams']
+            df_game = []
+            for team in stats_by_team:
+                df_game_long = pd.DataFrame.from_records(team['stats'])
+                df_game_long['category'] = team['homeAway'] + '_' + df_game_long['category']
+                df_game.append(df_game_long)
+            df_game = pd.concat(df_game)
+            # Pivot
+            df_game = pd.pivot_table(df_game, columns='category', values='stat', aggfunc='first').reset_index(drop=True)
+            df_stats.append(df_game.assign(game_id=game_id))
+
+        df_stats = pd.concat(df_stats).reset_index(drop=True)
+        df_fails = pd.concat(df_fails).reset_index(drop=True)
+
+        # Saving stats
+        logger.info('Saving Stats.')
+        df_stats.to_csv(os.path.join(ROOT_DIR, 'data', 'df_stats.csv'), index=False)
+        df_fails.to_csv(os.path.join(ROOT_DIR, 'data', 'df_failed_stats.csv'), index=False)
+
+        return df_stats, df_fails
+
+
+def download():
+    downloader = DownloadCollegeFootballData()
+    downloader.download_stats()
