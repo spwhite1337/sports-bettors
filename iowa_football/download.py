@@ -171,6 +171,9 @@ class DownloadCollegeFootballData(object):
         df_stats = pd.concat(df_stats).reset_index(drop=True)
         df_fails = pd.concat(df_fails).reset_index(drop=True) if len(df_fails) > 0 else pd.DataFrame()
 
+        logger.info('Downloaded Stats for {} games.'.format(df_stats.shape[0]))
+        logger.info('Failed downloads for {} games.'.format(df_fails.shape[0]))
+
         # Saving stats
         logger.info('Saving Stats.')
         df_stats.to_csv(os.path.join(ROOT_DIR, 'data', 'df_stats.csv'), index=False)
@@ -196,7 +199,7 @@ class DownloadCollegeFootballData(object):
         df_stats, df_fails = self.download_stats(df)
 
         # Append
-        df_retried = df_original.append(df_stats)
+        df_retried = df_original.append(df_stats).drop_duplicates().reset_index(drop=True)
 
         # Save
         df_retried.to_csv(original_stats, index=False)
