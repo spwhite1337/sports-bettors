@@ -8,7 +8,8 @@ setup(
     author_email='spwhite1337@gmail.com',
     packages=find_packages(),
     entry_points={'console_scripts': [
-        'if_download = iowa_football.download:download_cli'
+        'if_download = iowa_football.download:download_cli',
+        'if_curate = iowa_football.curate:curate_data'
     ]},
     install_requires=[
         'pandas',

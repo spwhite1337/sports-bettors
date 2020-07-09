@@ -1,4 +1,5 @@
 import os
+import re
 
 import pandas as pd
 
@@ -51,5 +52,24 @@ def curate_data():
     df_stats = df_stats.dropna(axis=0)
     logger.info('Returned {} games'.format(df_stats.shape[0]))
 
-    logger.info('Matchups and stats')
+    logger.info('Merge Match-ups and stats')
+    df_stats = df_stats.merge(df_games, on='game_id', how='inner')
 
+    logger.info('Merge Rankings and Stats')
+    for poll, df_poll in df_rankings.groupby('poll'):
+        rank_col_name = re.sub(' ', '', poll) + 'Rank'
+        df_poll_sub = df_poll.\
+            rename(columns={'rank': rank_col_name, 'year': 'season'})
+
+        # Merge with stats
+        for home_away in ['home', 'away']:
+            df_poll_sub[home_away + '_team'] = df_poll_sub['school']
+            df_poll_sub[home_away + '_' + rank_col_name] = df_poll_sub[rank_col_name]
+            df_stats = df_stats.merge(df_poll_sub[
+                                          ['season', 'week', home_away + '_team', home_away + '_' + rank_col_name]
+                                      ],
+                                      on=['season', 'week', home_away + '_team'],
+                                      how='left')
+
+    logger.info('Save Curated data.')
+    df_stats.to_csv(os.path.join(ROOT_DIR, 'data', 'df_curated.csv'), index=False)
