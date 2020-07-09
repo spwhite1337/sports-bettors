@@ -18,7 +18,7 @@ def curate_data():
     logger.info('Wrangle stats.')
 
     # Drop data errors
-    df_stats = df_stats[df_stats['away_totalPenaltieYards'] != '7--4953']
+    df_stats = df_stats[df_stats['away_totalPenaltiesYards'] != '7--4953']
 
     for home_away in ['home', 'away']:
         # Pass completion - attempts
