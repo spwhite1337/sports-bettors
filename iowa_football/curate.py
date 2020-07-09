@@ -26,28 +26,28 @@ def curate_data():
             apply(lambda pca: int(pca.split('-')[0]) if isinstance(pca, str) else pca)
         df_stats[home_away + '_passAttempts'] = df_stats[home_away + '_completionAttempts'].\
             apply(lambda pca: int(pca.split('-')[1]) if isinstance(pca, str) else pca)
-        df_stats = df_stats.drop(home_away + '_completionAttempts')
+        df_stats = df_stats.drop(home_away + '_completionAttempts', axis=1)
 
         # Third Downs
         df_stats[home_away + '_thirdDownCompletions'] = df_stats[home_away + '_thirdDownEff'].\
             apply(lambda tde: int(tde.split('-')[0]) if isinstance(tde, str) else tde)
         df_stats[home_away + '_thirdDownAttempts'] = df_stats[home_away + '_thirdDownEff'].\
             apply(lambda tde: int(tde.split('-')[1]) if isinstance(tde, str) else tde)
-        df_stats = df_stats.drop(home_away + '_thirdDownEff')
+        df_stats = df_stats.drop(home_away + '_thirdDownEff', axis=1)
 
         # Fourth Downs
         df_stats[home_away + '_fourthDownCompletions'] = df_stats[home_away + '_fourthDownEff'].\
             apply(lambda fde: int(fde.split('-')[0]) if isinstance(fde, str) else fde)
         df_stats[home_away + '_fourthDownAttempts'] = df_stats[home_away + '_fourthDownEff'].\
             apply(lambda fde: int(fde.split('-')[1]) if isinstance(fde, str) else fde)
-        df_stats = df_stats.drop(home_away + '_fourthDownEff')
+        df_stats = df_stats.drop(home_away + '_fourthDownEff', axis=1)
 
         # Penalties
         df_stats[home_away + '_numPenalties'] = df_stats[home_away + '_totalPenaltiesYards'].\
             apply(lambda tpy: int(tpy.split('-')[0]) if isinstance(tpy, str) else tpy)
         df_stats[home_away + '_penaltyYards'] = df_stats[home_away + '_totalPenaltiesYards'].\
             apply(lambda tpy: int(tpy.split('-')[1]) if isinstance(tpy, str) else tpy)
-        df_stats = df_stats.drop(home_away + '_totalPenaltiesYards')
+        df_stats = df_stats.drop(home_away + '_totalPenaltiesYards', axis=1)
 
         # Possession Time
         df_stats[home_away + '_possessionTime'] = df_stats[home_away + '_possessionTime'].\
