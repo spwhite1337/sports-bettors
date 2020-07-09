@@ -61,7 +61,7 @@ class DownloadCollegeFootballData(object):
 
             # Gather
             df.append(df_year)
-        df = pd.concat(df).reset_index(drop=True)
+        df = pd.concat(df, sort=True).reset_index(drop=True)
 
         # Save
         logger.info('Saving games data.')
@@ -107,8 +107,8 @@ class DownloadCollegeFootballData(object):
                     df_ranks = df_ranks[['year', 'week', 'poll', 'rank', 'school', 'conference']]
 
                     df.append(df_ranks)
-        df = pd.concat(df).reset_index(drop=True)
-        df_fails = pd.concat(df_fails).reset_index(drop=True) if len(df_fails) > 0 else pd.DataFrame()
+        df = pd.concat(df, sort=True).reset_index(drop=True)
+        df_fails = pd.concat(df_fails, sort=True).reset_index(drop=True) if len(df_fails) > 0 else pd.DataFrame()
 
         # Save
         logger.info('Saving Rankings.')
@@ -162,14 +162,14 @@ class DownloadCollegeFootballData(object):
                 # Append home/away to category
                 df_game_long['category'] = team['homeAway'] + '_' + df_game_long['category']
                 df_game.append(df_game_long)
-            df_game = pd.concat(df_game)
+            df_game = pd.concat(df_game, sort=True)
 
             # Pivot
             df_game = pd.pivot_table(df_game, columns='category', values='stat', aggfunc='first').reset_index(drop=True)
             df_stats.append(df_game.assign(game_id=game_id))
 
-        df_stats = pd.concat(df_stats).reset_index(drop=True)
-        df_fails = pd.concat(df_fails).reset_index(drop=True) if len(df_fails) > 0 else pd.DataFrame()
+        df_stats = pd.concat(df_stats, sort=True).reset_index(drop=True)
+        df_fails = pd.concat(df_fails, sort=True).reset_index(drop=True) if len(df_fails) > 0 else pd.DataFrame()
 
         logger.info('Downloaded Stats for {} games.'.format(df_stats.shape[0]))
         logger.info('Failed downloads for {} games.'.format(df_fails.shape[0]))
