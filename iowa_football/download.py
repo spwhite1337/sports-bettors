@@ -5,7 +5,6 @@ from datetime import datetime
 from typing import Tuple
 
 import pandas as pd
-import numpy as np
 from tqdm import tqdm
 
 from config import ROOT_DIR, logger
@@ -215,8 +214,8 @@ def download_cli():
 def download(retry: bool):
     downloader = DownloadCollegeFootballData()
     if not retry:
-        # df_games = downloader.download_games()
-        # downloader.download_stats(df_games)
+        df_games = downloader.download_games()
+        downloader.download_stats(df_games)
         downloader.download_rankings()
     else:
         downloader.retry_stats()
