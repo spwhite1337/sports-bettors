@@ -1,6 +1,7 @@
 import os
 import re
 
+from tqdm import tqdm
 import pandas as pd
 
 from config import ROOT_DIR, logger
@@ -83,11 +84,6 @@ def curate_data():
     df_stats['home_team'] = df_stats['home_team'].apply(lambda team: re.sub(' ', '', team))
     df_stats['away_team'] = df_stats['away_team'].apply(lambda team: re.sub(' ', '', team))
 
-    def _define_matchup(home_team, away_team):
-        teams = sorted([home_team, away_team])
-        return ''.join(teams)
-    df_stats['matchup'] = df_stats.apply(lambda row: _define_matchup(row['home_team'], row['away_team']), axis=1)
-
     logger.info('Save Curated data for {} games.'.format(df_stats.shape))
     df_stats.to_csv(os.path.join(ROOT_DIR, 'data', 'df_curated.csv'), index=False)
 
@@ -96,5 +92,32 @@ def curate_data():
     # Drop ties
     df_stats = df_stats[df_stats['home_points'] != df_stats['away_points']]
 
-    df_stats['homeWin'] = df_stats['home_points'] > df_stats['away_points']
+    df_modeling = []
+    all_teams = set(list(df_stats['home_team']) + list(df_stats['away_team']))
+    for team in tqdm(all_teams):
+        # Games where team is home
+        df_home = df_stats[df_stats['home_team'] == team].copy()
+        df_home['team'] = team
+        df_home['is_home'] = 1
+        df_home['opponent'] = df_home['away_team']
+        df_home = df_home.drop(['home_team', 'away_team'], axis=1)
+        df_home.columns = [re.sub('away_', 'opp_', re.sub('home_', '', col)) for col in df_home.columns]
+        df_modeling.append(df_home)
 
+        # Games where team is away
+        df_away = df_stats[df_stats['away_team'] == team].copy()
+        df_away['team'] = team
+        df_away['is_home'] = 0
+        df_away['opponent'] = df_away['home_team']
+        df_away = df_away.drop(['home_team', 'away_team'], axis=1)
+        df_away.columns = [re.sub('home_', 'opp_', re.sub('away_', '', col)) for col in df_away.columns]
+        df_modeling.append(df_away)
+    df_modeling = pd.concat(df_modeling, sort=True).reset_index(drop=True)
+
+    # Matchup
+    def _define_matchup(main_team, opponent):
+        return '_vs_'.join(sorted([main_team, opponent]))
+    df_modeling['matchup'] = df_modeling.apply(lambda row: _define_matchup(row['team'], row['opponent']), axis=1)
+
+    logger.info('Saving Modeling Dataset.')
+    df_modeling.to_csv(os.path.join(ROOT_DIR, 'data', 'df_modeling.csv'), index=False)
