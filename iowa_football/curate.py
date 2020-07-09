@@ -90,3 +90,11 @@ def curate_data():
 
     logger.info('Save Curated data for {} games.'.format(df_stats.shape))
     df_stats.to_csv(os.path.join(ROOT_DIR, 'data', 'df_curated.csv'), index=False)
+
+    # Define winner
+    logger.info('Define Modeling Dataset.')
+    # Drop ties
+    df_stats = df_stats[df_stats['home_points'] != df_stats['away_points']]
+
+    df_stats['homeWin'] = df_stats['home_points'] > df_stats['away_points']
+
