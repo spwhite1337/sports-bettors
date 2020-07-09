@@ -210,7 +210,6 @@ def download_cli():
     parser = argparse.ArgumentParser(prog='Download College Football Data')
     parser.add_argument('--retry', action='store_true')
     args = parser.parse_args()
-
     download(retry=args.retry)
 
 
