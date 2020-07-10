@@ -1,6 +1,6 @@
 import os
+import pickle
 
-from typing import Tuple
 from collections import namedtuple
 
 import pandas as pd
@@ -74,6 +74,7 @@ class FootballBettingAid(object):
                  # I/O
                  input_path: str = os.path.join(ROOT_DIR, 'data', 'df_curated.csv'),
                  results_dir: str = os.path.join(ROOT_DIR, 'modeling', 'results'),
+                 version: str = 'v1',
 
                  # Transformation
                  random_effect: str = 'Team',
@@ -89,6 +90,7 @@ class FootballBettingAid(object):
         # I/O
         self.input_path = input_path
         self.results_dir = results_dir
+        self.version = version
 
         # Transformation
         self.random_effect = random_effect.lower()
@@ -110,13 +112,12 @@ class FootballBettingAid(object):
         assert self.random_effect in self.random_effects
         assert self.poll in self.polls
 
-    @staticmethod
-    def etl(input_path: str = None):
+    def etl(self, input_path: str = None):
         """
         Load data
         """
         logger.info('Loading Curated Data')
-        input_path = os.path.join(ROOT_DIR, 'data', 'df_curated.csv') if input_path is None else input_path
+        input_path = self.input_path if input_path is None else input_path
         if not os.path.exists(input_path):
             raise FileNotFoundError('No curated data, run `cf_curate`')
         return pd.read_csv(input_path)
@@ -261,7 +262,7 @@ class FootballBettingAid(object):
 
         return self.model
 
-    def diagnostics(self):
+    def diagnose(self):
         """
         Print diagnostics for the fit model
         """
@@ -277,3 +278,17 @@ class FootballBettingAid(object):
         # For Binaries, plot a ROC curve, histogram of predictions by class
 
         # For continuous, plot a distribution of residuals with r-squared and MSE
+
+    def save(self, save_path: str = None):
+        """
+        Save object
+        """
+        if save_path is None:
+            save_path = 'classifier_{}_{}_{}_{}.pkl'.format(self.feature_label, self.random_effect, self.response,
+                                                            self.version)
+        if os.path.exists(os.path.join(self.results_dir, save_path)):
+            logger.info('WARNING: Overwriting file')
+            input('Press enter to continue.')
+
+        with open(os.path.join(self.results_dir, save_path), 'wb') as fp:
+            pickle.dump(self, fp)
