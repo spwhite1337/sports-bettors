@@ -27,17 +27,6 @@ class FootballBettingAid(object):
     # Poll to use when determining rank
     polls = ['APTop25Rank', 'BCSStandingsRank', 'CoachesPollRank']
 
-    # Feature set to use for modeling
-    feature_sets = {
-            'RushOnly': Features('RushOnly', ['rushingYards', 'rushingAttempts']),
-            'PassOnly': Features('PassOnly', ['passingYards', 'passingAttempts']),
-            'Offense': Features('Offense', ['rushingYards', 'passingYards', 'rushingAttempts', 'passingAttempts']),
-            'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
-            'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
-            'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv',
-                                    'to_margin', 'firstdowns_adv'])
-        }
-
     # Feature Definitions
     feature_creators = {
         'rush_yds_adv': lambda row: row['rushingYards'] - row['opp_rushingYards'],
@@ -48,6 +37,17 @@ class FootballBettingAid(object):
         'firstdowns_adv': lambda row: row['firstDowns'] - row['opp_firstDowns'],
         'pass_proportion': lambda row: row['passAttempts'] / (row['passAttempts'] + row['rushAttempts'])
     }
+
+    # Feature set to use for modeling (each value must be in the curated dataset or as a key in feature_creators)
+    feature_sets = {
+            'RushOnly': Features('RushOnly', ['rushingYards', 'rushingAttempts']),
+            'PassOnly': Features('PassOnly', ['passingYards', 'passingAttempts']),
+            'Offense': Features('Offense', ['rushingYards', 'passingYards', 'rushingAttempts', 'passingAttempts']),
+            'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
+            'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
+            'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv',
+                                    'to_margin', 'firstdowns_adv'])
+        }
 
     # Potential Responses
     responses = ['Win', 'WinMargin', 'LossMargin', 'TotalPoints', 'Margin']
@@ -70,6 +70,15 @@ class FootballBettingAid(object):
         'Margin': lambda df_sub: df_sub
     }
 
+    # Model types for each response
+    response_distributions = {
+        'Win': 'bernoulli_logit',
+        'WinMargin': 'linear',
+        'LossMargin': 'linear',
+        'TotalPoints': 'linear',
+        'Margin': 'linear'
+    }
+
     def __init__(self,
                  # I/O
                  input_path: str = os.path.join(ROOT_DIR, 'data', 'df_curated.csv'),
@@ -82,7 +91,7 @@ class FootballBettingAid(object):
                  poll: str = 'APTop25Rank',
 
                  # Modeling
-                 response: str = 'Win',
+                 response: str = 'Margin',
                  iterations: int = 1000,
                  chains: int = 2,
                  verbose: bool = True
@@ -210,24 +219,23 @@ class FootballBettingAid(object):
         """
         Convert list of features into a stan-compatible model code
         """
+        response = {
+            'linear': 'y ~ normal(y_hat, sigma_y)',
+            'bernoulli_logit': 'y ~ bernoulli_logit(y_hat)'
+        }.get(self.response_distributions[self.response])
+
         variables = ' '.join(['vector[N] {};'.format(feature) for feature in self.features])
         parameters = ' '.join(['real b{};'.format(fdx) for fdx in range(len(self.features))])
         transformation = ' '.join(['+ {}[i] * b{}'.format(feature, fdx) for fdx, feature in enumerate(self.features)])
         model = ' '.join(['b{} ~ normal(0, 1);'.format(fdx) for fdx in range(len(self.features))])
         model_code = """
         data {{
-            int<lower=0> J;
-            int<lower=0> N;
-            int<lower=1, upper=J> RandomEffect[N];
+            int<lower=0> J; int<lower=0> N; int<lower=1, upper=J> RandomEffect[N]; vector[N] y;
             {variables}
-            vector[N] y;
         }}
         parameters {{
-            vector[J] a;
+            vector[J] a; real mu_a; real<lower=0,upper=100> sigma_a; real<lower=0,upper=100> sigma_y;
             {parameters}
-            real mu_a;
-            real<lower=0,upper=100> sigma_a;
-            real<lower=0,upper=100> sigma_y;
         }}
         transformed parameters {{
             vector[N] y_hat;
@@ -235,13 +243,11 @@ class FootballBettingAid(object):
                 y_hat[i] = a[RandomEffect[i]] {transformation};
         }}
         model {{
-            sigma_a ~ uniform(0, 100);
-            a ~ normal(mu_a, sigma_a);
+            sigma_a ~ uniform(0, 100); a ~ normal(mu_a, sigma_a); sigma_y ~ uniform(0, 100); {response};
             {model}
-            sigma_y ~ uniform(0, 100);
-            y ~ normal(y_hat, sigma_y);
         }}
-        """.format(variables=variables, parameters=parameters, transformation=transformation, model=model)
+        """.format(variables=variables, parameters=parameters, transformation=transformation, response=response,
+                   model=model)
 
         return model_code
 
