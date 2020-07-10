@@ -9,7 +9,8 @@ setup(
     packages=find_packages(),
     entry_points={'console_scripts': [
         'cf_download = college_football.download:download_cli',
-        'cf_curate = college_football.curate:curate_data'
+        'cf_curate = college_football.curate:curate_data',
+        'cf_run_experiments = college_football.experiments.run_experiments'
     ]},
     install_requires=[
         'pandas',

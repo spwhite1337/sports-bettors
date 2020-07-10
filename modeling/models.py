@@ -72,8 +72,8 @@ class FootballBettingAid(object):
 
     def __init__(self,
                  # I/O
-                 df_input: pd.DataFrame = None,
-                 input_path: str = None,
+                 input_path: str = os.path.join(ROOT_DIR, 'data', 'df_curated.csv'),
+                 results_dir: str = os.path.join(ROOT_DIR, 'modeling', 'results'),
 
                  # Transformation
                  random_effect: str = 'Team',
@@ -87,10 +87,12 @@ class FootballBettingAid(object):
                  verbose: bool = True
                  ):
         # I/O
-        self.df_input = df_input if df_input is not None else self.etl(input_path)
+        self.input_path = input_path
+        self.results_dir = results_dir
 
         # Transformation
         self.random_effect = random_effect.lower()
+        self.feature_label = features
         self.features = self.feature_sets[features].features
         self.poll = poll
         self.scales = {}
@@ -108,7 +110,8 @@ class FootballBettingAid(object):
         assert self.random_effect in self.random_effects
         assert self.poll in self.polls
 
-    def etl(self, input_path: str = None):
+    @staticmethod
+    def etl(input_path: str = None):
         """
         Load data
         """
@@ -116,9 +119,7 @@ class FootballBettingAid(object):
         input_path = os.path.join(ROOT_DIR, 'data', 'df_curated.csv') if input_path is None else input_path
         if not os.path.exists(input_path):
             raise FileNotFoundError('No curated data, run `cf_curate`')
-        self.df_input = pd.read_csv(input_path)
-
-        return self.df_input
+        return pd.read_csv(input_path)
 
     def _define_random_effect(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.random_effect == 'ranked_team':
@@ -206,7 +207,7 @@ class FootballBettingAid(object):
 
     def model_code(self):
         """
-        Convert list of features into a stan-compatible model formula
+        Convert list of features into a stan-compatible model code
         """
         variables = ' '.join(['vector[N] {};'.format(feature) for feature in self.features])
         parameters = ' '.join(['real b{};'.format(fdx) for fdx in range(len(self.features))])
@@ -228,18 +229,14 @@ class FootballBettingAid(object):
             real<lower=0,upper=100> sigma_y;
         }}
         transformed parameters {{
-
             vector[N] y_hat;
-
             for (i in 1:N)
                 y_hat[i] = a[RandomEffect[i]] {transformation};
         }}
         model {{
             sigma_a ~ uniform(0, 100);
             a ~ normal(mu_a, sigma_a);
-
             {model}
-
             sigma_y ~ uniform(0, 100);
             y ~ normal(y_hat, sigma_y);
         }}
@@ -247,18 +244,36 @@ class FootballBettingAid(object):
 
         return model_code
 
-    def fit(self) -> pystan.stan:
+    def fit(self, df: pd.DataFrame = None) -> pystan.stan:
         """
         Fit a pystan model
         """
         logger.info('Fitting a pystan Model')
-        if self.df_input is None:
-            raise ValueError('Load Data before fitting.')
-        input_data = self.fit_transform(self.df_input)
+        if df is None:
+            df = self.etl()
+        input_data = self.fit_transform(df)
         model_code = self.model_code()
 
         # Fit stan model
         self.model = pystan.stan(model_code=model_code, data=input_data, iter=self.iterations, chains=self.chains,
-                                 verbose=self.verbose)
+                                 verbose=self.verbose, model_name='{}_{}'.format(self.feature_label, self.response),
+                                 seed=187)
 
         return self.model
+
+    def diagnostics(self):
+        """
+        Print diagnostics for the fit model
+        """
+        if self.model is None:
+            raise ValueError('Fit a model first.')
+
+        # Print r-hats
+
+        # Print distributions of parameters
+
+        # Predict on dataset
+
+        # For Binaries, plot a ROC curve, histogram of predictions by class
+
+        # For continuous, plot a distribution of residuals with r-squared and MSE
