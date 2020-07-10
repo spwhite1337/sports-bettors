@@ -79,16 +79,11 @@ def curate_data():
                                       ],
                                       on=['season', 'week', home_away + '_team'],
                                       how='left')
-
-    # Create Matchup columns
+    # Clean up team names
     df_stats['home_team'] = df_stats['home_team'].apply(lambda team: re.sub(' ', '', team))
     df_stats['away_team'] = df_stats['away_team'].apply(lambda team: re.sub(' ', '', team))
 
-    # Define winner
     logger.info('Define Modeling Dataset.')
-    # Drop ties
-    df_stats = df_stats[df_stats['home_points'] != df_stats['away_points']]
-
     df_modeling = []
     all_teams = set(list(df_stats['home_team']) + list(df_stats['away_team']))
     for team in tqdm(all_teams):
