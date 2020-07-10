@@ -44,3 +44,8 @@ Necessary data:
             - Matchup
             - PointDifferential
             - StatDifferential
+            
+            
+On Windows: Run this after `pip install -e .` to install a C++ compiler:
+ - `conda install libpython m2w64-toolchain -c msys2`
+    

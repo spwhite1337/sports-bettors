@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from sklearn.preprocessing import StandardScaler
+import pystan
 
 from config import ROOT_DIR, logger
 
@@ -82,6 +82,9 @@ class FootballBettingAid(object):
 
                  # Modeling
                  response: str = 'Win',
+                 iterations: int = 1000,
+                 chains: int = 2,
+                 verbose: bool = True
                  ):
         # I/O
         self.df_input = df_input if df_input is not None else self.etl(input_path)
@@ -91,9 +94,15 @@ class FootballBettingAid(object):
         self.features = self.feature_sets[features].features
         self.poll = poll
         self.scales = {}
+        self.random_effect_map = {}
+        self.random_effect_inv = {}
 
         # Modeling
         self.response = response
+        self.iterations = iterations
+        self.chains = chains
+        self.verbose = verbose
+        self.model = None
 
         # Quality check on inputs
         assert self.random_effect in self.random_effects
@@ -101,7 +110,7 @@ class FootballBettingAid(object):
 
     def etl(self, input_path: str = None):
         """
-        Load data and
+        Load data
         """
         logger.info('Loading Curated Data')
         input_path = os.path.join(ROOT_DIR, 'data', 'df_curated.csv') if input_path is None else input_path
@@ -125,12 +134,17 @@ class FootballBettingAid(object):
                 df[feature] = df.apply(lambda row: self.feature_creators[feature](row), axis=1)
         return df
 
-    def fit_transform(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    def fit_transform(self, df: pd.DataFrame) -> dict:
         """
         Create features and scale
         """
-        # Specify random_effect
+        logger.info('Fitting and Transforming Data')
+        # Specify random_effect and map to integer
         df['RandomEffect'] = self._define_random_effect(df)
+        groups = sorted(list(set(df['RandomEffect'])))
+        self.random_effect_map = dict(zip(groups, range(len(groups))))
+        self.random_effect_inv = {v: k for k, v in self.random_effect_map.items()}
+        df['RandomEffect'] = df['RandomEffect'].map(self.random_effect_map)
 
         # Engineer features
         df = self._engineer_features(df)
@@ -149,12 +163,20 @@ class FootballBettingAid(object):
             self.scales[feature] = (df[feature].mean(), df[feature].std())
             df[feature] = (df[feature] - self.scales[feature][0]) / self.scales[feature][1]
 
-        return df.drop('response', axis=1), df['response']
+        # Convert data to dictionary for Pystan API input
+        pystan_data = {feature: df[feature].values for feature in self.features}
+        pystan_data['N'] = df.shape[0]
+        pystan_data['J'] = len(set(df['RandomEffect']))
+        pystan_data['RandomEffect'] = df['RandomEffect'].values + 1
+        pystan_data['y'] = df['response'].values
 
-    def transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        return pystan_data
+
+    def transform(self, df: pd.DataFrame) -> dict:
         """
         Create features and normalize
         """
+        logger.info('Transforming Data.')
         # Specify Random Effect
         df['RandomEffect'] = self._define_random_effect(df)
 
@@ -165,10 +187,78 @@ class FootballBettingAid(object):
         df = self.filters[self.response](df)
 
         # Scale
+        if len(self.scales) == 0:
+            raise ValueError('Fit model first.')
+
         for feature in self.features:
             df[feature] = (df[feature] - self.scales[feature][0]) / self.scales[feature][1]
 
         # Subset and Sort
         df = df[['RandomEffect'] + self.features].sort_values('RandomEffect').reset_index(drop=True)
 
-        return df
+        # Convert data to dictionary for Pystan API input
+        pystan_data = {feature: df[feature].values for feature in self.features}
+        pystan_data['N'] = df.shape[0]
+        pystan_data['J'] = len(set(df['RandomEffect']))
+        pystan_data['RandomEffect'] = df['RandomEffect'].values + 1
+
+        return pystan_data
+
+    def model_code(self):
+        """
+        Convert list of features into a stan-compatible model formula
+        """
+        variables = ' '.join(['vector[N] {};'.format(feature) for feature in self.features])
+        parameters = ' '.join(['real b{};'.format(fdx) for fdx in range(len(self.features))])
+        transformation = ' '.join(['+ {}[i] * b{}'.format(feature, fdx) for fdx, feature in enumerate(self.features)])
+        model = ' '.join(['b{} ~ normal(0, 1);'.format(fdx) for fdx in range(len(self.features))])
+        model_code = """
+        data {{
+            int<lower=0> J;
+            int<lower=0> N;
+            int<lower=1, upper=J> RandomEffect[N];
+            {variables}
+            vector[N] y;
+        }}
+        parameters {{
+            vector[J] a;
+            {parameters}
+            real mu_a;
+            real<lower=0,upper=100> sigma_a;
+            real<lower=0,upper=100> sigma_y;
+        }}
+        transformed parameters {{
+
+            vector[N] y_hat;
+
+            for (i in 1:N)
+                y_hat[i] = a[RandomEffect[i]] {transformation};
+        }}
+        model {{
+            sigma_a ~ uniform(0, 100);
+            a ~ normal(mu_a, sigma_a);
+
+            {model}
+
+            sigma_y ~ uniform(0, 100);
+            y ~ normal(y_hat, sigma_y);
+        }}
+        """.format(variables=variables, parameters=parameters, transformation=transformation, model=model)
+
+        return model_code
+
+    def fit(self) -> pystan.stan:
+        """
+        Fit a pystan model
+        """
+        logger.info('Fitting a pystan Model')
+        if self.df_input is None:
+            raise ValueError('Load Data before fitting.')
+        input_data = self.fit_transform(self.df_input)
+        model_code = self.model_code()
+
+        # Fit stan model
+        self.model = pystan.stan(model_code=model_code, data=input_data, iter=self.iterations, chains=self.chains,
+                                 verbose=self.verbose)
+
+        return self.model
