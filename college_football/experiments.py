@@ -8,8 +8,8 @@ from config import ROOT_DIR, logger
 def run_experiments():
     predictors = {}
     for random_effect in FootballBettingAid.random_effects:
-        for response in FootballBettingAid.responses:
-            for feature_set in FootballBettingAid.feature_sets.keys():
+        for feature_set in FootballBettingAid.feature_sets.keys():
+            for response in FootballBettingAid.responses:
                 logger.info('{} ~ {} | {}'.format(feature_set, response, random_effect))
                 aid = FootballBettingAid(random_effect=random_effect, features=feature_set, response=response)
                 aid.fit()

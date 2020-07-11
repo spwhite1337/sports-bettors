@@ -2,7 +2,6 @@ import os
 import re
 import pickle
 
-from typing import Tuple
 from collections import namedtuple
 
 import pandas as pd
@@ -45,15 +44,16 @@ class FootballPredictor(object):
                   self.predictor['random_effect'].get(random_effect, (0, 0, 0))[0] +
                   np.sum([
                       np.min([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
-                  ]),
+                  ]) + self.predictor.get('noise', (0, 0, 0))[0],
             'mean': self.predictor['intercept'][1] +
                     self.predictor['random_effect'].get(random_effect, (0, 0, 0))[1] +
-                    np.sum([self.predictor['coefficients'][f][1] * v for f, v in data.items()]),
+                    np.sum([self.predictor['coefficients'][f][1] * v for f, v in data.items()]) +
+                    self.predictor.get('noise', (0, 0, 0))[1],
             'ub': self.predictor['intercept'][2] +
                   self.predictor['random_effect'].get(random_effect, (0, 0, 0))[1] +
                   np.sum([
                       np.max([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
-                  ]),
+                  ]) + self.predictor.get('noise', (0, 0, 0))[2],
         }
 
         return output
@@ -326,7 +326,6 @@ class FootballBettingAid(object):
         self.summary = pd.DataFrame(summary['summary'], columns=summary['summary_colnames']). \
             assign(labels=summary['summary_rownames'])
 
-        # Convert to bare-model for API predictions
         # Random Effects
         df_re = self.summary[self.summary['labels'].str.startswith('a[')].reset_index(drop=True)
         df_re['labels'] = df_re['labels'].map(self.random_effect_inv)
@@ -335,8 +334,15 @@ class FootballBettingAid(object):
         df_coefs = self.summary[self.summary['labels'].str.contains('^b[0-9]', regex=True)]. \
             assign(labels=self.features)
 
+        # Global intercept
         intercept = self.summary[self.summary['labels'] == 'mu_a']['mean'].iloc[0]
         intercept_sd = self.summary[self.summary['labels'] == 'mu_a']['sd'].iloc[0]
+
+        # Noise
+        noise = self.summary[self.summary['labels'] == 'sigma_y']['mean'].iloc[0]
+        noise_sd = self.summary[self.summary['labels'] == 'sigma_y']['sd'].iloc[0]
+
+        # Convert to bare-model for API predictions
         predictor = {
                 'random_effect': dict(zip(
                     df_re['labels'],
@@ -346,9 +352,14 @@ class FootballBettingAid(object):
                     df_coefs['labels'],
                     list(zip(df_coefs['mean'] - df_coefs['sd'], df_coefs['mean'], df_coefs['mean'] + df_coefs['sd']))
                 )),
-                'intercept': (intercept - intercept_sd, intercept, intercept + intercept_sd)
+                'intercept': (intercept - intercept_sd, intercept, intercept + intercept_sd),
         }
 
+        # Add noise is applicable
+        if self.response_distributions[self.response] == 'bernoulli_logit':
+            predictor['noise'] = (noise - noise_sd, noise, noise + noise_sd)
+
+        # Define predictor object
         self.predictor = FootballPredictor(scales=self.scales, predictor=predictor)
 
         return self.model, self.summary
