@@ -299,6 +299,9 @@ class FootballBettingAid(object):
         # Coefficients
         df_coefs = df_summary[df_summary['labels'].str.contains('^b[0-9]', regex=True)].assign(labels=self.features)
 
+        # Globals
+        df_globals = df_summary[df_summary['labels'].isin(['mu_a', 'sigma_a', 'sigma_y'])]
+
         # Boxplot distribution of parameters
 
         # For Binaries, plot a ROC curve, histogram of predictions by class
