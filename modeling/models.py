@@ -117,6 +117,7 @@ class FootballBettingAid(object):
         self.chains = chains
         self.verbose = verbose
         self.model = None
+        self.summary = None
 
         # Quality check on inputs
         assert self.random_effect in self.random_effects
@@ -276,21 +277,32 @@ class FootballBettingAid(object):
                                  verbose=self.verbose,
                                  model_name='{}_{}_{}'.format(self.feature_label, self.random_effect, self.response),
                                  seed=187)
+        # Get model summary
+        self.summary = self.model.summary()
 
-        return self.model
+        # Convert to bare-model for API predictions
+        # TODO
+        pass
+
+        return self.model, self.summary
+
+    def predict(self, ):
+        """
+        Get point estimates and credible intervals from input data
+        """
+        pass
 
     def diagnose(self):
         """
         Print diagnostics for the fit model
         """
-        if self.model is None:
+        if self.summary is None:
             raise ValueError('Fit a model first.')
 
         # Get model summary
         logger.info('Getting model summary for diagnostics')
-        summary = self.model.summary()
-        df_summary = pd.DataFrame(summary['summary'], columns=summary['summary_colnames']).\
-            assign(labels=summary['summary_rownames'])
+        df_summary = pd.DataFrame(self.summary['summary'], columns=self.summary['summary_colnames']).\
+            assign(labels=self.summary['summary_rownames'])
 
         logger.info('Printing Results.')
         # Get trues
@@ -310,6 +322,8 @@ class FootballBettingAid(object):
 
         # Globals
         df_globals = df_summary[df_summary['labels'].isin(['mu_a', 'sigma_a', 'sigma_y'])].reset_index(drop=True)
+        if self.response_distributions[self.response] == 'bernoulli_logit':
+            df_globals = df_globals[df_globals['labels'] != 'sigma_y'].reset_index(drop=True)
 
         with PdfPages(os.path.join(self.results_dir, 'diagnostics_{}_{}_{}_{}.pdf'.format(
                 self.feature_label, self.random_effect, self.response, self.version
@@ -368,15 +382,6 @@ class FootballBettingAid(object):
             # Globals
             plt.figure(figsize=(8, 8))
             plt.bar(df_globals['labels'], df_globals['mean'])
-            plt.text(0.04, 0.3, 'sigma_y: {x:0.3f}'.format(
-                x=df_globals[df_globals['labels'] == 'sigma_y']['mean'].iloc[0]
-            ))
-            plt.text(0.04, 0.5, 'mu_a: {x:0.3f}'.format(
-                x=df_globals[df_globals['labels'] == 'mu_a']['mean'].iloc[0]
-            ))
-            plt.text(0.04, 0.7, 'sigma_a: {x:0.3f}'.format(
-                x=df_globals[df_globals['labels'] == 'sigma_a']['mean'].iloc[0]
-            ))
             plt.errorbar(x=df_globals.index, y=df_globals['mean'], yerr=df_globals['sd'], fmt='none', ecolor='black')
             plt.grid(True)
             plt.title('Globals')
