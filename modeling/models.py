@@ -330,7 +330,7 @@ class FootballBettingAid(object):
 
             if self.random_effect in ['team', 'opponent']:
                 # Big10
-                df_big10 = df_random_effects[df_random_effects['RandomEffect'].isin([
+                df_big10 = df_random_effects[df_random_effects['labels'].isin([
                     'Iowa', 'Wisconsin', 'Michigan', 'MichiganState', 'OhioState', 'Indiana', 'Illinois', 'Nebraska',
                     'PennState', 'Minnesota', 'Rutgers', 'Maryland'
                 ])].sort_values('mean', ascending=False).head(10)
