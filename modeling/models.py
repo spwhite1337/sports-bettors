@@ -44,8 +44,8 @@ class FootballBettingAid(object):
     # Feature set to use for modeling (each value must be in the curated dataset or as a key in feature_creators)
     feature_sets = {
             'RushOnly': Features('RushOnly', ['rushingYards', 'rushingAttempts']),
-            'PassOnly': Features('PassOnly', ['netPassingYards', 'passingAttempts']),
-            'Offense': Features('Offense', ['rushingYards', 'netPassingYards', 'rushingAttempts', 'passingAttempts']),
+            'PassOnly': Features('PassOnly', ['netPassingYards', 'passAttempts']),
+            'Offense': Features('Offense', ['rushingYards', 'netPassingYards', 'rushingAttempts', 'passAttempts']),
             'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
             'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
             'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv',
@@ -233,14 +233,17 @@ class FootballBettingAid(object):
             'linear': 'y ~ normal(y_hat, sigma_y)',
             'bernoulli_logit': 'y ~ bernoulli_logit(y_hat)'
         }.get(self.response_distributions[self.response])
-
+        response_var = {
+            'linear': 'vector[N] y',
+            'bernoulli_logit': 'int<lower=0,upper=1> y[N]'
+        }.get(self.response_distributions[self.response])
         variables = ' '.join(['vector[N] {};'.format(feature) for feature in self.features])
         parameters = ' '.join(['real b{};'.format(fdx) for fdx in range(len(self.features))])
         transformation = ' '.join(['+ {}[i] * b{}'.format(feature, fdx) for fdx, feature in enumerate(self.features)])
         model = ' '.join(['b{} ~ normal(0, 1);'.format(fdx) for fdx in range(len(self.features))])
         model_code = """
         data {{
-            int<lower=0> J; int<lower=0> N; int<lower=1, upper=J> RandomEffect[N]; vector[N] y;
+            int<lower=0> J; int<lower=0> N; int<lower=1, upper=J> RandomEffect[N]; {response_var};
             {variables}
         }}
         parameters {{
@@ -256,8 +259,8 @@ class FootballBettingAid(object):
             sigma_a ~ uniform(0, 100); a ~ normal(mu_a, sigma_a); sigma_y ~ uniform(0, 100); {response};
             {model}
         }}
-        """.format(variables=variables, parameters=parameters, transformation=transformation, response=response,
-                   model=model)
+        """.format(response_var=response_var, variables=variables, parameters=parameters, transformation=transformation,
+                   response=response, model=model)
 
         return model_code
 
