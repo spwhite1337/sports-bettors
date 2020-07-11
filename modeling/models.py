@@ -273,7 +273,8 @@ class FootballBettingAid(object):
 
         # Fit stan model
         self.model = pystan.stan(model_code=model_code, data=input_data, iter=self.iterations, chains=self.chains,
-                                 verbose=self.verbose, model_name='{}_{}_'.format(self.feature_label, self.response),
+                                 verbose=self.verbose,
+                                 model_name='{}_{}_{}'.format(self.feature_label, self.random_effect, self.response),
                                  seed=187)
 
         return self.model
@@ -309,7 +310,9 @@ class FootballBettingAid(object):
         # Globals
         df_globals = df_summary[df_summary['labels'].isin(['mu_a', 'sigma_a', 'sigma_y'])]
 
-        with PdfPages(os.path.join(self.results_dir, 'diagnostics_{}_{}_{}_{}.pdf'.format('a', 'b', 'c', 'd'))) as pdf:
+        with PdfPages(os.path.join(self.results_dir, 'diagnostics_{}_{}_{}_{}.pdf'.format(
+                self.feature_label, self.random_effect, self.response, self.version
+        ))) as pdf:
             # Bar graph of random effects for top 10, bottom 10, big10 teams
             df_top10 = df_random_effects.sort_values('mean', ascending=False).head(10)
             plt.bar(df_top10['labels'], df_top10['mean'])
