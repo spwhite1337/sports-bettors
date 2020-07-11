@@ -6,12 +6,11 @@ from collections import namedtuple
 import pandas as pd
 import numpy as np
 
+import pystan
 from sklearn.metrics import roc_curve, auc
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-
-import pystan
 
 from config import ROOT_DIR, logger
 
