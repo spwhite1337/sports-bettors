@@ -27,5 +27,3 @@ setup(
         'pystan'
     ]
 )
-
-plt.savefig('tst.jpg')
