@@ -328,15 +328,16 @@ class FootballBettingAid(object):
             pdf.savefig()
             plt.close()
 
-            # Big10
-            df_big10 = df_random_effects[df_random_effects['team'].isin([
-                'Iowa', 'Wisconsin', 'Michigan', 'MichiganState', 'OhioState', 'Indiana', 'Illinois', 'Nebraska',
-                'PennState', 'Minnesota', 'Rutgers', 'Maryland'
-            ])].sort_values('mean', ascending=False).head(10)
-            plt.bar(df_big10['labels'], df_big10['mean'])
-            plt.errorbar(x=df_big10.index, y=df_big10['mean'], yerr=df_big10['sd'], fmt='none')
-            pdf.savefig()
-            plt.close()
+            if self.random_effect in ['team', 'opponent']:
+                # Big10
+                df_big10 = df_random_effects[df_random_effects['RandomEffect'].isin([
+                    'Iowa', 'Wisconsin', 'Michigan', 'MichiganState', 'OhioState', 'Indiana', 'Illinois', 'Nebraska',
+                    'PennState', 'Minnesota', 'Rutgers', 'Maryland'
+                ])].sort_values('mean', ascending=False).head(10)
+                plt.bar(df_big10['labels'], df_big10['mean'])
+                plt.errorbar(x=df_big10.index, y=df_big10['mean'], yerr=df_big10['sd'], fmt='none')
+                pdf.savefig()
+                plt.close()
 
             # Coefficients
             plt.bar(df_coefs['labels'], df_coefs['mean'])
