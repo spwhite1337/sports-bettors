@@ -307,18 +307,19 @@ class FootballBettingAid(object):
         # Coefficients
         df_coefs = df_summary[df_summary['labels'].str.contains('^b[0-9]', regex=True)].\
             assign(labels=self.features).\
-            sort_values('mean', ascending=False)
+            sort_values('mean', ascending=False).\
+            reset_index(drop=True)
 
         # Globals
-        df_globals = df_summary[df_summary['labels'].isin(['mu_a', 'sigma_a', 'sigma_y'])]
+        df_globals = df_summary[df_summary['labels'].isin(['mu_a', 'sigma_a', 'sigma_y'])].reset_index(drop=True)
 
         with PdfPages(os.path.join(self.results_dir, 'diagnostics_{}_{}_{}_{}.pdf'.format(
                 self.feature_label, self.random_effect, self.response, self.version
         ))) as pdf:
             # Bar graph of random effects for top 10, bottom 10, big10 teams
-            df_top10 = df_random_effects.sort_values('mean', ascending=False).head(10)
+            df_top10 = df_random_effects.sort_values('mean', ascending=False).head(10).reset_index(drop=True)
             plt.bar(df_top10['labels'], df_top10['mean'])
-            plt.errorbar(x=df_top10.index, y=df_top10['mean'], yerr=df_top10['sd'], fmt='none')
+            plt.errorbar(x=df_top10.index, y=df_top10['mean'], yerr=df_top10['sd'], fmt='none', ecolor='black')
             plt.xticks(rotation=90)
             plt.title('Top Ten Teams')
             plt.tight_layout()
@@ -326,9 +327,9 @@ class FootballBettingAid(object):
             plt.close()
 
             # Bottom 10
-            df_bot10 = df_random_effects.sort_values('mean', ascending=False).tail(10)
+            df_bot10 = df_random_effects.sort_values('mean', ascending=False).tail(10).reset_index(drop=True)
             plt.bar(df_bot10['labels'], df_bot10['mean'])
-            plt.errorbar(x=df_bot10.index, y=df_bot10['mean'], yerr=df_bot10['sd'], fmt='none')
+            plt.errorbar(x=df_bot10.index, y=df_bot10['mean'], yerr=df_bot10['sd'], fmt='none', ecolor='black')
             plt.title('Bottom Ten Teams')
             plt.xticks(rotation=90)
             plt.tight_layout()
@@ -340,16 +341,16 @@ class FootballBettingAid(object):
                 df_big10 = df_random_effects[df_random_effects['labels'].isin([
                     'Iowa', 'Wisconsin', 'Michigan', 'MichiganState', 'OhioState', 'Indiana', 'Illinois', 'Nebraska',
                     'PennState', 'Minnesota', 'Rutgers', 'Maryland'
-                ])].sort_values('mean', ascending=False)
+                ])].sort_values('mean', ascending=False).reset_index(drop=True)
                 plt.bar(df_big10['labels'], df_big10['mean'])
-                plt.errorbar(x=df_big10.index, y=df_big10['mean'], yerr=df_big10['sd'], fmt='none')
+                plt.errorbar(x=df_big10.index, y=df_big10['mean'], yerr=df_big10['sd'], fmt='none', ecolor='black')
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()
 
             # Coefficients
             plt.bar(df_coefs['labels'], df_coefs['mean'])
-            plt.errorbar(x=df_coefs.index, y=df_coefs['mean'], yerr=df_coefs['sd'], fmt='none')
+            plt.errorbar(x=df_coefs.index, y=df_coefs['mean'], yerr=df_coefs['sd'], fmt='none', ecolor='black')
             plt.grid(True)
             plt.tight_layout()
             pdf.savefig()
@@ -357,7 +358,7 @@ class FootballBettingAid(object):
 
             # Globals
             plt.bar(df_globals['labels'], df_globals['mean'])
-            plt.errorbar(x=df_globals.index, y=df_globals['mean'], yerr=df_globals['sd'], fmt='none')
+            plt.errorbar(x=df_globals.index, y=df_globals['mean'], yerr=df_globals['sd'], fmt='none', ecolor='black')
             plt.grid(True)
             plt.tight_layout()
             pdf.savefig()
