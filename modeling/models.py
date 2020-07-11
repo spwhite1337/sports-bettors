@@ -319,6 +319,7 @@ class FootballBettingAid(object):
             df_top10 = df_random_effects.sort_values('mean', ascending=False).head(10).reset_index(drop=True)
             plt.bar(df_top10['labels'], df_top10['mean'])
             plt.errorbar(x=df_top10.index, y=df_top10['mean'], yerr=df_top10['sd'], fmt='none', ecolor='black')
+            plt.grid(True)
             plt.xticks(rotation=90)
             plt.title('Top Ten Teams')
             plt.tight_layout()
@@ -330,6 +331,7 @@ class FootballBettingAid(object):
             df_bot10 = df_random_effects.sort_values('mean', ascending=False).tail(10).reset_index(drop=True)
             plt.bar(df_bot10['labels'], df_bot10['mean'])
             plt.errorbar(x=df_bot10.index, y=df_bot10['mean'], yerr=df_bot10['sd'], fmt='none', ecolor='black')
+            plt.grid(True)
             plt.title('Bottom Ten Teams')
             plt.xticks(rotation=90)
             plt.tight_layout()
@@ -345,6 +347,7 @@ class FootballBettingAid(object):
                 ])].sort_values('mean', ascending=False).reset_index(drop=True)
                 plt.bar(df_big10['labels'], df_big10['mean'])
                 plt.errorbar(x=df_big10.index, y=df_big10['mean'], yerr=df_big10['sd'], fmt='none', ecolor='black')
+                plt.grid(True)
                 plt.hlines(xmax=max(df_big10.index), xmin=min(df_big10.index), y=0, linestyles='dashed')
                 plt.title('Big Ten Teams')
                 plt.xticks(rotation=90)
@@ -365,13 +368,13 @@ class FootballBettingAid(object):
             # Globals
             plt.figure(figsize=(8, 8))
             plt.bar(df_globals['labels'], df_globals['mean'])
-            plt.text(0.04, 0.95, 'sigma_y: {x:0.3f}'.format(
+            plt.text(0.04, 0.3, 'sigma_y: {x:0.3f}'.format(
                 x=df_globals[df_globals['labels'] == 'sigma_y']['mean'].iloc[0]
             ))
-            plt.text(0.04, 0.90, 'mu_a: {x:0.3f}'.format(
+            plt.text(0.04, 0.5, 'mu_a: {x:0.3f}'.format(
                 x=df_globals[df_globals['labels'] == 'mu_a']['mean'].iloc[0]
             ))
-            plt.text(0.04, 0.85, 'sigma_a: {x:0.3f}'.format(
+            plt.text(0.04, 0.7, 'sigma_a: {x:0.3f}'.format(
                 x=df_globals[df_globals['labels'] == 'sigma_a']['mean'].iloc[0]
             ))
             plt.errorbar(x=df_globals.index, y=df_globals['mean'], yerr=df_globals['sd'], fmt='none', ecolor='black')
