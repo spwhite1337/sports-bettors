@@ -41,6 +41,11 @@ class FootballPredictor(object):
 
         # Get output including mean, ub, and lb
         output = {
+            'lb': self.predictor['intercept'][0] +
+                  self.predictor['random_effect'].get(random_effect, (0, 0, 0))[0] +
+                  np.sum([
+                      np.min([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
+                  ]),
             'mean': self.predictor['intercept'][1] +
                     self.predictor['random_effect'].get(random_effect, (0, 0, 0))[1] +
                     np.sum([self.predictor['coefficients'][f][1] * v for f, v in data.items()]),
@@ -48,11 +53,6 @@ class FootballPredictor(object):
                   self.predictor['random_effect'].get(random_effect, (0, 0, 0))[1] +
                   np.sum([
                       np.max([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
-                  ]),
-            'lb': self.predictor['intercept'][0] +
-                  self.predictor['random_effect'].get(random_effect, (0, 0, 0))[0] +
-                  np.sum([
-                      np.min([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
                   ]),
         }
 
