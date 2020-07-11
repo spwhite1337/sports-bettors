@@ -1,4 +1,5 @@
 import os
+import re
 import pickle
 
 from collections import namedtuple
@@ -153,7 +154,7 @@ class FootballBettingAid(object):
         # Specify random_effect and map to integer
         df['RandomEffect'] = self._define_random_effect(df)
         groups = sorted(list(set(df['RandomEffect'])))
-        self.random_effect_map = dict(zip(groups, range(len(groups))))
+        self.random_effect_map = dict(zip(groups, range(1, len(groups) + 1)))  # Stan indexes from 1, not 0
         self.random_effect_inv = {v: k for k, v in self.random_effect_map.items()}
         df['RandomEffect'] = df['RandomEffect'].map(self.random_effect_map)
 
@@ -176,10 +177,12 @@ class FootballBettingAid(object):
 
         # Convert data to dictionary for Pystan API input
         pystan_data = {feature: df[feature].values for feature in self.features}
-        pystan_data['N'] = df.shape[0]
-        pystan_data['J'] = len(set(df['RandomEffect']))
-        pystan_data['RandomEffect'] = df['RandomEffect'].values + 1
-        pystan_data['y'] = df['response'].values
+        pystan_data.update({
+            'N': df.shape[0],
+            'J': len(set(df['RandomEffect'])),
+            'RandomEffect': df['RandomEffect'].values,
+            'y': df['response'].values
+        })
 
         return pystan_data
 
@@ -209,9 +212,11 @@ class FootballBettingAid(object):
 
         # Convert data to dictionary for Pystan API input
         pystan_data = {feature: df[feature].values for feature in self.features}
-        pystan_data['N'] = df.shape[0]
-        pystan_data['J'] = len(set(df['RandomEffect']))
-        pystan_data['RandomEffect'] = df['RandomEffect'].values + 1
+        pystan_data.update({
+            'N': df.shape[0],
+            'J': len(set(df['RandomEffect'])),
+            'RandomEffect': df['RandomEffect'].values + 1
+        })
 
         return pystan_data
 
@@ -263,7 +268,7 @@ class FootballBettingAid(object):
 
         # Fit stan model
         self.model = pystan.stan(model_code=model_code, data=input_data, iter=self.iterations, chains=self.chains,
-                                 verbose=self.verbose, model_name='{}_{}'.format(self.feature_label, self.response),
+                                 verbose=self.verbose, model_name='{}_{}_'.format(self.feature_label, self.response),
                                  seed=187)
 
         return self.model
@@ -275,11 +280,32 @@ class FootballBettingAid(object):
         if self.model is None:
             raise ValueError('Fit a model first.')
 
-        # Print r-hats
+        # Get model summary
+        summary = self.model.summary()
+        df_summary = pd.DataFrame(summary['summary'], columns=summary['summary_colnames']).\
+            assign(labels=summary['summary_rownames'])
 
-        # Print distributions of parameters
+        # Get trues
+        y = self.fit_transform(self.etl())['y']
+        preds = df_summary[df_summary['labels'].str.contains('y_hat')]['mean'].values
 
-        # Predict on dataset
+        # Random Intercepts
+        df_random_effects = df_summary[df_summary['labels'].str.startswith('a[')]
+
+        def _map_random_effects(label: str):
+            label = re.sub('a', '', label)
+            label = re.sub('\[', '', label)
+            label = re.sub(']', '', label)
+            return int(label)
+
+        df_random_effects['labels'] = df_random_effects['labels'].\
+            apply(lambda label: _map_random_effects(label)).\
+            map(self.random_effect_inv)
+
+        # Coefficients
+        df_coefs = df_summary[df_summary['labels'].str.contains('^b[0-9]', regex=True)].assign(labels=self.features)
+
+        # Boxplot distribution of parameters
 
         # For Binaries, plot a ROC curve, histogram of predictions by class
 
