@@ -1,6 +1,8 @@
 import os
+import re
 import pickle
 
+from typing import Tuple
 from collections import namedtuple
 
 import pandas as pd
@@ -15,6 +17,36 @@ from matplotlib.backends.backend_pdf import PdfPages
 from config import ROOT_DIR, logger
 
 Features = namedtuple('Features', ['label', 'features'])
+
+
+class FootballPredictor(object):
+    """
+    Lightweight predictor that accepts a dictionary of features (name: val) and random_effect ('RandomEffect': val)
+    And returns
+    """
+
+    def __init__(self, scales: dict, predictor: dict):
+        self.scales = scales
+        self.predictor = predictor
+
+    def predict(self, data: dict) -> dict:
+        """
+        Scale and predict from input data
+        """
+        # Get random effect
+        random_effect = data.pop('RandomEffect')
+
+        # Scale data
+        data = {feature: (val - self.scales[feature][0]) / self.scales[feature][1] for feature, val in data.items()}
+
+        # Get output including mean, ub, and lb
+        output = {
+            out: p['global_intercept'] + p['random_effect'].get(random_effect, 0.) + np.sum(
+                [p['coefficients'][f] * v for f, v in data.items()]
+            ) for out, p in self.predictor.items()
+        }
+
+        return output
 
 
 class FootballBettingAid(object):
@@ -41,14 +73,14 @@ class FootballBettingAid(object):
 
     # Feature set to use for modeling (each value must be in the curated dataset or as a key in feature_creators)
     feature_sets = {
-            'RushOnly': Features('RushOnly', ['rushingYards', 'rushingAttempts']),
-            'PassOnly': Features('PassOnly', ['netPassingYards', 'passAttempts']),
-            'Offense': Features('Offense', ['rushingYards', 'netPassingYards', 'rushingAttempts', 'passAttempts']),
-            'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
-            'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
-            'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv',
-                                    'to_margin', 'firstdowns_adv'])
-        }
+        'RushOnly': Features('RushOnly', ['rushingYards', 'rushingAttempts']),
+        'PassOnly': Features('PassOnly', ['netPassingYards', 'passAttempts']),
+        'Offense': Features('Offense', ['rushingYards', 'netPassingYards', 'rushingAttempts', 'passAttempts']),
+        'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
+        'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
+        'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv',
+                                'to_margin', 'firstdowns_adv'])
+    }
 
     # Potential Responses
     responses = ['Win', 'WinMargin', 'LossMargin', 'TotalPoints', 'Margin']
@@ -118,6 +150,7 @@ class FootballBettingAid(object):
         self.verbose = verbose
         self.model = None
         self.summary = None
+        self.predictor = None
 
         # Quality check on inputs
         assert self.random_effect in self.random_effects
@@ -278,11 +311,40 @@ class FootballBettingAid(object):
                                  model_name='{}_{}_{}'.format(self.feature_label, self.random_effect, self.response),
                                  seed=187)
         # Get model summary
-        self.summary = self.model.summary()
+        logger.info('Getting model summary for diagnostics')
+        summary = self.model.summary()
+        self.summary = pd.DataFrame(summary['summary'], columns=summary['summary_colnames']). \
+            assign(labels=summary['summary_rownames'])
 
         # Convert to bare-model for API predictions
-        # TODO
-        pass
+        # Random Effects
+        df_re = self.summary[self.summary['labels'].str.startswith('a[')].reset_index(drop=True)
+        df_re['labels'] = df_re['labels'].map(self.random_effect_inv)
+
+        # Coefficients
+        df_coefs = self.summary[self.summary['labels'].str.contains('^b[0-9]', regex=True)]. \
+            assign(labels=self.features)
+
+        predictor = {
+            'mean': {
+                'random_effect': dict(zip(df_re['labels'], df_re['mean'])),
+                'coefficients': dict(zip(df_coefs['labels'], df_coefs['mean'])),
+                'global_intercept': self.summary[self.summary['labels'] == 'mu_a']['mean'].iloc[0]
+            },
+            'ub': {
+                'random_effect': dict(zip(df_re['label'], df_re['mean'] + df_re['sd'])),
+                'coefficients': dict(zip(df_coefs['labels'], df_coefs['mean'] + df_re['sd'])),
+                'global_intercept': self.summary[self.summary['labels'] == 'mu_a']['mean'].iloc[0] +
+                                    self.summary[self.summary['labels'] == 'mu_a']['sd'].iloc[0]
+            },
+            'lb': {
+                'random_effect': dict(zip(df_re['label'], df_re['mean'] - df_re['sd'])),
+                'coefficients': dict(zip(df_coefs['labels'], df_coefs['mean'] - df_re['sd'])),
+                'global_intercept': self.summary[self.summary['labels'] == 'mu_a']['mean'].iloc[0] -
+                                    self.summary[self.summary['labels'] == 'mu_a']['sd'].iloc[0]
+            }
+        }
+        self.predictor = FootballPredictor(scales=self.scales, predictor=predictor)
 
         return self.model, self.summary
 
@@ -299,29 +361,24 @@ class FootballBettingAid(object):
         if self.summary is None:
             raise ValueError('Fit a model first.')
 
-        # Get model summary
-        logger.info('Getting model summary for diagnostics')
-        df_summary = pd.DataFrame(self.summary['summary'], columns=self.summary['summary_colnames']).\
-            assign(labels=self.summary['summary_rownames'])
-
         logger.info('Printing Results.')
         # Get trues
         y = self.fit_transform(self.etl())['y']
-        preds = df_summary[df_summary['labels'].str.contains('y_hat')]['mean'].values
+        preds = self.summary[self.summary['labels'].str.contains('y_hat')]['mean'].values
 
         # Random Intercepts
-        df_random_effects = df_summary[df_summary['labels'].str.startswith('a[')].\
+        df_random_effects = self.summary[self.summary['labels'].str.startswith('a[')]. \
             sort_values('mean', ascending=False).reset_index(drop=True)
         df_random_effects['labels'] = df_random_effects['labels'].map(self.random_effect_inv)
 
         # Coefficients
-        df_coefs = df_summary[df_summary['labels'].str.contains('^b[0-9]', regex=True)].\
-            assign(labels=self.features).\
-            sort_values('mean', ascending=False).\
+        df_coefs = self.summary[self.summary['labels'].str.contains('^b[0-9]', regex=True)]. \
+            assign(labels=self.features). \
+            sort_values('mean', ascending=False). \
             reset_index(drop=True)
 
         # Globals
-        df_globals = df_summary[df_summary['labels'].isin(['mu_a', 'sigma_a', 'sigma_y'])].reset_index(drop=True)
+        df_globals = self.summary[self.summary['labels'].isin(['mu_a', 'sigma_a', 'sigma_y'])].reset_index(drop=True)
         if self.response_distributions[self.response] == 'bernoulli_logit':
             df_globals = df_globals[df_globals['labels'] != 'sigma_y'].reset_index(drop=True)
 
@@ -464,3 +521,8 @@ class FootballBettingAid(object):
         logger.info('Saving object to {}'.format(save_path))
         with open(os.path.join(self.results_dir, save_path), 'wb') as fp:
             pickle.dump(self, fp)
+
+        predictor_path = re.sub('classifier', 'predictor', save_path)
+        logger.info('Saving predictor to {}'.format(predictor_path))
+        with open(os.path.join(self.results_dir, predictor_path), 'wb') as fp:
+            pickle.dump(self.predictor, fp)
