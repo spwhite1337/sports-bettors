@@ -10,6 +10,8 @@ def run_experiments():
     for random_effect in FootballBettingAid.random_effects:
         for feature_set in FootballBettingAid.feature_sets.keys():
             for response in FootballBettingAid.responses:
+                if response == 'Win':
+                    continue
                 logger.info('{} ~ {} | {}'.format(feature_set, response, random_effect))
                 aid = FootballBettingAid(random_effect=random_effect, features=feature_set, response=response)
                 aid.fit()
