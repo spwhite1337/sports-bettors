@@ -317,6 +317,7 @@ class FootballBettingAid(object):
                 self.feature_label, self.random_effect, self.response, self.version
         ))) as pdf:
             # Bar graph of random effects for top 10, bottom 10, big10 teams
+            plt.figure(figsize=(8, 8))
             df_top10 = df_random_effects.sort_values('mean', ascending=False).head(10).reset_index(drop=True)
             plt.bar(df_top10['labels'], df_top10['mean'])
             plt.errorbar(x=df_top10.index, y=df_top10['mean'], yerr=df_top10['sd'], fmt='none', ecolor='black')
@@ -327,6 +328,7 @@ class FootballBettingAid(object):
             plt.close()
 
             # Bottom 10
+            plt.figure(figsize=(8, 8))
             df_bot10 = df_random_effects.sort_values('mean', ascending=False).tail(10).reset_index(drop=True)
             plt.bar(df_bot10['labels'], df_bot10['mean'])
             plt.errorbar(x=df_bot10.index, y=df_bot10['mean'], yerr=df_bot10['sd'], fmt='none', ecolor='black')
@@ -338,28 +340,45 @@ class FootballBettingAid(object):
 
             if self.random_effect in ['team', 'opponent']:
                 # Big10
+                plt.figure(figsize=(8, 8))
                 df_big10 = df_random_effects[df_random_effects['labels'].isin([
                     'Iowa', 'Wisconsin', 'Michigan', 'MichiganState', 'OhioState', 'Indiana', 'Illinois', 'Nebraska',
                     'PennState', 'Minnesota', 'Rutgers', 'Maryland'
                 ])].sort_values('mean', ascending=False).reset_index(drop=True)
                 plt.bar(df_big10['labels'], df_big10['mean'])
                 plt.errorbar(x=df_big10.index, y=df_big10['mean'], yerr=df_big10['sd'], fmt='none', ecolor='black')
+                plt.hlines(xmax=max(df_big10.index), xmin=min(df_big10.index), y=0, linestyles='dashed')
+                plt.title('Big Ten Teams')
+                plt.xticks(rotation=90)
                 plt.tight_layout()
                 pdf.savefig()
                 plt.close()
 
             # Coefficients
+            plt.figure(figsize=(8, 8))
             plt.bar(df_coefs['labels'], df_coefs['mean'])
             plt.errorbar(x=df_coefs.index, y=df_coefs['mean'], yerr=df_coefs['sd'], fmt='none', ecolor='black')
             plt.grid(True)
+            plt.title('Coefficients')
             plt.tight_layout()
             pdf.savefig()
             plt.close()
 
             # Globals
+            plt.figure(figsize=(8, 8))
             plt.bar(df_globals['labels'], df_globals['mean'])
+            plt.text(0.04, 0.95, 'sigma_y: {x:0.3f}'.format(
+                x=df_globals[df_globals['labels'] == 'sigma_y']['mean'].iloc[0]
+            ))
+            plt.text(0.04, 0.90, 'mu_a: {x:0.3f}'.format(
+                x=df_globals[df_globals['labels'] == 'mu_a']['mean'].iloc[0]
+            ))
+            plt.text(0.04, 0.85, 'sigma_a: {x:0.3f}'.format(
+                x=df_globals[df_globals['labels'] == 'sigma_a']['mean'].iloc[0]
+            ))
             plt.errorbar(x=df_globals.index, y=df_globals['mean'], yerr=df_globals['sd'], fmt='none', ecolor='black')
             plt.grid(True)
+            plt.title('Globals')
             plt.tight_layout()
             pdf.savefig()
             plt.close()
