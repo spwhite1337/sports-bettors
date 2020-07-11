@@ -4,3 +4,4 @@
 .idea/
 *.egg-info
 .ipynb_checkpoints/
+modeling/results/*.pkl

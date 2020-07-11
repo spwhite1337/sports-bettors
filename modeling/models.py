@@ -124,6 +124,8 @@ class FootballBettingAid(object):
         assert self.random_effect in self.random_effects
         assert self.poll in self.polls
 
+        logger.info('Initialized with {}, {} for {}'.format(self.feature_label, self.random_effect, self.response))
+
     def etl(self, input_path: str = None):
         """
         Load data
@@ -317,14 +319,19 @@ class FootballBettingAid(object):
             df_top10 = df_random_effects.sort_values('mean', ascending=False).head(10)
             plt.bar(df_top10['labels'], df_top10['mean'])
             plt.errorbar(x=df_top10.index, y=df_top10['mean'], yerr=df_top10['sd'], fmt='none')
+            plt.xticks(rotation=90)
             plt.title('Top Ten Teams')
+            plt.tight_layout()
             pdf.savefig()
             plt.close()
 
             # Bottom 10
-            df_bot10 = df_random_effects.sort_values('mean', ascending=False).head(10)
+            df_bot10 = df_random_effects.sort_values('mean', ascending=False).tail(10)
             plt.bar(df_bot10['labels'], df_bot10['mean'])
             plt.errorbar(x=df_bot10.index, y=df_bot10['mean'], yerr=df_bot10['sd'], fmt='none')
+            plt.title('Bottom Ten Teams')
+            plt.xticks(rotation=90)
+            plt.tight_layout()
             pdf.savefig()
             plt.close()
 
@@ -333,9 +340,10 @@ class FootballBettingAid(object):
                 df_big10 = df_random_effects[df_random_effects['labels'].isin([
                     'Iowa', 'Wisconsin', 'Michigan', 'MichiganState', 'OhioState', 'Indiana', 'Illinois', 'Nebraska',
                     'PennState', 'Minnesota', 'Rutgers', 'Maryland'
-                ])].sort_values('mean', ascending=False).head(10)
+                ])].sort_values('mean', ascending=False)
                 plt.bar(df_big10['labels'], df_big10['mean'])
                 plt.errorbar(x=df_big10.index, y=df_big10['mean'], yerr=df_big10['sd'], fmt='none')
+                plt.tight_layout()
                 pdf.savefig()
                 plt.close()
 
@@ -343,6 +351,7 @@ class FootballBettingAid(object):
             plt.bar(df_coefs['labels'], df_coefs['mean'])
             plt.errorbar(x=df_coefs.index, y=df_coefs['mean'], yerr=df_coefs['sd'], fmt='none')
             plt.grid(True)
+            plt.tight_layout()
             pdf.savefig()
             plt.close()
 
@@ -350,6 +359,7 @@ class FootballBettingAid(object):
             plt.bar(df_globals['labels'], df_globals['mean'])
             plt.errorbar(x=df_globals.index, y=df_globals['mean'], yerr=df_globals['sd'], fmt='none')
             plt.grid(True)
+            plt.tight_layout()
             pdf.savefig()
             plt.close()
 
@@ -365,6 +375,7 @@ class FootballBettingAid(object):
                 plt.xlabel('False Positive Rate')
                 plt.ylabel('True Positive Rate')
                 plt.legend()
+                plt.tight_layout()
                 pdf.savefig()
                 plt.close()
 
@@ -377,6 +388,7 @@ class FootballBettingAid(object):
                 plt.ylabel('Rate')
                 plt.grid(True)
                 plt.legend()
+                plt.tight_layout()
                 pdf.savefig()
                 plt.close()
 
@@ -389,6 +401,7 @@ class FootballBettingAid(object):
                 plt.legend()
                 plt.xlabel('Probability')
                 plt.ylabel('Density')
+                plt.tight_layout()
                 pdf.savefig()
                 plt.close()
 
@@ -403,6 +416,7 @@ class FootballBettingAid(object):
                 plt.xlabel('Residuals')
                 plt.ylabel('Counts')
                 plt.grid(True)
+                plt.tight_layout()
                 pdf.savefig()
                 plt.close()
 
