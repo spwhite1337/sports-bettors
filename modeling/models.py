@@ -204,7 +204,7 @@ class FootballBettingAid(object):
         df['response'] = self.response_creators[self.response](df)
 
         # Filter if necessary
-        df = self.filters[self.response](df)
+        df = self.filters[self.response](df).copy()
 
         # Specify random_effect and map to integer
         df['RandomEffect'] = self._define_random_effect(df)
