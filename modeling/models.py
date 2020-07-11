@@ -197,13 +197,6 @@ class FootballBettingAid(object):
         Create features and scale
         """
         logger.info('Fitting and Transforming Data')
-        # Specify random_effect and map to integer
-        df['RandomEffect'] = self._define_random_effect(df)
-        groups = sorted(list(set(df['RandomEffect'])))
-        self.random_effect_map = dict(zip(groups, range(1, len(groups) + 1)))  # Stan indexes from 1, not 0
-        self.random_effect_inv = {'a[' + str(v) + ']': k for k, v in self.random_effect_map.items()}
-        df['RandomEffect'] = df['RandomEffect'].map(self.random_effect_map)
-
         # Engineer features
         df = self._engineer_features(df)
 
@@ -212,6 +205,13 @@ class FootballBettingAid(object):
 
         # Filter if necessary
         df = self.filters[self.response](df)
+
+        # Specify random_effect and map to integer
+        df['RandomEffect'] = self._define_random_effect(df)
+        groups = sorted(list(set(df['RandomEffect'])))
+        self.random_effect_map = dict(zip(groups, range(1, len(groups) + 1)))  # Stan indexes from 1, not 0
+        self.random_effect_inv = {'a[' + str(v) + ']': k for k, v in self.random_effect_map.items()}
+        df['RandomEffect'] = df['RandomEffect'].map(self.random_effect_map)
 
         # Subset and Sort
         df = df[['RandomEffect'] + ['response'] + self.features].sort_values('RandomEffect').reset_index(drop=True)
