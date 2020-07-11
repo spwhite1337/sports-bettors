@@ -293,10 +293,7 @@ class FootballBettingAid(object):
         df_random_effects = df_summary[df_summary['labels'].str.startswith('a[')]
 
         def _map_random_effects(label: str):
-            label = re.sub('a', '', label)
-            label = re.sub('\[', '', label)
-            label = re.sub(']', '', label)
-            return int(label)
+            return int(re.sub(']', '', re.sub('a', '', re.sub('\[', '', label))))
 
         df_random_effects['labels'] = df_random_effects['labels'].\
             apply(lambda label: _map_random_effects(label)).\
