@@ -41,9 +41,19 @@ class FootballPredictor(object):
 
         # Get output including mean, ub, and lb
         output = {
-            out: p['global_intercept'] + p['random_effect'].get(random_effect, 0.) + np.sum(
-                [p['coefficients'][f] * v for f, v in data.items()]
-            ) for out, p in self.predictor.items()
+            'mean': self.predictor['intercept'][1] +
+                    self.predictor['random_effect'].get(random_effect, (0, 0, 0))[1] +
+                    np.sum([self.predictor['coefficients'][f][1] * v for f, v in data.items()]),
+            'ub': self.predictor['intercept'][2] +
+                  self.predictor['random_effect'].get(random_effect, (0, 0, 0))[1] +
+                  np.sum([
+                      np.max([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
+                  ]),
+            'lb': self.predictor['intercept'][0] +
+                  self.predictor['random_effect'].get(random_effect, (0, 0, 0))[0] +
+                  np.sum([
+                      np.min([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
+                  ]),
         }
 
         return output
@@ -325,34 +335,23 @@ class FootballBettingAid(object):
         df_coefs = self.summary[self.summary['labels'].str.contains('^b[0-9]', regex=True)]. \
             assign(labels=self.features)
 
+        intercept = self.summary[self.summary['labels'] == 'mu_a']['mean'].iloc[0]
+        intercept_sd = self.summary[self.summary['labels'] == 'mu_a']['sd'].iloc[0]
         predictor = {
-            'mean': {
-                'random_effect': dict(zip(df_re['labels'], df_re['mean'])),
-                'coefficients': dict(zip(df_coefs['labels'], df_coefs['mean'])),
-                'global_intercept': self.summary[self.summary['labels'] == 'mu_a']['mean'].iloc[0]
-            },
-            'ub': {
-                'random_effect': dict(zip(df_re['label'], df_re['mean'] + df_re['sd'])),
-                'coefficients': dict(zip(df_coefs['labels'], df_coefs['mean'] + df_re['sd'])),
-                'global_intercept': self.summary[self.summary['labels'] == 'mu_a']['mean'].iloc[0] +
-                                    self.summary[self.summary['labels'] == 'mu_a']['sd'].iloc[0]
-            },
-            'lb': {
-                'random_effect': dict(zip(df_re['label'], df_re['mean'] - df_re['sd'])),
-                'coefficients': dict(zip(df_coefs['labels'], df_coefs['mean'] - df_re['sd'])),
-                'global_intercept': self.summary[self.summary['labels'] == 'mu_a']['mean'].iloc[0] -
-                                    self.summary[self.summary['labels'] == 'mu_a']['sd'].iloc[0]
-            }
+                'random_effect': dict(zip(
+                    df_re['labels'],
+                    list(zip(df_re['mean'] - df_re['sd'], df_re['mean'], df_re['mean'] + df_re['sd']))
+                )),
+                'coefficients': dict(zip(
+                    df_coefs['labels'],
+                    list(zip(df_coefs['mean'] - df_coefs['sd'], df_coefs['mean'], df_coefs['mean'] + df_coefs['sd']))
+                )),
+                'intercept': (intercept - intercept_sd, intercept, intercept + intercept_sd)
         }
+
         self.predictor = FootballPredictor(scales=self.scales, predictor=predictor)
 
         return self.model, self.summary
-
-    def predict(self, ):
-        """
-        Get point estimates and credible intervals from input data
-        """
-        pass
 
     def diagnose(self):
         """
