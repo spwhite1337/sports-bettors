@@ -16,6 +16,7 @@ setup(
         'pandas',
         'numpy',
         'matplotlib',
+        'seaborn',
         'requests',
         'plotly',
         'dash',
@@ -26,3 +27,5 @@ setup(
         'pystan'
     ]
 )
+
+plt.savefig('tst.jpg')

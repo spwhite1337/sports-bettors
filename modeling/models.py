@@ -7,6 +7,8 @@ from collections import namedtuple
 import pandas as pd
 import numpy as np
 
+from sklearn.metrics import roc_curve, auc
+
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
@@ -289,24 +291,112 @@ class FootballBettingAid(object):
             assign(labels=summary['summary_rownames'])
 
         # Get trues
-        y = self.fit_transform(self.etl())['y']
+        y = self.fit_transform(self.etl())['y'].values
         preds = df_summary[df_summary['labels'].str.contains('y_hat')]['mean'].values
 
         # Random Intercepts
-        df_random_effects = df_summary[df_summary['labels'].str.startswith('a[')]
+        df_random_effects = df_summary[df_summary['labels'].str.startswith('a[')].\
+            sort_values('mean', ascending=False).reset_index(drop=True)
         df_random_effects['labels'] = df_random_effects['labels'].map(self.random_effect_inv)
 
         # Coefficients
-        df_coefs = df_summary[df_summary['labels'].str.contains('^b[0-9]', regex=True)].assign(labels=self.features)
+        df_coefs = df_summary[df_summary['labels'].str.contains('^b[0-9]', regex=True)].\
+            assign(labels=self.features).\
+            sort_values('mean', ascending=False)
 
         # Globals
         df_globals = df_summary[df_summary['labels'].isin(['mu_a', 'sigma_a', 'sigma_y'])]
 
-        # Boxplot distribution of parameters
+        with PdfPages(os.path.join(self.results_dir, 'diagnostics_{}_{}_{}_{}.pdf'.format('a', 'b', 'c', 'd'))) as pdf:
+            # Bargraph of random effects for top 10, bottom 10, big10 teams
+            df_top10 = df_random_effects.sort_values('mean', ascending=False).head(10)
+            plt.bar(df_top10['labels'], df_top10['mean'])
+            plt.errorbar(x=df_top10.index, y=df_top10['mean'], yerr=df_top10['std'], fmt=None)
+            plt.title('Top Ten Teams')
+            pdf.savefig()
+            plt.close()
 
-        # For Binaries, plot a ROC curve, histogram of predictions by class
+            # Bottom 10
+            df_bot10 = df_random_effects.sort_values('mean', ascending=False).head(10)
+            plt.bar(df_bot10['labels'], df_bot10['mean'])
+            plt.errorbar(x=df_bot10.index, y=df_bot10['mean'], yerr=df_bot10['std'], fmt=None)
+            pdf.savefig()
+            plt.close()
 
-        # For continuous, plot a distribution of residuals with r-squared and MSE
+            # Big10
+            df_big10 = df_random_effects[df_random_effects['team'].isin([
+                'Iowa', 'Wisconsin', 'Michigan', 'MichiganState', 'OhioState', 'Indiana', 'Illinois', 'Nebraska',
+                'PennState', 'Minnesota', 'Rutgers', 'Maryland'
+            ])].sort_values('mean', ascending=False).head(10)
+            plt.bar(df_big10['labels'], df_big10['mean'])
+            plt.errorbar(x=df_big10.index, y=df_big10['mean'], yerr=df_big10['std'], fmt=None)
+            pdf.savefig()
+            plt.close()
+
+            # Coefficients
+            plt.bar(df_coefs['labels'], df_coefs['mean'])
+            plt.errorbar(x=df_coefs.index, y=df_coefs['mean'], yerr=df_coefs['std'], fmt=None)
+            plt.grid(True)
+            pdf.savefig()
+            plt.close()
+
+            # Globals
+            plt.bar(df_globals['labels'], df_globals['mean'])
+            plt.errorbar(x=df_globals.index, y=df_globals['mean'], yerr=df_globals['std'], fmt=None)
+            plt.grid(True)
+            pdf.savefig()
+            plt.close()
+
+            if self.response_distributions[self.response] == 'bernoulli_logit':
+                # For Binaries, plot a ROC curve, histogram of predictions by class
+                fpr, tpr, th = roc_curve(y, preds)
+                score = auc(fpr, tpr)
+                plt.figure(figsize=(8, 8))
+                plt.plot(fpr, tpr, label='AUC: {}'.format(score))
+                plt.plot([0, 1], [0, 1], color='black', linestyle='dashed')
+                plt.grid(True)
+                plt.xlabel('False Positive Rate')
+                plt.ylabel('True Positive Rate')
+                plt.legend()
+                pdf.savefig()
+                plt.close()
+
+                # Precision / Recall
+                plt.figure(figsize=(8, 8))
+                plt.plot(th, fpr, label='False Positive Rate')
+                plt.plot(th, tpr, label='True Positive Rate')
+                plt.title('Precisions / Recall')
+                plt.xlabel('Cutoff')
+                plt.ylabel('Rate')
+                plt.grid(True)
+                plt.legend()
+                pdf.savefig()
+                plt.close()
+
+                # Histograms
+                bins = np.linspace(min(preds) * 0.99, max(preds) * 1.01, 20)
+                plt.figure(figsize=(8, 8))
+                plt.hist(preds[y == 1], alpha=0.5, bins=bins, color='darkorange', density=True, label='Positive')
+                plt.hist(preds[y == 0], alpha=0.5, bins=bins, density=True, label='Negative')
+                plt.grid(True)
+                plt.legend()
+                plt.xlabel('Probability')
+                plt.ylabel('Density')
+                pdf.savefig()
+                plt.close()
+
+            elif self.response_distributions[self.response] == 'linear':
+                # For continuous, plot a distribution of residuals with r-squared and MSE
+                residuals = y - preds
+                mse = np.sum(residuals ** 2)
+                plt.figure(figsize=(8, 8))
+                plt.hist(residuals, label='MSE: {}'.format(mse))
+                plt.legend()
+                plt.xlabel('Residuals')
+                plt.ylabel('Counts')
+                plt.grid(True)
+                pdf.savefig()
+                plt.close()
 
     def save(self, save_path: str = None):
         """
