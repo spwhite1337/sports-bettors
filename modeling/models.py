@@ -33,7 +33,7 @@ class FootballBettingAid(object):
     # Feature Definitions
     feature_creators = {
         'rush_yds_adv': lambda row: row['rushingYards'] - row['opp_rushingYards'],
-        'pass_yds_adv': lambda row: row['passingYards'] - row['opp_passingYards'],
+        'pass_yds_adv': lambda row: row['netPassingYards'] - row['opp_netPassingYards'],
         'penalty_yds_adv': lambda row: row['penaltyYards'] - row['opp_penaltyYards'],
         'to_margin': lambda row: row['turnovers'] - row['opp_turnovers'],
         'ptime_adv': lambda row: row['possessionTime'] - row['opp_possessionTime'],
@@ -44,8 +44,8 @@ class FootballBettingAid(object):
     # Feature set to use for modeling (each value must be in the curated dataset or as a key in feature_creators)
     feature_sets = {
             'RushOnly': Features('RushOnly', ['rushingYards', 'rushingAttempts']),
-            'PassOnly': Features('PassOnly', ['passingYards', 'passingAttempts']),
-            'Offense': Features('Offense', ['rushingYards', 'passingYards', 'rushingAttempts', 'passingAttempts']),
+            'PassOnly': Features('PassOnly', ['netPassingYards', 'passingAttempts']),
+            'Offense': Features('Offense', ['rushingYards', 'netPassingYards', 'rushingAttempts', 'passingAttempts']),
             'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
             'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
             'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv',
