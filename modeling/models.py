@@ -274,7 +274,11 @@ class FootballBettingAid(object):
         # Fit stan model
         self.model = pystan.stan(model_code=model_code, data=input_data, iter=self.iterations, chains=self.chains,
                                  verbose=self.verbose, model_name='{}_{}_'.format(self.feature_label, self.response),
-                                 seed=187)
+                                 seed=187, diagnostic_file=os.path.join(self.results_dir,
+                                                                        'auto_diagnostics_{}_{}_{}'.format(
+                                                                            self.feature_label,
+                                                                            self.response,
+                                                                            self.version)))
 
         return self.model
 
@@ -286,6 +290,7 @@ class FootballBettingAid(object):
             raise ValueError('Fit a model first.')
 
         # Get model summary
+        logger.info('Getting model summary for diagnostics')
         summary = self.model.summary()
         df_summary = pd.DataFrame(summary['summary'], columns=summary['summary_colnames']).\
             assign(labels=summary['summary_rownames'])
@@ -348,6 +353,7 @@ class FootballBettingAid(object):
             plt.close()
 
             if self.response_distributions[self.response] == 'bernoulli_logit':
+                logger.info('Extra diagnostics for {}'.format(self.response))
                 # For Binaries, plot a ROC curve, histogram of predictions by class
                 fpr, tpr, th = roc_curve(y, preds)
                 score = auc(fpr, tpr)
@@ -386,6 +392,7 @@ class FootballBettingAid(object):
                 plt.close()
 
             elif self.response_distributions[self.response] == 'linear':
+                logger.info('Extra Diagnostics for {}'.format(self.response))
                 # For continuous, plot a distribution of residuals with r-squared and MSE
                 residuals = y - preds
                 mse = np.sum(residuals ** 2)
@@ -409,5 +416,6 @@ class FootballBettingAid(object):
             logger.info('WARNING: Overwriting file')
             input('Press enter to continue.')
 
+        logger.info('Saving object to {}'.format(save_path))
         with open(os.path.join(self.results_dir, save_path), 'wb') as fp:
             pickle.dump(self, fp)

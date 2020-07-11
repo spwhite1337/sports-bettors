@@ -11,3 +11,4 @@ def run_experiments():
                 aid = FootballBettingAid(random_effect=random_effect, features=feature_set, response=response)
                 aid.fit()
                 aid.diagnose()
+                aid.save()
