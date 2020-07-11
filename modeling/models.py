@@ -389,7 +389,7 @@ class FootballBettingAid(object):
                 fpr, tpr, th = roc_curve(y, preds)
                 score = auc(fpr, tpr)
                 plt.figure(figsize=(8, 8))
-                plt.plot(fpr, tpr, label='AUC: {}'.format(score))
+                plt.plot(fpr, tpr, label='AUC: {a:0.3f}'.format(a=score))
                 plt.plot([0, 1], [0, 1], color='black', linestyle='dashed')
                 plt.grid(True)
                 plt.xlabel('False Positive Rate')
