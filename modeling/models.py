@@ -291,6 +291,7 @@ class FootballBettingAid(object):
         df_summary = pd.DataFrame(summary['summary'], columns=summary['summary_colnames']).\
             assign(labels=summary['summary_rownames'])
 
+        logger.info('Printing Results.')
         # Get trues
         y = self.fit_transform(self.etl())['y']
         preds = df_summary[df_summary['labels'].str.contains('y_hat')]['mean'].values
@@ -309,10 +310,10 @@ class FootballBettingAid(object):
         df_globals = df_summary[df_summary['labels'].isin(['mu_a', 'sigma_a', 'sigma_y'])]
 
         with PdfPages(os.path.join(self.results_dir, 'diagnostics_{}_{}_{}_{}.pdf'.format('a', 'b', 'c', 'd'))) as pdf:
-            # Bargraph of random effects for top 10, bottom 10, big10 teams
+            # Bar graph of random effects for top 10, bottom 10, big10 teams
             df_top10 = df_random_effects.sort_values('mean', ascending=False).head(10)
             plt.bar(df_top10['labels'], df_top10['mean'])
-            plt.errorbar(x=df_top10.index, y=df_top10['mean'], yerr=df_top10['std'], fmt=None)
+            plt.errorbar(x=df_top10.index, y=df_top10['mean'], yerr=df_top10['sd'], fmt=None)
             plt.title('Top Ten Teams')
             pdf.savefig()
             plt.close()
@@ -320,7 +321,7 @@ class FootballBettingAid(object):
             # Bottom 10
             df_bot10 = df_random_effects.sort_values('mean', ascending=False).head(10)
             plt.bar(df_bot10['labels'], df_bot10['mean'])
-            plt.errorbar(x=df_bot10.index, y=df_bot10['mean'], yerr=df_bot10['std'], fmt=None)
+            plt.errorbar(x=df_bot10.index, y=df_bot10['mean'], yerr=df_bot10['sd'], fmt=None)
             pdf.savefig()
             plt.close()
 
@@ -330,20 +331,20 @@ class FootballBettingAid(object):
                 'PennState', 'Minnesota', 'Rutgers', 'Maryland'
             ])].sort_values('mean', ascending=False).head(10)
             plt.bar(df_big10['labels'], df_big10['mean'])
-            plt.errorbar(x=df_big10.index, y=df_big10['mean'], yerr=df_big10['std'], fmt=None)
+            plt.errorbar(x=df_big10.index, y=df_big10['mean'], yerr=df_big10['sd'], fmt=None)
             pdf.savefig()
             plt.close()
 
             # Coefficients
             plt.bar(df_coefs['labels'], df_coefs['mean'])
-            plt.errorbar(x=df_coefs.index, y=df_coefs['mean'], yerr=df_coefs['std'], fmt=None)
+            plt.errorbar(x=df_coefs.index, y=df_coefs['mean'], yerr=df_coefs['sd'], fmt=None)
             plt.grid(True)
             pdf.savefig()
             plt.close()
 
             # Globals
             plt.bar(df_globals['labels'], df_globals['mean'])
-            plt.errorbar(x=df_globals.index, y=df_globals['mean'], yerr=df_globals['std'], fmt=None)
+            plt.errorbar(x=df_globals.index, y=df_globals['mean'], yerr=df_globals['sd'], fmt=None)
             plt.grid(True)
             pdf.savefig()
             plt.close()
