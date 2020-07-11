@@ -431,7 +431,7 @@ class FootballBettingAid(object):
                 residuals = y - preds
                 mse = np.sum(residuals ** 2)
                 plt.figure(figsize=(8, 8))
-                plt.hist(residuals, label='MSE: {}'.format(mse))
+                plt.hist(residuals, label='MSE: {m:0.3f}'.format(m=mse))
                 plt.legend()
                 plt.xlabel('Residuals')
                 plt.ylabel('Counts')
