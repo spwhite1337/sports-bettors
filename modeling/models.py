@@ -274,11 +274,7 @@ class FootballBettingAid(object):
         # Fit stan model
         self.model = pystan.stan(model_code=model_code, data=input_data, iter=self.iterations, chains=self.chains,
                                  verbose=self.verbose, model_name='{}_{}_'.format(self.feature_label, self.response),
-                                 seed=187, diagnostic_file=os.path.join(self.results_dir,
-                                                                        'auto_diagnostics_{}_{}_{}'.format(
-                                                                            self.feature_label,
-                                                                            self.response,
-                                                                            self.version)))
+                                 seed=187)
 
         return self.model
 
