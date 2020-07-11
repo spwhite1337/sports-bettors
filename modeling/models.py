@@ -154,7 +154,10 @@ class FootballBettingAid(object):
         # Specify random_effect and map to integer
         df['RandomEffect'] = self._define_random_effect(df)
         groups = sorted(list(set(df['RandomEffect'])))
-        self.random_effect_map = dict(zip(groups, range(1, len(groups) + 1)))  # Stan indexes from 1, not 0
+        self.random_effect_map = dict(zip(
+            groups,
+            ['a[' + str(gdx) + ']' for gdx in range(1, len(groups) + 1)]  # Stan indexes from 1, not 0
+        ))
         self.random_effect_inv = {v: k for k, v in self.random_effect_map.items()}
         df['RandomEffect'] = df['RandomEffect'].map(self.random_effect_map)
 
@@ -291,13 +294,7 @@ class FootballBettingAid(object):
 
         # Random Intercepts
         df_random_effects = df_summary[df_summary['labels'].str.startswith('a[')]
-
-        def _map_random_effects(label: str):
-            return int(re.sub(']', '', re.sub('a', '', re.sub('\[', '', label))))
-
-        df_random_effects['labels'] = df_random_effects['labels'].\
-            apply(lambda label: _map_random_effects(label)).\
-            map(self.random_effect_inv)
+        df_random_effects['labels'] = df_random_effects['labels'].map(self.random_effect_inv)
 
         # Coefficients
         df_coefs = df_summary[df_summary['labels'].str.contains('^b[0-9]', regex=True)].assign(labels=self.features)
