@@ -156,11 +156,8 @@ class FootballBettingAid(object):
         # Specify random_effect and map to integer
         df['RandomEffect'] = self._define_random_effect(df)
         groups = sorted(list(set(df['RandomEffect'])))
-        self.random_effect_map = dict(zip(
-            groups,
-            ['a[' + str(gdx) + ']' for gdx in range(1, len(groups) + 1)]  # Stan indexes from 1, not 0
-        ))
-        self.random_effect_inv = {v: k for k, v in self.random_effect_map.items()}
+        self.random_effect_map = dict(zip(groups, range(1, len(groups) + 1)))  # Stan indexes from 1, not 0
+        self.random_effect_inv = {'a[' + str(v) + ']': k for k, v in self.random_effect_map.items()}
         df['RandomEffect'] = df['RandomEffect'].map(self.random_effect_map)
 
         # Engineer features
@@ -294,7 +291,7 @@ class FootballBettingAid(object):
             assign(labels=summary['summary_rownames'])
 
         # Get trues
-        y = self.fit_transform(self.etl())['y'].values
+        y = self.fit_transform(self.etl())['y']
         preds = df_summary[df_summary['labels'].str.contains('y_hat')]['mean'].values
 
         # Random Intercepts
