@@ -66,6 +66,15 @@ class TestPredictors(TestCase):
                         plt.close()
 
     def test_custom(self):
-        # TODO make a custom input and check output as an example of the API
-        pass
+        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'predictor_set.pkl'), 'rb') as fp:
+            predictors = pickle.load(fp)
 
+        iowa = {
+            'RandomEffect': 'Iowa',
+            'rushingYards': 150,
+            'rushingAttempts': 30
+        }
+
+        for response in FootballBettingAid.responses:
+            output = predictors[('team', 'RushOnly', response)](iowa)
+            logger.info('{}: {}'.format(response, output))
