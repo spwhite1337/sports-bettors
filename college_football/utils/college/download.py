@@ -8,6 +8,9 @@ from tqdm import tqdm
 
 from config import ROOT_DIR, logger
 
+if not os.path.exists(os.path.join(ROOT_DIR, 'data', 'college_football')):
+    os.makedirs(os.path.join(ROOT_DIR, 'data', 'college_football'))
+
 
 class DownloadCollegeFootballData(object):
     """
