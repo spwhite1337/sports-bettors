@@ -24,6 +24,7 @@ setup(
         'scikit-learn',
         'statsmodels',
         'tqdm',
-        'pystan'
+        'pystan',
+        'beautifulsoup4'
     ]
 )
