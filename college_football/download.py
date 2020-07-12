@@ -65,7 +65,7 @@ class DownloadCollegeFootballData(object):
 
         # Save
         logger.info('Saving games data.')
-        df.to_csv(os.path.join(ROOT_DIR, 'data', 'df_games.csv'), index=False)
+        df.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_games.csv'), index=False)
 
         return df
 
@@ -115,8 +115,8 @@ class DownloadCollegeFootballData(object):
 
         # Save
         logger.info('Saving Rankings.')
-        df.to_csv(os.path.join(ROOT_DIR, 'data', 'df_rankings.csv'), index=False)
-        df_fails.to_csv(os.path.join(ROOT_DIR, 'data', 'df_failed_rankings.csv'), index=False)
+        df.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_rankings.csv'), index=False)
+        df_fails.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_failed_rankings.csv'), index=False)
 
         return df, df_fails
 
@@ -179,8 +179,8 @@ class DownloadCollegeFootballData(object):
 
         # Saving stats
         logger.info('Saving Stats.')
-        df_stats.to_csv(os.path.join(ROOT_DIR, 'data', 'df_stats.csv'), index=False)
-        df_fails.to_csv(os.path.join(ROOT_DIR, 'data', 'df_failed_stats.csv'), index=False)
+        df_stats.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_stats.csv'), index=False)
+        df_fails.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_failed_stats.csv'), index=False)
 
         return df_stats, df_fails
 
@@ -188,14 +188,14 @@ class DownloadCollegeFootballData(object):
         """
         Some games fail due to connection issues with the API; retry these games here
         """
-        failed_ids = os.path.join(ROOT_DIR, 'data', 'df_failed_stats.csv')
+        failed_ids = os.path.join(ROOT_DIR, 'data', 'college_football', 'df_failed_stats.csv')
         if not os.path.exists(failed_ids):
             logger.info('Download stats before retrying.')
             return
         df = pd.read_csv(failed_ids)
 
         # Get games with previously downloaded stats
-        original_stats = os.path.join(ROOT_DIR, 'data', 'df_stats.csv')
+        original_stats = os.path.join(ROOT_DIR, 'data', 'college_football', 'df_stats.csv')
         df_original = pd.read_csv(original_stats)
 
         # Retry failed games

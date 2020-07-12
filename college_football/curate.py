@@ -1,5 +1,6 @@
 import os
 import re
+import argparse
 
 from tqdm import tqdm
 import pandas as pd
@@ -11,10 +12,22 @@ def curate_data():
     """
     Curate downloaded data into a set for modeling / plotting.
     """
+    parser = argparse.ArgumentParser(prog='Football Curated')
+    parser.add_argument('--league', default='college')
+    args = parser.parse_args()
+
+    if args.league == 'college':
+        curate_college_football()
+
+
+def curate_college_football():
+    """
+    Curate college football data
+    """
     logger.info('Load Raw Data.')
-    df_games = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'df_games.csv'))
-    df_stats = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'df_stats.csv'))
-    df_rankings = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'df_rankings.csv'))
+    df_games = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_games.csv'))
+    df_stats = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_stats.csv'))
+    df_rankings = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_rankings.csv'))
 
     logger.info('Wrangle stats.')
 
@@ -112,4 +125,4 @@ def curate_data():
     df_modeling['matchup'] = df_modeling.apply(lambda row: _define_matchup(row['team'], row['opponent']), axis=1)
 
     logger.info('Save Curated data for {} games.'.format(df_modeling.shape))
-    df_modeling.to_csv(os.path.join(ROOT_DIR, 'data', 'df_curated.csv'), index=False)
+    df_modeling.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_curated.csv'), index=False)

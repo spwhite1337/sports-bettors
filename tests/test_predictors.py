@@ -5,24 +5,24 @@ from unittest import TestCase
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from modeling.models import FootballBettingAid
+from modeling.models import CollegeFootballBettingAid
 
 from config import ROOT_DIR, logger, version
 
 
 class TestPredictors(TestCase):
 
-    def test_predictors(self):
-        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'predictor_set.pkl'), 'rb') as fp:
+    def test_college_predictors(self):
+        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', 'predictor_set.pkl'), 'rb') as fp:
             predictors = pickle.load(fp)
 
         # Loop experiments
-        for random_effect in FootballBettingAid.random_effects:
-            for feature_set in FootballBettingAid.feature_sets.keys():
-                for response in FootballBettingAid.responses:
+        for random_effect in CollegeFootballBettingAid.random_effects:
+            for feature_set in CollegeFootballBettingAid.feature_sets.keys():
+                for response in CollegeFootballBettingAid.responses:
                     logger.info('Load preds from betting aid: {}, {}, {}.'.format(feature_set, random_effect, response))
-                    with open(os.path.join(ROOT_DIR, 'modeling', 'results', response, feature_set, random_effect,
-                                           'classifier_{}.pkl'.format(version)), 'rb') as fp:
+                    with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', response, feature_set, 
+                                           random_effect, 'classifier_{}.pkl'.format(version)), 'rb') as fp:
                         aid = pickle.load(fp)
 
                     logger.info('Load Data')
@@ -42,7 +42,7 @@ class TestPredictors(TestCase):
                     predictor = predictors[(random_effect, feature_set, response)]
                     df['y_preds'] = df.apply(lambda row: predictor(row)['mean'], axis=1)
 
-                    with PdfPages(os.path.join(ROOT_DIR, 'tests', 'test.pdf')) as pdf:
+                    with PdfPages(os.path.join(ROOT_DIR, 'tests', 'college_football_test.pdf')) as pdf:
                         # Scatter plot from each source
                         plt.figure(figsize=(8, 8))
                         plt.plot(df['y_aid'], df['y_preds'], alpha=0.5)
@@ -65,16 +65,17 @@ class TestPredictors(TestCase):
                         pdf.savefig()
                         plt.close()
 
-    def test_custom(self):
-        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'predictor_set.pkl'), 'rb') as fp:
+    def test_custom_college(self):
+        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', 'predictor_set.pkl'), 'rb') as fp:
             predictors = pickle.load(fp)
 
+        # Good rushing game for Iowa
         iowa = {
             'RandomEffect': 'Iowa',
             'rushingYards': 150,
             'rushingAttempts': 30
         }
 
-        for response in FootballBettingAid.responses:
+        for response in CollegeFootballBettingAid.responses:
             output = predictors[('team', 'RushOnly', response)](iowa)
             logger.info('{}: {}'.format(response, output))
