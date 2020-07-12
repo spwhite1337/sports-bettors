@@ -21,8 +21,10 @@ def download(league: str, retry: bool):
             downloader.download_rankings()
         else:
             downloader.retry_stats()
-    else:
+    elif league == 'nfl':
         downloader = DownloadNFLData()
         downloader.download_stats()
+    else:
+        raise NotImplementedError(league)
 
 
