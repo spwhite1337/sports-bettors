@@ -141,6 +141,7 @@ class BaseBettingAid(object):
         assert self.random_effect in self.random_effects
 
         # Make dirs
+        self.results_dir = os.path.join(self.results_dir, response, features, random_effect)
         if not os.path.exists(self.results_dir):
             os.makedirs(self.results_dir)
 
