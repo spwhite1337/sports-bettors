@@ -7,7 +7,9 @@ from config import ROOT_DIR, logger, version
 
 
 def run_experiments():
-
+    """
+    Generate a series of models with varying inputs / outputs
+    """
     parser = argparse.ArgumentParser(prog='Run experiments.')
     parser.add_argument('--league', default='college')
     args = parser.parse_args()
