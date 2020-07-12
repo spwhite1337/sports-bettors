@@ -141,7 +141,7 @@ class FootballBettingAid(object):
                  ):
         # I/O
         self.input_path = input_path
-        self.results_dir = results_dir
+        self.results_dir = os.path.join(results_dir, response, features, random_effect)
         self.version = version
 
         # Transformation
@@ -165,6 +165,10 @@ class FootballBettingAid(object):
         # Quality check on inputs
         assert self.random_effect in self.random_effects
         assert self.poll in self.polls
+
+        # Make dirs
+        if not os.path.exists(self.results_dir):
+            os.makedirs(self.results_dir)
 
         logger.info('Initialized with {}, {} for {}'.format(self.feature_label, self.random_effect, self.response))
 
@@ -392,9 +396,7 @@ class FootballBettingAid(object):
         if self.response_distributions[self.response] == 'bernoulli_logit':
             df_globals = df_globals[df_globals['labels'] != 'sigma_y'].reset_index(drop=True)
 
-        with PdfPages(os.path.join(self.results_dir, 'diagnostics_{}_{}_{}_{}.pdf'.format(
-                self.feature_label, self.random_effect, self.response, self.version
-        ))) as pdf:
+        with PdfPages(os.path.join(self.results_dir, 'diagnostics_{}.pdf'.format(self.version))) as pdf:
             # Bar graph of random effects for top 10, bottom 10, big10 teams
             plt.figure(figsize=(8, 8))
             df_top10 = df_random_effects.sort_values('mean', ascending=False).head(10).reset_index(drop=True)
@@ -522,8 +524,7 @@ class FootballBettingAid(object):
         Save object
         """
         if save_path is None:
-            save_path = 'classifier_{}_{}_{}_{}.pkl'.format(self.feature_label, self.random_effect, self.response,
-                                                            self.version)
+            save_path = 'classifier_{}.pkl'.format(self.version)
         if os.path.exists(os.path.join(self.results_dir, save_path)):
             logger.info('WARNING: Overwriting file')
             input('Press enter to continue.')
