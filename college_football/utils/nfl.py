@@ -92,6 +92,6 @@ class DownloadNFLData(object):
                     unparsed.append(url)
                     continue
 
-        logger.info('Saving Results.')
+        logger.info('Saving {} Results.'.format(len(results)))
         with open(os.path.join(ROOT_DIR, 'data', 'nfl', 'raw.pkl'), 'rb') as fp:
             pickle.dump(results, fp)
