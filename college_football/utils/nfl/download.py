@@ -99,5 +99,8 @@ class DownloadNFLData(object):
             logger.info('{}: {} Unparsed urls'.format(team, len(unparsed)))
             results[team] = results_team
 
+        if not os.path.exists(os.path.join(ROOT_DIR, 'data', 'nfl')):
+            os.makedirs(os.path.join(ROOT_DIR, 'data', 'nfl'))
+
         with open(os.path.join(ROOT_DIR, 'data', 'nfl', 'raw.pkl'), 'rb') as fp:
             pickle.dump(results, fp)
