@@ -49,8 +49,6 @@ class DownloadNFLData(object):
                     html = urlopen(url).read()
                     soup = BeautifulSoup(html)
                 except Exception as err:
-                    logger.info(err)
-                    logger.info(url)
                     failed_urls.append(url)
                     continue
 
