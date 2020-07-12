@@ -56,7 +56,7 @@ class TestPredictors(TestCase):
 
                         # Histogram of residuals
                         plt.figure(figsize=(8, 8))
-                        plt.hist(df['y_aid'] - df['y_preds'], alpha=0.5)
+                        plt.hist(df['y_aid'] - df['y_preds'], alpha=0.5, bins=20)
                         plt.xlabel('Residual (Pystan - predictor)')
                         plt.ylabel('Count')
                         plt.title('Residuals of Predictions')
