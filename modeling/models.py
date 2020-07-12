@@ -241,14 +241,14 @@ class FootballBettingAid(object):
         Create features and normalize
         """
         logger.info('Transforming Data.')
+        # Filter if necessary
+        df = self.filters[self.response](df)
+
         # Specify Random Effect
         df['RandomEffect'] = self._define_random_effect(df)
 
         # Engineer Features
         df = self._engineer_features(df)
-
-        # Filter if necessary
-        df = self.filters[self.response](df)
 
         # Scale
         if len(self.scales) == 0:

@@ -2,6 +2,9 @@ import os
 import pickle
 from unittest import TestCase
 
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+
 from modeling.models import FootballBettingAid
 
 from config import ROOT_DIR, logger, version
@@ -24,17 +27,43 @@ class TestPredictors(TestCase):
 
                     logger.info('Load Data')
                     df_data = aid.etl()
-                    logger.info('Filter Data')
+
+                    logger.info('Transform Data')
+                    df_data['RandomEffect'] = aid._define_random_effect(df_data)  # These should be "raw" inputs
                     df = aid.filters[aid.response](df_data).copy()
-                    logger.info('Get True values')
-                    df['y_true'] = aid.fit_transform(df_data)['y']
+                    df = aid._engineer_features(df)
+                    df['y_true'] = aid.response_creators[aid.response](df)
+
                     logger.info('Get predictions from pystan')
                     df['y_aid'] = aid.summary[aid.summary['labels'].str.contains('y_hat')]['mean'].values
 
-                    logger.info('Select Predictor')
+                    # Generate preds
+                    logger.info('Generate Prediction')
                     predictor = predictors[(random_effect, feature_set, response)]
-                    # Wrangle curated into dict for predictor input
-                    df['y_preds'] = None
+                    df['y_preds'] = df.apply(lambda row: predictor(row)['mean'], axis=1)
+
+                    with PdfPages(os.path.join(ROOT_DIR, 'tests', 'test.pdf')) as pdf:
+                        # Scatter plot from each source
+                        plt.figure(figsize=(8, 8))
+                        plt.plot(df['y_aid'], df['y_preds'], alpha=0.5)
+                        plt.xlabel('Pystan Predictions')
+                        plt.ylabel('Predictor')
+                        plt.title('Predictions Test.')
+                        plt.grid(True)
+                        plt.tight_layout()
+                        pdf.savefig()
+                        plt.close()
+
+                        # Histogram of residuals
+                        plt.figure(figsize=(8, 8))
+                        plt.hist(df['y_aid'] - df['y_preds'], alpha=0.5)
+                        plt.xlabel('Residual (Pystan - predictor)')
+                        plt.ylabel('Count')
+                        plt.title('Residuals of Predictions')
+                        plt.grid(True)
+                        plt.tight_layout()
+                        pdf.savefig()
+                        plt.close()
 
     def test_custom(self):
         # TODO make a custom input and check output as an example of the API
