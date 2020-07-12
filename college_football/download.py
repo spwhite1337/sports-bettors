@@ -1,7 +1,7 @@
 import argparse
 
-from college_football.utils.college import DownloadCollegeFootballData
-from college_football.utils.nfl import DownloadNFLData
+from college_football.utils.college.download import DownloadCollegeFootballData
+from college_football.utils.nfl.download import DownloadNFLData
 
 
 def download_cli():
@@ -26,5 +26,3 @@ def download(league: str, retry: bool):
         downloader.download_stats()
     else:
         raise NotImplementedError(league)
-
-
