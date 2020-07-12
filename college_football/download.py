@@ -210,14 +210,18 @@ class DownloadCollegeFootballData(object):
 
 
 def download_cli():
-    parser = argparse.ArgumentParser(prog='Download College Football Data')
+    parser = argparse.ArgumentParser(prog='Download Football Data')
+    parser.add_argument('--league', default='college')
     parser.add_argument('--retry', action='store_true')
     args = parser.parse_args()
-    download(retry=args.retry)
+    download(league=args.league, retry=args.retry)
 
 
-def download(retry: bool):
-    downloader = DownloadCollegeFootballData()
+def download(league: str, retry: bool):
+    if league == 'college':
+        downloader = DownloadCollegeFootballData()
+    else:
+        raise NotImplementedError('No other leagues yet.')
     if not retry:
         df_games = downloader.download_games()
         downloader.download_stats(df_games)
