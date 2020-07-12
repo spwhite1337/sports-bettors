@@ -184,9 +184,9 @@ class FootballBettingAid(object):
 
     def _define_random_effect(self, df: pd.DataFrame) -> pd.DataFrame:
         if self.random_effect == 'ranked_team':
-            return df[self.poll + 'Rank'].fillna(0).astype(str)
+            return df[self.poll].fillna(0).astype(str)
         elif self.random_effect == 'ranked_opponent':
-            return df['opp_' + self.poll + 'Rank'].fillna(0).astype(str)
+            return df['opp_' + self.poll].fillna(0).astype(str)
         else:
             return df[self.random_effect].astype(str)
 
