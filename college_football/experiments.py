@@ -11,10 +11,10 @@ def run_experiments():
     Generate a series of models with varying inputs / outputs
     """
     parser = argparse.ArgumentParser(prog='Run experiments.')
-    parser.add_argument('--league', default='college')
+    parser.add_argument('--league', default='college_football')
     args = parser.parse_args()
 
-    if args.league == 'college':
+    if args.league == 'college_football':
         predictors = {}
         for random_effect in CollegeFootballBettingAid.random_effects:
             for feature_set in CollegeFootballBettingAid.feature_sets.keys():

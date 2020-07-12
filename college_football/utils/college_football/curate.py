@@ -9,7 +9,7 @@ from config import ROOT_DIR, logger
 
 def curate_college():
     """
-    Curate college football data
+    Curate college_football football data
     """
     logger.info('Load Raw Data.')
     df_games = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_games.csv'))

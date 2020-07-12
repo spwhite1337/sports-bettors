@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='college-football',
+    name='college_football-football',
     version='1.0',
     description='Betting Aid for College Football',
     author='Scott P. White',
