@@ -23,6 +23,6 @@ def download(league: str, retry: bool):
             downloader.retry_stats()
     else:
         downloader = DownloadNFLData()
-        downloader.down_stats()
+        downloader.download_stats()
 
 
