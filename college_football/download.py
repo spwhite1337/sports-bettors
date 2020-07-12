@@ -15,12 +15,14 @@ def download_cli():
 def download(league: str, retry: bool):
     if league == 'college':
         downloader = DownloadCollegeFootballData()
+        if not retry:
+            df_games = downloader.download_games()
+            downloader.download_stats(df_games)
+            downloader.download_rankings()
+        else:
+            downloader.retry_stats()
     else:
         downloader = DownloadNFLData()
+        downloader.down_stats()
 
-    if not retry:
-        df_games = downloader.download_games()
-        downloader.download_stats(df_games)
-        downloader.download_rankings()
-    else:
-        downloader.retry_stats()
+
