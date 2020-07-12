@@ -39,15 +39,16 @@ class DownloadNFLData(object):
         def uncomment_html(unparsed: str):
             return re.sub('<!--', '', re.sub('-->', '', unparsed))
 
-        results, failed_urls, unparsed = [], [], []
+        results, failed_urls, unparsed = {}, [], []
         for team in tqdm(self.team_codes):
+            results_team = {}
             for date in tqdm(self.dates):
                 url = self.base_url.format(date, team)
 
                 # Open url and parse
                 try:
                     html = urlopen(url).read()
-                    soup = BeautifulSoup(html)
+                    soup = BeautifulSoup(html, features='lxml')
                 except Exception as err:
                     failed_urls.append(url)
                     continue
@@ -64,7 +65,7 @@ class DownloadNFLData(object):
                     # Get box score
                     all_team = soup.find(id='all_team_stats')
 
-                    soup_box = BeautifulSoup(uncomment_html(str(all_team)))
+                    soup_box = BeautifulSoup(uncomment_html(str(all_team)), features='lxml')
                     box = soup_box.findAll("table")[0]
 
                     # Get teams in order of [Away, Home]
@@ -83,13 +84,18 @@ class DownloadNFLData(object):
                         'features': features,
                         'values': values
                     }
-                    results.append({date: result})
+                    results_team[date] = result
                 except Exception as err:
                     logger.info(err)
                     logger.info(url)
                     unparsed.append(url)
                     continue
 
-        logger.info('Saving {} Results.'.format(len(results)))
+            # Log each iteration
+            results_dates = [pd.Timestamp(d) for d in results_team.keys()]
+            logger.info('{}: {} First Game'.format(team, min(results_dates)))
+            logger.info('{}: {} Games Returned'.format(team, len(results_dates)))
+            results[team] = results_team
+
         with open(os.path.join(ROOT_DIR, 'data', 'nfl', 'raw.pkl'), 'rb') as fp:
             pickle.dump(results, fp)
