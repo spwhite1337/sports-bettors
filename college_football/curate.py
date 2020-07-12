@@ -1,6 +1,7 @@
 import argparse
 
 from college_football.utils.college.curate import curate_college
+from college_football.utils.nfl.curate import curate_nfl
 
 
 def curate_data():
@@ -13,3 +14,7 @@ def curate_data():
 
     if args.league == 'college':
         curate_college()
+    elif args.league == 'nfl':
+        curate_nfl()
+    else:
+        raise NotImplementedError('No {}'.format(args.league))
