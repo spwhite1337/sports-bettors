@@ -8,8 +8,6 @@ from tqdm import tqdm
 
 from config import ROOT_DIR, logger
 
-if not os.path.exists(os.path.join(ROOT_DIR, 'data', 'college_football')):
-    os.makedirs(os.path.join(ROOT_DIR, 'data', 'college_football'))
 
 
 class DownloadCollegeFootballData(object):
@@ -43,6 +41,11 @@ class DownloadCollegeFootballData(object):
         'kickingPoints'
     ]
 
+    def __init__(self, save_dir: str = None):
+        self.save_dir = os.path.join(ROOT_DIR, 'data', 'college_football') if save_dir is None else save_dir
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
+
     def download_games(self) -> pd.DataFrame:
         """
         Download Game Information (no stats) for a year
@@ -67,7 +70,7 @@ class DownloadCollegeFootballData(object):
 
         # Save
         logger.info('Saving games data.')
-        df.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_games.csv'), index=False)
+        df.to_csv(os.path.join(self.save_dir, 'df_games.csv'), index=False)
 
         return df
 
@@ -118,7 +121,7 @@ class DownloadCollegeFootballData(object):
         # Save
         logger.info('Saving Rankings.')
         df.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_rankings.csv'), index=False)
-        df_fails.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_failed_rankings.csv'), index=False)
+        df_fails.to_csv(os.path.join(self.save_dir, 'df_failed_rankings.csv'), index=False)
 
         return df, df_fails
 
@@ -181,8 +184,8 @@ class DownloadCollegeFootballData(object):
 
         # Saving stats
         logger.info('Saving Stats.')
-        df_stats.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_stats.csv'), index=False)
-        df_fails.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_failed_stats.csv'), index=False)
+        df_stats.to_csv(os.path.join(self.save_dir, 'df_stats.csv'), index=False)
+        df_fails.to_csv(os.path.join(self.save_dir, 'df_failed_stats.csv'), index=False)
 
         return df_stats, df_fails
 
@@ -197,7 +200,7 @@ class DownloadCollegeFootballData(object):
         df = pd.read_csv(failed_ids)
 
         # Get games with previously downloaded stats
-        original_stats = os.path.join(ROOT_DIR, 'data', 'college_football', 'df_stats.csv')
+        original_stats = os.path.join(self.save_dir, 'df_stats.csv')
         df_original = pd.read_csv(original_stats)
 
         # Retry failed games
