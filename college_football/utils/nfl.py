@@ -37,12 +37,12 @@ class DownloadNFLData(object):
         """
         Download raw data scraped from pro-football-reference
         """
-        def uncomment_html(unparsed: str):
-            return re.sub('<!--', '', re.sub('-->', '', unparsed))
+        def uncomment_html(content: str):
+            return re.sub('<!--', '', re.sub('-->', '', content))
 
-        results, failed_urls, unparsed = {}, [], []
+        results, failed_urls = {}, []
         for team in tqdm(self.team_codes):
-            results_team = {}
+            results_team, unparsed = {}, []
             for date in tqdm(self.dates):
                 url = self.base_url.format(date, team)
 
@@ -96,6 +96,7 @@ class DownloadNFLData(object):
             results_dates = [pd.Timestamp(d) for d in results_team.keys()]
             logger.info('{}: {} First Game'.format(team, min(results_dates)))
             logger.info('{}: {} Games Returned'.format(team, len(results_dates)))
+            logger.info('{}: {} Unparsed urls'.format(team, len(unparsed)))
             results[team] = results_team
 
         with open(os.path.join(ROOT_DIR, 'data', 'nfl', 'raw.pkl'), 'rb') as fp:
