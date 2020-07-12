@@ -33,6 +33,11 @@ class DownloadNFLData(object):
     # URL to Format
     base_url = "https://www.pro-football-reference.com/boxscores/{}0{}.htm"
 
+    def __init__(self, save_dir: str = None):
+        self.save_dir = os.path.join(ROOT_DIR, 'data', 'nfl') if save_dir is None else save_dir
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
+
     def download_stats(self):
         """
         Download raw data scraped from pro-football-reference
@@ -58,14 +63,14 @@ class DownloadNFLData(object):
                 try:
                     # Get scores by quarter
                     score_tables = soup.findAll('table')[0]
-                    quarter_headers = [th.text for th in score_tables.findAll('thead')[0].findAll('th') if len(th.text) > 0]
+                    quarter_headers = [th.text for th in score_tables.findAll('thead')[0].findAll('th')
+                                       if len(th.text) > 0]
                     tbody = score_tables.findAll('tbody')[0]
                     quarter_values = [[cell.text for i, cell in enumerate(row.findAll('td'))]
                                       for row in tbody.findAll('tr')]
 
                     # Get box score
                     all_team = soup.find(id='all_team_stats')
-
                     soup_box = BeautifulSoup(uncomment_html(str(all_team)), features='lxml')
                     box = soup_box.findAll("table")[0]
 
@@ -99,8 +104,5 @@ class DownloadNFLData(object):
             logger.info('{}: {} Unparsed urls'.format(team, len(unparsed)))
             results[team] = results_team
 
-        if not os.path.exists(os.path.join(ROOT_DIR, 'data', 'nfl')):
-            os.makedirs(os.path.join(ROOT_DIR, 'data', 'nfl'))
-
-        with open(os.path.join(ROOT_DIR, 'data', 'nfl', 'raw.pkl'), 'rb') as fp:
+        with open(os.path.join(self.save_dir, 'raw.pkl'), 'rb') as fp:
             pickle.dump(results, fp)
