@@ -13,7 +13,7 @@ from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from config import ROOT_DIR, logger
+from config import ROOT_DIR, logger, version
 
 Features = namedtuple('Features', ['label', 'features'])
 
@@ -126,7 +126,7 @@ class FootballBettingAid(object):
                  # I/O
                  input_path: str = os.path.join(ROOT_DIR, 'data', 'df_curated.csv'),
                  results_dir: str = os.path.join(ROOT_DIR, 'modeling', 'results'),
-                 version: str = 'v1',
+                 version: str = version,
 
                  # Transformation
                  random_effect: str = 'Team',

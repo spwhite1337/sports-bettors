@@ -11,6 +11,8 @@ logger.setLevel(logging.INFO)
 # Get root dir
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 
+version = 'v1'
+
 
 class Config(object):
     pass

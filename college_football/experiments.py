@@ -2,7 +2,7 @@ import os
 import pickle
 from modeling.models import FootballBettingAid
 
-from config import ROOT_DIR, logger
+from config import ROOT_DIR, logger, version
 
 
 def run_experiments():
@@ -19,5 +19,5 @@ def run_experiments():
                 # Save predictors
                 predictors[(random_effect, feature_set, response)] = aid.predictor
 
-    with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'predictor_set.pkl'), 'wb') as fp:
+    with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'predictor_set_{}.pkl'.format(version)), 'wb') as fp:
         pickle.dump(predictors, fp)
