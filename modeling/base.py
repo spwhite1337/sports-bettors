@@ -2,6 +2,7 @@ import os
 import re
 import pickle
 
+from typing import Tuple
 from collections import namedtuple
 
 import pandas as pd
@@ -22,9 +23,10 @@ class FootballPredictor(object):
     And returns
     """
 
-    def __init__(self, scales: dict, predictor: dict):
+    def __init__(self, scales: dict, predictor: dict, re_params: Tuple[float, float]):
         self.scales = scales
         self.predictor = predictor
+        self.re_params = re_params
 
     def predict(self, data: dict) -> dict:
         """
@@ -32,26 +34,24 @@ class FootballPredictor(object):
         """
         # Get random effect
         random_effect = data.pop('RandomEffect')
+        re_vals = self.predictor['random_effect'].get(random_effect, (
+            self.re_params[0] - self.re_params[1], self.re_params[0], self.re_params[0] + self.re_params[1]
+        ))
 
         # Scale data
         data = {feature: (val - self.scales[feature][0]) / self.scales[feature][1] for feature, val in data.items()}
 
         # Get output including mean, ub, and lb
         output = {
-            'lb': self.predictor['intercept'][0] +
-                  self.predictor['random_effect'].get(random_effect, (0, 0, 0))[0] +
-                  np.sum([
-                      np.min([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
-                  ]) + self.predictor.get('noise', (0, 0, 0))[0],
-            'mean': self.predictor['intercept'][1] +
-                    self.predictor['random_effect'].get(random_effect, (0, 0, 0))[1] +
-                    np.sum([self.predictor['coefficients'][f][1] * v for f, v in data.items()]) +
-                    self.predictor.get('noise', (0, 0, 0))[1],
-            'ub': self.predictor['intercept'][2] +
-                  self.predictor['random_effect'].get(random_effect, (0, 0, 0))[1] +
-                  np.sum([
-                      np.max([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
-                  ]) + self.predictor.get('noise', (0, 0, 0))[2],
+            'lb': re_vals[0] + np.sum([
+                np.min([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
+            ]) + self.predictor.get('noise', (0, 0, 0))[0],
+            'mean': re_vals[1] + np.sum([
+                self.predictor['coefficients'][f][1] * v for f, v in data.items()
+            ]) + self.predictor.get('noise', (0, 0, 0))[1],
+            'ub': re_vals[2] + np.sum([
+                np.max([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
+            ]) + self.predictor.get('noise', (0, 0, 0))[2],
         }
 
         return output

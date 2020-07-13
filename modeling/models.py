@@ -34,7 +34,8 @@ class CollegeFootballBettingAid(BaseBettingAid):
         'to_margin': lambda row: row['turnovers'] - row['opp_turnovers'],
         'ptime_adv': lambda row: row['possessionTime'] - row['opp_possessionTime'],
         'firstdowns_adv': lambda row: row['firstDowns'] - row['opp_firstDowns'],
-        'pass_proportion': lambda row: row['passAttempts'] / (row['passAttempts'] + row['rushingAttempts'])
+        'pass_proportion': lambda row: row['passAttempts'] / (row['passAttempts'] + row['rushingAttempts']),
+        'total_points': lambda row: row['points'] + row['opp_points']
     }
 
     # Feature set to use for modeling (each value must be in the curated dataset or as a key in feature_creators)

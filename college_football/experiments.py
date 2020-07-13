@@ -12,6 +12,7 @@ def run_experiments():
     """
     parser = argparse.ArgumentParser(prog='Run experiments.')
     parser.add_argument('--league', default=None)
+    parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--predictors', action='store_true', help='Generate predictor set from fit models.')
     args = parser.parse_args()
 
@@ -20,6 +21,14 @@ def run_experiments():
         for random_effect in CollegeFootballBettingAid.random_effects:
             for feature_set in CollegeFootballBettingAid.feature_sets.keys():
                 for response in CollegeFootballBettingAid.responses:
+                    if not args.overwrite:
+                        # Check if model already fit
+                        if os.path.exists(os.path.join(ROOT_DIR, 'modeling', 'results', args.league, response,
+                                                       feature_set, random_effect,
+                                                       'classifier_{}.pkl'.format(version))):
+                            logger.info('{} ~ {} | {} already exists, skipping'.format(feature_set, response,
+                                                                                       random_effect))
+                            continue
                     logger.info('{} ~ {} | {}'.format(feature_set, response, random_effect))
                     aid = CollegeFootballBettingAid(random_effect=random_effect, features=feature_set, response=response)
                     aid.fit()
