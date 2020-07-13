@@ -25,8 +25,9 @@ class DownloadNFLData(object):
     # URL to Format
     base_url = "https://www.pro-football-reference.com/boxscores/{}0{}.htm"
 
-    def __init__(self, save_dir: str = None):
+    def __init__(self, save_dir: str = None, overwrite: bool = False):
         self.save_dir = os.path.join(ROOT_DIR, 'data', 'nfl', 'raw') if save_dir is None else save_dir
+        self.overwrite = overwrite
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
 
@@ -34,10 +35,17 @@ class DownloadNFLData(object):
         """
         Download raw data scraped from pro-football-reference
         """
+        if not self.overwrite:
+            downloaded_teams = [fn[:3] for fn in os.listdir(os.path.join(self.save_dir)) if 'raw' in fn]
+        else:
+            downloaded_teams = []
+
         def _uncomment_html(content: str):
             return re.sub('<!--', '', re.sub('-->', '', content))
 
         for team in tqdm(self.team_codes):
+            if team in downloaded_teams:
+                continue
             results_team, failed_urls, unparsed = {}, [], []
             for date in tqdm(self.dates):
                 url = self.base_url.format(date, team)
