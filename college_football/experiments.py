@@ -11,7 +11,7 @@ def run_experiments():
     Generate a series of models with varying inputs / outputs
     """
     parser = argparse.ArgumentParser(prog='Run experiments.')
-    parser.add_argument('--league', default=None)
+    parser.add_argument('--league', required=True)
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--predictors', action='store_true', help='Generate predictor set from fit models.')
     args = parser.parse_args()
