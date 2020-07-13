@@ -325,16 +325,15 @@ class BaseBettingAid(object):
             'coefficients': dict(zip(
                 df_coefs['labels'],
                 list(zip(df_coefs['mean'] - df_coefs['sd'], df_coefs['mean'], df_coefs['mean'] + df_coefs['sd']))
-            )),
-            'intercept': (intercept - intercept_sd, intercept, intercept + intercept_sd),
+            ))
         }
 
         # Add noise is applicable
-        if self.response_distributions[self.response] == 'bernoulli_logit':
+        if self.response_distributions[self.response] != 'bernoulli_logit':
             predictor['noise'] = (noise - noise_sd, noise, noise + noise_sd)
 
         # Define predictor object
-        self.predictor = FootballPredictor(scales=self.scales, predictor=predictor)
+        self.predictor = FootballPredictor(scales=self.scales, predictor=predictor, re_params=(intercept, intercept_sd))
 
         return self.model, self.summary
 
