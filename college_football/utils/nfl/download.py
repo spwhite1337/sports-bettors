@@ -1,6 +1,6 @@
 import os
 import re
-import pickle
+import json
 
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
@@ -79,6 +79,15 @@ class DownloadNFLData(object):
                     features = [header.text for header in tbody.findAll('th')]
                     values = [[cell.text for i, cell in enumerate(row.findAll('td'))] for row in tbody.findAll('tr')]
 
+                    # Log errors
+                    if any([len(quarter_headers) > 0, len(quarter_values) < 1, len(teams) < 1, len(features) < 1,
+                            len(values) < 1]):
+                        logger.info('Quarter Headers: {}'.format(len(quarter_headers)))
+                        logger.info('Quarter Values: {}'.format(len(quarter_values)))
+                        logger.info('Teams: {}'.format(len(teams)))
+                        logger.info('Features: {}'.format(len(features)))
+                        logger.info('Values: {}'.format(len(values)))
+
                     # Gather
                     result = {
                         'quarter_headers': quarter_headers,
@@ -102,5 +111,5 @@ class DownloadNFLData(object):
             results[team] = results_team
 
         # Save
-        with open(os.path.join(self.save_dir, 'raw.pkl'), 'rb') as fp:
-            pickle.dump(results, fp)
+        with open(os.path.join(self.save_dir, 'raw.json'), 'w') as fp:
+            json.dump(results, fp)
