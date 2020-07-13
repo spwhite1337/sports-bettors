@@ -11,7 +11,8 @@ def run_experiments():
     Generate a series of models with varying inputs / outputs
     """
     parser = argparse.ArgumentParser(prog='Run experiments.')
-    parser.add_argument('--league', default='college_football')
+    parser.add_argument('--league', default=None)
+    parser.add_argument('--predictors', action='store_true', help='Generate predictor set from fit models.')
     args = parser.parse_args()
 
     if args.league == 'college_football':
@@ -27,9 +28,21 @@ def run_experiments():
                     aid.diagnose()
                     aid.save()
 
-                    # Save predictors
-                    predictors[(random_effect, feature_set, response)] = aid.predictor
+    elif args.league == 'nfl':
+        raise NotImplementedError()
+    else:
+        raise NotImplementedError()
 
-        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football',
-                               'predictor_set_{}.pkl'.format(version)), 'wb') as fp:
-            pickle.dump(predictors, fp)
+    if args.predictors:
+        base_dir = os.path.join(ROOT_DIR, 'modeling', 'results')
+        for league in os.listdir(base_dir):
+            for response in os.listdir(os.path.join(base_dir, league)):
+                for feature_set in os.listdir(os.path.join(base_dir, league, response)):
+                    for random_effect in os.listdir(os.path.join(base_dir, league, response, feature_set)):
+                        with open(os.path.join(base_dir, league, response, feature_set, random_effect,
+                                               'classifier_{}.pkl'.format(version)), 'rb') as fp:
+                            aid = pickle.load(fp)
+                        predictors[(random_effect, feature_set, response)] = aid.predictor
+            with open(os.path.join(ROOT_DIR, 'modeling', 'results', league, 'predictor_set_{}.pkl'.format(version)),
+                      'wb') as fp:
+                pickle.dump(predictors, fp)
