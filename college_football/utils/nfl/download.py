@@ -104,11 +104,14 @@ class DownloadNFLData(object):
                     continue
 
             # Log each iteration
-            results_dates = [pd.Timestamp(d) for d in results_team.keys()]
-            logger.info('{}: {} First Game'.format(team, min(results_dates)))
-            logger.info('{}: {} Games Returned'.format(team, len(results_dates)))
-            logger.info('{}: {} Unparsed urls'.format(team, len(unparsed)))
-            results[team] = results_team
+            if len(results_team) > 1:
+                results_dates = [pd.Timestamp(d) for d in results_team.keys()]
+                logger.info('{}: {} First Game'.format(team, min(results_dates)))
+                logger.info('{}: {} Games Returned'.format(team, len(results_dates)))
+                logger.info('{}: {} Unparsed urls'.format(team, len(unparsed)))
+                results[team] = results_team
+            else:
+                logger.info('{}: Nothing returned'.format(team))
 
         # Save
         with open(os.path.join(self.save_dir, 'raw.json'), 'w') as fp:
