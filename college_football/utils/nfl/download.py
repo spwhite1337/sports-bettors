@@ -114,5 +114,6 @@ class DownloadNFLData(object):
                 logger.info('{}: Nothing returned'.format(team))
 
             # Save
+            logger.info('Saving Data for {}'.format(team))
             with open(os.path.join(self.save_dir, '{}_raw.json'.format(team)), 'w') as fp:
                 json.dump(results, fp)
