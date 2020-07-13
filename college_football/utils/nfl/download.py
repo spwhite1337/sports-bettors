@@ -56,7 +56,7 @@ class DownloadNFLData(object):
                     html = urlopen(url).read()
                     soup = BeautifulSoup(html, features='lxml')
                 except Exception as err:
-                    failed_urls.append(url)
+                    failed_urls.append((url, err))
                     continue
 
                 # Parse output
