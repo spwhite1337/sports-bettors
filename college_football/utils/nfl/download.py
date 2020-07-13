@@ -19,7 +19,7 @@ class DownloadNFLData(object):
                   'sea', 'sfo', 'tam', 'was']
 
     # Dates to download
-    dates = [datetime.strftime(d, '%Y%m%d') for d in pd.date_range(start='01-01-1985', end='01-01-2020', freq='1D')
+    dates = [datetime.strftime(d, '%Y%m%d') for d in pd.date_range(start='01-01-1960', end='01-01-2020', freq='1D')
              if d.month in [9, 10, 11, 12, 1, 2]]
 
     # URL to Format

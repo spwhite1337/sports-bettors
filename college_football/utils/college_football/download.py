@@ -9,7 +9,6 @@ from tqdm import tqdm
 from config import ROOT_DIR, logger
 
 
-
 class DownloadCollegeFootballData(object):
     """
     Object to download data from college_football football data api
