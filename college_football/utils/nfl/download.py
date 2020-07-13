@@ -14,17 +14,9 @@ from config import ROOT_DIR, logger
 
 class DownloadNFLData(object):
     # Teams to download
-    team_codes = ['atl', 'buf', 'car',
-                  'chi', 'cin', 'cle',
-                  'clt', 'crd', 'dal',
-                  'den', 'det', 'gnb',
-                  'htx', 'jax', 'kan',
-                  'mia', 'min', 'nor',
-                  'nwe', 'nyg', 'nyj',
-                  'oti', 'phi', 'pit',
-                  'rai', 'ram', 'rav',
-                  'sdg', 'sea', 'sfo',
-                  'tam', 'was']
+    team_codes = ['atl', 'buf', 'car', 'chi', 'cin', 'cle', 'clt', 'crd', 'dal', 'den', 'det', 'gnb', 'htx', 'jax',
+                  'kan', 'mia', 'min', 'nor', 'nwe', 'nyg', 'nyj', 'oti', 'phi', 'pit', 'rai', 'ram', 'rav', 'sdg',
+                  'sea', 'sfo', 'tam', 'was']
 
     # Dates to download
     dates = [datetime.strftime(d, '%Y%m%d') for d in pd.date_range(start='01-01-1985', end='01-01-2020', freq='1D')
