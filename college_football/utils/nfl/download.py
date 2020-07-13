@@ -37,9 +37,8 @@ class DownloadNFLData(object):
         def _uncomment_html(content: str):
             return re.sub('<!--', '', re.sub('-->', '', content))
 
-        results, failed_urls = {}, []
         for team in tqdm(self.team_codes):
-            results_team, unparsed = {}, []
+            results_team, failed_urls, unparsed = {}, [], []
             for date in tqdm(self.dates):
                 url = self.base_url.format(date, team)
 
@@ -109,11 +108,12 @@ class DownloadNFLData(object):
                 logger.info('{}: {} First Game'.format(team, min(results_dates)))
                 logger.info('{}: {} Games Returned'.format(team, len(results_dates)))
                 logger.info('{}: {} Unparsed urls'.format(team, len(unparsed)))
-                results[team] = results_team
             else:
                 logger.info('{}: Nothing returned'.format(team))
 
             # Save
             logger.info('Saving Data for {}'.format(team))
             with open(os.path.join(self.save_dir, '{}_raw.json'.format(team)), 'w') as fp:
-                json.dump(results, fp)
+                json.dump(results_team, fp, indent=4)
+            with open(os.path.join(self.save_dir, '{}_failed_urls.json'.format(team)), 'w') as fp:
+                json.dump(failed_urls, fp, indent=4)
