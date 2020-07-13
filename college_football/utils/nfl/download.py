@@ -26,7 +26,7 @@ class DownloadNFLData(object):
     base_url = "https://www.pro-football-reference.com/boxscores/{}0{}.htm"
 
     def __init__(self, save_dir: str = None):
-        self.save_dir = os.path.join(ROOT_DIR, 'data', 'nfl') if save_dir is None else save_dir
+        self.save_dir = os.path.join(ROOT_DIR, 'data', 'nfl', 'raw') if save_dir is None else save_dir
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
 
@@ -113,6 +113,6 @@ class DownloadNFLData(object):
             else:
                 logger.info('{}: Nothing returned'.format(team))
 
-        # Save
-        with open(os.path.join(self.save_dir, 'raw.json'), 'w') as fp:
-            json.dump(results, fp)
+            # Save
+            with open(os.path.join(self.save_dir, '{}_raw.json'.format(team)), 'w') as fp:
+                json.dump(results, fp)

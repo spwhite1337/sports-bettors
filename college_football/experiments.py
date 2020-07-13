@@ -17,6 +17,8 @@ def run_experiments():
     if args.league == 'college_football':
         predictors = {}
         for random_effect in CollegeFootballBettingAid.random_effects:
+            if 'rank' not in random_effect:
+                continue
             for feature_set in CollegeFootballBettingAid.feature_sets.keys():
                 for response in CollegeFootballBettingAid.responses:
                     logger.info('{} ~ {} | {}'.format(feature_set, response, random_effect))
