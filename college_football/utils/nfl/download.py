@@ -80,7 +80,7 @@ class DownloadNFLData(object):
                     values = [[cell.text for i, cell in enumerate(row.findAll('td'))] for row in tbody.findAll('tr')]
 
                     # Log errors
-                    if any([len(quarter_headers) > 0, len(quarter_values) < 1, len(teams) < 1, len(features) < 1,
+                    if any([len(quarter_headers) < 1, len(quarter_values) < 1, len(teams) < 1, len(features) < 1,
                             len(values) < 1]):
                         logger.info('Quarter Headers: {}'.format(len(quarter_headers)))
                         logger.info('Quarter Values: {}'.format(len(quarter_values)))
