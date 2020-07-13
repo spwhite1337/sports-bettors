@@ -42,7 +42,7 @@ class DownloadNFLData(object):
         """
         Download raw data scraped from pro-football-reference
         """
-        def uncomment_html(content: str):
+        def _uncomment_html(content: str):
             return re.sub('<!--', '', re.sub('-->', '', content))
 
         results, failed_urls = {}, []
@@ -61,17 +61,22 @@ class DownloadNFLData(object):
 
                 # Parse output
                 try:
-                    # Get scores by quarter
+                    # Get scores by quarter which is the first table in the page
                     score_tables = soup.findAll('table')[0]
+                    # Get the headers (there is only one head)
                     quarter_headers = [th.text for th in score_tables.findAll('thead')[0].findAll('th')
                                        if len(th.text) > 0]
+                    # Get the table body
                     tbody = score_tables.findAll('tbody')[0]
+                    # Get the data in the table body for every row
                     quarter_values = [[cell.text for i, cell in enumerate(row.findAll('td'))]
                                       for row in tbody.findAll('tr')]
 
-                    # Get box score
+                    # Get box score div
                     all_team = soup.find(id='all_team_stats')
-                    soup_box = BeautifulSoup(uncomment_html(str(all_team)), features='lxml')
+                    # Uncomment the html so that Beautiful Soup can parse it
+                    soup_box = BeautifulSoup(_uncomment_html(str(all_team)), features='lxml')
+                    # Get the first table
                     box = soup_box.findAll("table")[0]
 
                     # Get teams in order of [Away, Home]
@@ -104,5 +109,6 @@ class DownloadNFLData(object):
             logger.info('{}: {} Unparsed urls'.format(team, len(unparsed)))
             results[team] = results_team
 
+        # Save
         with open(os.path.join(self.save_dir, 'raw.pkl'), 'rb') as fp:
             pickle.dump(results, fp)
