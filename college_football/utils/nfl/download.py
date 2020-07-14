@@ -35,17 +35,14 @@ class DownloadNFLData(object):
         """
         Download raw data scraped from pro-football-reference
         """
-        if not self.overwrite:
-            downloaded_teams = [fn[:3] for fn in os.listdir(os.path.join(self.save_dir)) if 'raw' in fn]
-        else:
-            downloaded_teams = []
+        # Skip teams if overwrite selected
+        downloaded_teams = [fn[:3] for fn in os.listdir(os.path.join(self.save_dir))] if not self.overwrite else []
+        teams = [team for team in self.team_codes if team not in downloaded_teams]
 
         def _uncomment_html(content: str):
             return re.sub('<!--', '', re.sub('-->', '', content))
 
-        for team in tqdm(self.team_codes):
-            if team in downloaded_teams:
-                continue
+        for team in tqdm(teams):
             results_team, failed_urls, unparsed = {}, [], []
             for date in tqdm(self.dates):
                 url = self.base_url.format(date, team)
