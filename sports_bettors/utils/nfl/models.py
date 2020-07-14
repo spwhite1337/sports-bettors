@@ -1,7 +1,6 @@
 import os
 from collections import namedtuple
 
-import pandas as pd
 import numpy as np
 
 from sklearn.metrics import roc_curve, auc
@@ -15,34 +14,31 @@ from config import ROOT_DIR, logger
 Features = namedtuple('Features', ['label', 'features'])
 
 
-class CollegeFootballBettingAid(BaseBettingAid):
+class NFLBettingAid(BaseBettingAid):
     """
-    Object to define parameters for college football
+    Object to define parameters for NFL football
     """
     # Random effect in hierarchical model. One can specify either the team or the opponent name; or they can specify
     # The teams rank or the opponent's rank.
-    random_effects = ['team', 'opponent', 'ranked_team', 'ranked_opponent']
-
-    # Poll to use when determining rank
-    polls = ['APTop25Rank', 'BCSStandingsRank', 'CoachesPollRank']
+    random_effects = ['team', 'opponent']
 
     # Feature Definitions
     feature_creators = {
-        'rush_yds_adv': lambda row: row['rushingYards'] - row['opp_rushingYards'],
-        'pass_yds_adv': lambda row: row['netPassingYards'] - row['opp_netPassingYards'],
+        'rush_yds_adv': lambda row: row['rushYards'] - row['opp_rushYards'],
+        'pass_yds_adv': lambda row: row['NetPassYards'] - row['opp_NetPassYards'],
         'penalty_yds_adv': lambda row: row['penaltyYards'] - row['opp_penaltyYards'],
-        'to_margin': lambda row: row['turnovers'] - row['opp_turnovers'],
+        'to_margin': lambda row: row['Turnovers'] - row['opp_Turnovers'],
         'ptime_adv': lambda row: row['possessionTime'] - row['opp_possessionTime'],
-        'firstdowns_adv': lambda row: row['firstDowns'] - row['opp_firstDowns'],
-        'pass_proportion': lambda row: row['passAttempts'] / (row['passAttempts'] + row['rushingAttempts']),
+        'firstdowns_adv': lambda row: row['FirstDowns'] - row['opp_FirstDowns'],
+        'pass_proportion': lambda row: row['passAttempts'] / (row['passAttempts'] + row['rushAttempts']),
         'total_points': lambda row: row['points'] + row['opp_points']
     }
 
     # Feature set to use for modeling (each value must be in the curated dataset or as a key in feature_creators)
     feature_sets = {
-        'RushOnly': Features('RushOnly', ['rushingYards', 'rushingAttempts']),
+        'RushOnly': Features('RushOnly', ['rushYards', 'rushingAttempts']),
         'PassOnly': Features('PassOnly', ['netPassingYards', 'passAttempts']),
-        'Offense': Features('Offense', ['rushingYards', 'netPassingYards', 'rushingAttempts', 'passAttempts']),
+        'Offense': Features('Offense', ['rushYards', 'NetPassYards', 'rushAttempts', 'passAttempts']),
         'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
         'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
         'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv', 'to_margin',
@@ -80,17 +76,8 @@ class CollegeFootballBettingAid(BaseBettingAid):
     }
 
     # I/O
-    input_path = os.path.join(ROOT_DIR, 'data', 'college_football', 'curation', 'df_curated.csv')
-    results_dir = os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football')
-
-    # Override this in base because you need to fillna for ranked teams
-    def _define_random_effect(self, df: pd.DataFrame) -> pd.DataFrame:
-        if self.random_effect == 'ranked_team':
-            return df[self.poll].fillna(0).astype(str)
-        elif self.random_effect == 'ranked_opponent':
-            return df['opp_' + self.poll].fillna(0).astype(str)
-        else:
-            return df[self.random_effect].astype(str)
+    input_path = os.path.join(ROOT_DIR, 'data', 'nfl', 'curation', 'df_curated.csv')
+    results_dir = os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl')
 
     def diagnose(self):
         """
@@ -146,16 +133,16 @@ class CollegeFootballBettingAid(BaseBettingAid):
             plt.close()
 
             if self.random_effect in ['team', 'opponent']:
-                # Big10
+                # nfc north
                 plt.figure(figsize=(8, 8))
-                df_big10 = df_random_effects[df_random_effects['labels'].isin([
+                df_nfcn = df_random_effects[df_random_effects['labels'].isin([
                     'Iowa', 'Wisconsin', 'Michigan', 'MichiganState', 'OhioState', 'Indiana', 'Illinois', 'Nebraska',
                     'PennState', 'Minnesota', 'Rutgers', 'Maryland'
                 ])].sort_values('mean', ascending=False).reset_index(drop=True)
-                plt.bar(df_big10['labels'], df_big10['mean'])
-                plt.errorbar(x=df_big10.index, y=df_big10['mean'], yerr=df_big10['sd'], fmt='none', ecolor='black')
+                plt.bar(df_nfcn['labels'], df_nfcn['mean'])
+                plt.errorbar(x=df_nfcn.index, y=df_nfcn['mean'], yerr=df_nfcn['sd'], fmt='none', ecolor='black')
                 plt.grid(True)
-                plt.hlines(xmax=max(df_big10.index) + 1, xmin=min(df_big10.index) - 1, y=0, linestyles='dashed')
+                plt.hlines(xmax=max(df_nfcn.index) + 1, xmin=min(df_nfcn.index) - 1, y=0, linestyles='dashed')
                 plt.title('Big Ten Teams')
                 plt.xticks(rotation=90)
                 plt.tight_layout()

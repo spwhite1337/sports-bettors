@@ -41,7 +41,7 @@ class DownloadCollegeFootballData(object):
     ]
 
     def __init__(self, save_dir: str = None):
-        self.save_dir = os.path.join(ROOT_DIR, 'data', 'sports_bettors') if save_dir is None else save_dir
+        self.save_dir = os.path.join(ROOT_DIR, 'data', 'college_football', 'raw') if save_dir is None else save_dir
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
 

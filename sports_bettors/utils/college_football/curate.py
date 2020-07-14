@@ -11,13 +11,17 @@ def curate_college():
     """
     Curate sports_bettors football data
     """
+    RAW_DIR = os.path.join(ROOT_DIR, 'data', 'college_football', 'raw')
+    CURATION_DIR = os.path.join(ROOT_DIR, 'data', 'college_football', 'curation')
+    if not os.path.exists(CURATION_DIR):
+        os.makedirs(CURATION_DIR)
+
     logger.info('Load Raw Data.')
-    df_games = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'sports_bettors', 'df_games.csv'))
-    df_stats = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'sports_bettors', 'df_stats.csv'))
-    df_rankings = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'sports_bettors', 'df_rankings.csv'))
+    df_games = pd.read_csv(os.path.join(RAW_DIR, 'df_games.csv'))
+    df_stats = pd.read_csv(os.path.join(RAW_DIR, 'df_stats.csv'))
+    df_rankings = pd.read_csv(os.path.join(RAW_DIR, 'df_rankings.csv'))
 
     logger.info('Wrangle stats.')
-
     # Drop data errors
     df_stats = df_stats[df_stats['away_totalPenaltiesYards'] != '7--4953']
 
@@ -112,4 +116,4 @@ def curate_college():
     df_modeling['matchup'] = df_modeling.apply(lambda row: _define_matchup(row['team'], row['opponent']), axis=1)
 
     logger.info('Save Curated data for {} games.'.format(df_modeling.shape))
-    df_modeling.to_csv(os.path.join(ROOT_DIR, 'data', 'sports_bettors', 'df_curated.csv'), index=False)
+    df_modeling.to_csv(os.path.join(CURATION_DIR, 'df_curated.csv'), index=False)
