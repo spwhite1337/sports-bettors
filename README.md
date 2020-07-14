@@ -45,6 +45,7 @@ often used in ML production).
 - `python -m unittest`
 - Unit tests generate plots of simulated posteriors vs. approximated predictions from the predictor objects. The 
 two should be close. 
+- They also outline example use cases of the predictor objects.
 
 ## Predictions
 
