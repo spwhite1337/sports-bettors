@@ -13,7 +13,8 @@ from config import ROOT_DIR, logger, version
 class TestPredictors(TestCase):
 
     def test_college_predictors(self):
-        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', 'predictor_set.pkl'), 'rb') as fp:
+        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football',
+                               'predictor_set_{}.pkl'.format(version)), 'rb') as fp:
             predictors = pickle.load(fp)
 
         # Loop experiments
@@ -72,7 +73,8 @@ class TestPredictors(TestCase):
                         plt.close()
 
     def test_custom_college(self):
-        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', 'predictor_set.pkl'), 'rb') as fp:
+        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football',
+                               'predictor_set_{}.pkl'.format(version)), 'rb') as fp:
             predictors = pickle.load(fp)
 
         # Good rushing game for Iowa
