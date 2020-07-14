@@ -196,7 +196,7 @@ class BaseBettingAid(object):
         self.random_effect_inv = {'a[' + str(v) + ']': k for k, v in self.random_effect_map.items()}
         df['RandomEffect'] = df['RandomEffect'].map(self.random_effect_map)
 
-        # Scale
+        # Scale (For unit-tests you can skip this section)
         if not skip_scaling:
             for feature in self.features:
                 self.scales[feature] = (df[feature].mean(), df[feature].std())
