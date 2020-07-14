@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 from sports_bettors.utils.college_football.models import CollegeFootballBettingAid
-from sports_bettors.utils.nfl.models import NFLBettingAid
 
 from config import ROOT_DIR, logger, version
 
