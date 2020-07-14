@@ -1,12 +1,12 @@
 import argparse
 
-from college_football.utils.college_football.download import DownloadCollegeFootballData
-from college_football.utils.nfl.download import DownloadNFLData
+from sports_bettors.utils.college_football.download import DownloadCollegeFootballData
+from sports_bettors.utils.nfl.download import DownloadNFLData
 
 
 def download_cli():
     parser = argparse.ArgumentParser(prog='Download Football Data')
-    parser.add_argument('--league', default='sports_bettors')
+    parser.add_argument('--league', required=True)
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--retry', action='store_true')
     args = parser.parse_args()
@@ -14,7 +14,7 @@ def download_cli():
 
 
 def download(league: str, retry: bool, overwrite: bool = False):
-    if league == 'sports_bettors':
+    if league == 'college_football':
         downloader = DownloadCollegeFootballData()
         if not retry:
             df_games = downloader.download_games()
