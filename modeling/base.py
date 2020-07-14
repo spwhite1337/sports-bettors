@@ -17,7 +17,7 @@ from config import ROOT_DIR, logger, version
 Features = namedtuple('Features', ['label', 'features'])
 
 
-class FootballPredictor(object):
+class BetPredictor(object):
     """
     Lightweight predictor that accepts a dictionary of features (name: val) and random_effect ('RandomEffect': val)
     And returns
@@ -336,7 +336,7 @@ class BaseBettingAid(object):
             predictor['noise'] = (noise - noise_sd, noise, noise + noise_sd)
 
         # Define predictor object
-        self.predictor = FootballPredictor(scales=self.scales, predictor=predictor, re_params=(intercept, intercept_sd))
+        self.predictor = BetPredictor(scales=self.scales, predictor=predictor, re_params=(intercept, intercept_sd))
 
         return self.model, self.summary
 
