@@ -6,7 +6,15 @@ combine these bets by conditioning a probability of one on the results of the ot
 intuitions about a team's performance by, for example, conditioning a win probability on 200 rushing yards for a 
 favorite team.
 
-As of 7/14/2020; models are available for two leagues: `college_football` and `nfl`
+As of 7/14/2020; models are available for two leagues: `college_football` and `nfl`. The code implements PyStan to 
+fit Hierarchical Bayesian models with the team of interest serving as the random effect. The team could be also be 
+specified by opponent to shift the meaning of conditions. For `college_football`, the rank of the team / opponent can
+also be used with "unranked" opponents comprising the largest group.
+
+Each experiment assess a random-effect, feature-set, and response combination. The results of which can be seen in an
+automatically generated diagnostics report. A light-weight predictor object is also generated which will approximate the
+posterior probabilities for a new input vector without full-sampling of the posterior (There is a reason Stan isn't 
+often used in ML production).
 
 # Procedure
 
@@ -27,7 +35,9 @@ As of 7/14/2020; models are available for two leagues: `college_football` and `n
 # Run Experiments
 
 - Fit models and generate predictor objects with `sb_run_experiments --league [league]`
-- Optional: overwrite previously fit models with `sb_run_experiments --league [league] --overwrite`
+- Optional args to facilitate batching the fit of all models
+    - overwrite previously fit models with `sb_run_experiments --league [league] --overwrite`
+    - Fit predictor objects for the models created so far with `sb_run_experiments --league [league] --skipfit`
 
 # Unit Tests
 
