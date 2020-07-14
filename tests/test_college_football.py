@@ -28,7 +28,7 @@ class TestPredictors(TestCase):
                     model_path = os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', response,
                                               feature_set, random_effect, 'model_{}.pkl'.format(version))
                     if not os.path.exists(model_path):
-                        logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
+                        # logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
                         continue
 
                     # Initialize a betting aid
@@ -54,7 +54,7 @@ class TestPredictors(TestCase):
                     # Generate preds
                     logger.info('Generate Prediction')
                     predictor = predictors[(random_effect, feature_set, response)]
-                    df['y_preds'] = df[['RandomEffect' + aid.features]].\
+                    df['y_preds'] = df[['RandomEffect'] + aid.features].\
                         apply(lambda row: predictor.predict(row)['mean'], axis=1)
 
                     with PdfPages(os.path.join(ROOT_DIR, 'tests', 'college_football_test.pdf')) as pdf:

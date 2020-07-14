@@ -28,7 +28,7 @@ class TestPredictors(TestCase):
                     model_path = os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl', response, feature_set,
                                               random_effect, 'model_{}.pkl'.format(version))
                     if not os.path.exists(model_path):
-                        logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
+                        # logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
                         continue
 
                     # Initialize a betting aid
@@ -53,13 +53,21 @@ class TestPredictors(TestCase):
                     # Generate preds
                     logger.info('Generate Prediction')
                     predictor = predictors[(random_effect, feature_set, response)]
-                    df['y_preds'] = df[['RandomEffect' + aid.features]].\
-                        apply(lambda row: predictor.predict(row)['mean'], axis=1)
+                    df['y_preds'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['mean'], axis=1)
 
-                    with PdfPages(os.path.join(ROOT_DIR, 'tests', 'nfl_test.pdf')) as pdf:
+                    # Save
+                    save_dir = os.path.join(ROOT_DIR, 'tests', 'results', response, feature_set, random_effect)
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+
+                    with PdfPages(os.path.join(save_dir, 'nfl_test.pdf')) as pdf:
                         # Scatter plot from each source
+                        df_sample = df.sample(min(df.shape[0], 1000))
+                        lb = min([df_sample['y_fit'].min(), df_sample['y_preds'].min()])
+                        ub = max([df_sample['y_fit'].max(), df_sample['y_preds'].max()])
                         plt.figure(figsize=(8, 8))
-                        plt.plot(df['y_fit'], df['y_preds'], alpha=0.5)
+                        plt.scatter(df_sample['y_fit'], df_sample['y_preds'], alpha=0.5)
+                        plt.plot([lb, ub], [lb, ub], color='black', linestyle='dashed')
                         plt.xlabel('Pystan Predictions')
                         plt.ylabel('Predictor')
                         plt.title('Predictions Test.')
@@ -92,5 +100,7 @@ class TestPredictors(TestCase):
         }
 
         for response in NFLBettingAid.responses:
+            if ('team', 'RushOnly', response) not in predictors.keys():
+                continue
             output = predictors[('team', 'RushOnly', response)](bears)
             logger.info('{}: {}'.format(response, output))
