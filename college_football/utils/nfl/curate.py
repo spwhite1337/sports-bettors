@@ -3,6 +3,7 @@ import re
 import json
 
 import pandas as pd
+import numpy as np
 from tqdm import tqdm
 
 from config import ROOT_DIR, logger
@@ -55,6 +56,105 @@ def curate_nfl():
             curation.append(curated)
     df_curation = pd.DataFrame.from_records(curation).drop_duplicates()
     logger.info('Saving Curation with shape: {}'.format(df_curation.shape))
-    df_curation.to_csv(os.path.join(save_dir, 'df_curation.csv'), index=False)
+    df_curation.to_csv(os.path.join(save_dir, 'df_stats.csv'), index=False)
+
+    # Clean up fields
+    for home_away in ['home', 'away']:
+        # Clean up passing stats
+        df_curation[home_away + '_passCompletions'] = df_curation[home_away + '_CmpAttYdTDINT'].apply(
+            lambda stat: int(float(stat.split('-')[0])))
+        df_curation[home_away + '_passAttempts'] = df_curation[home_away + '_CmpAttYdTDINT'].apply(
+            lambda stat: int(float(stat.split('-')[1])))
+        df_curation[home_away + '_passYards'] = df_curation[home_away + '_CmpAttYdTDINT'].apply(
+            lambda stat: int(float(stat.split('-')[2])))
+        df_curation[home_away + '_passTDs'] = df_curation[home_away + '_CmpAttYdTDINT'].apply(
+            lambda stat: int(float(stat.split('-')[3])))
+        df_curation[home_away + '_interceptions'] = df_curation[home_away + '_CmpAttYdTDINT'].apply(
+            lambda stat: int(float(stat.split('-')[4])))
+
+        # Clean up rushing stats
+        df_curation[home_away + '_rushAttempts'] = df_curation[home_away + '_RushYdsTDs'].apply(
+            lambda stat: int(float(stat.split('-')[0])))
+        df_curation[home_away + '_rushYards'] = df_curation[home_away + '_RushYdsTDs'].apply(
+            lambda stat: ((stat.split('-')[1])))
+        df_curation[home_away + '_rushTDs'] = df_curation[home_away + '_RushYdsTDs'].apply(
+            lambda stat: int(float(stat.split('-')[2])))
+
+        # Fourth Down
+        df_curation[home_away + '_FourthDownConv'] = df_curation[home_away + '_FourthDownConv'].fillna('0-0')
+        df_curation[home_away + '_fourthDownConversions'] = df_curation[home_away + '_FourthDownConv'].apply(
+            lambda stat: ((str(stat).split('-')[0])))
+        df_curation[home_away + '_fourthDownAttempts'] = df_curation[home_away + '_FourthDownConv'].apply(
+            lambda stat: int(float(stat.split('-')[1])) if len(stat.split('-')) > 1 else np.nan)
+
+        # Fumbles Lost
+        df_curation[home_away + '_fumbles'] = df_curation[home_away + '_FumblesLost'].apply(
+            lambda stat: int(float(stat.split('-')[0])))
+        df_curation[home_away + '_fumblesLost'] = df_curation[home_away + '_FumblesLost'].apply(
+            lambda stat: int(float(stat.split('-')[1])))
+
+        # Clean up penalties
+        df_curation[home_away + '_penalties'] = df_curation[home_away + '_PenaltiesYards'].apply(
+            lambda stat: int(float(stat.split('-')[0])))
+        df_curation[home_away + '_penaltyYards'] = df_curation[home_away + '_PenaltiesYards'].apply(
+            lambda stat: int(float(stat.split('-')[1])))
+
+        # Clean up sacks
+        df_curation[home_away + '_sacks'] = df_curation[home_away + '_SackedYards'].apply(
+            lambda stat: int(float(stat.split('-')[0])))
+        df_curation[home_away + '_sackedYards'] = df_curation[home_away + '_SackedYards'].apply(
+            lambda stat: int(float(stat.split('-')[1])))
+
+        # Third Down
+        df_curation[home_away + '_ThirdDownConv'] = df_curation[home_away + '_ThirdDownConv'].fillna('0-0')
+        df_curation[home_away + '_thirdDownConversions'] = df_curation[home_away + '_ThirdDownConv'].apply(
+            lambda stat: ((stat.split('-')[0])))
+        df_curation[home_away + '_thirdDownAttempts'] = df_curation[home_away + '_ThirdDownConv'].apply(
+            lambda stat: int(float(stat.split('-')[1])) if len(stat.split('-')) > 1 else np.nan)
+
+        # Possession Time
+        df_curation[home_away + '_possessionTime'] = df_curation[home_away + '_TimeofPossession'].fillna('00:00')
+        df_curation[home_away + '_possessionTime'] = df_curation[home_away + '_TimeofPossession'].apply(
+            lambda stat: float(stat.split(':')[0]) + float(stat.split(':')[1]) / 60 if isinstance(stat, str) else np.nan)
+
+        # Convert back to NA
+        df_curation[home_away + '_possessionTime'] = df_curation.apply(
+            lambda row: row[home_away + '_possessionTime'] if row['year'] > 1983 else np.nan
+        )
+        df_curation[home_away + '_possessionTime'] = df_curation.apply(
+            lambda row: row[home_away + '_FourthDownConv'] if row['year'] > 1991 else np.nan
+        )
+        df_curation[home_away + '_possessionTime'] = df_curation.apply(
+            lambda row: row[home_away + '_ThirdDownConv'] if row['year'] > 1991 else np.nan
+        )
 
     # Wrangle from home / away to team / opponent
+    df_modeling = []
+    all_teams = set(list(df_curation['home_team']) + list(df_curation['away_team']))
+    for team in tqdm(all_teams):
+        # Games where team is home
+        df_home = df_curation[df_curation['home_team'] == team].copy()
+        df_home['team'] = team
+        df_home['is_home'] = 1
+        df_home['opponent'] = df_home['away_team']
+        df_home = df_home.drop(['home_team', 'away_team'], axis=1)
+        df_home.columns = [re.sub('away_', 'opp_', re.sub('home_', '', col)) for col in df_home.columns]
+        df_modeling.append(df_home)
+
+        # Games where team is away
+        df_away = df_curation[df_curation['away_team'] == team].copy()
+        df_away['team'] = team
+        df_away['is_home'] = 0
+        df_away['opponent'] = df_away['home_team']
+        df_away = df_away.drop(['home_team', 'away_team'], axis=1)
+        df_away.columns = [re.sub('home_', 'opp_', re.sub('away_', '', col)) for col in df_away.columns]
+        df_modeling.append(df_away)
+    df_modeling = pd.concat(df_modeling, sort=True).drop_duplicates().reset_index(drop=True)
+
+    # Matchup
+    def _define_matchup(main_team, opponent):
+        return '_vs_'.join(sorted([main_team, opponent]))
+    df_modeling['matchup'] = df_modeling.apply(lambda row: _define_matchup(row['team'], row['opponent']), axis=1)
+
+    logger.info('Save Curated data for {} games.'.format(df_modeling.shape))
+    df_modeling.to_csv(os.path.join(ROOT_DIR, 'data', 'nfl', 'curation', 'df_curated.csv'), index=False)
