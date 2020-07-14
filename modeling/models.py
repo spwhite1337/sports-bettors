@@ -45,8 +45,8 @@ class CollegeFootballBettingAid(BaseBettingAid):
         'Offense': Features('Offense', ['rushingYards', 'netPassingYards', 'rushingAttempts', 'passAttempts']),
         'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
         'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
-        'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv',
-                                'to_margin', 'firstdowns_adv'])
+        'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv', 'to_margin',
+                                'firstdowns_adv'])
     }
 
     # Potential Responses
