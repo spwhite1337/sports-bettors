@@ -54,7 +54,8 @@ class TestPredictors(TestCase):
                     # Generate preds
                     logger.info('Generate Prediction')
                     predictor = predictors[(random_effect, feature_set, response)]
-                    df['y_preds'] = df.apply(lambda row: predictor(row)['mean'], axis=1)
+                    df['y_preds'] = df[['RandomEffect' + aid.features]].\
+                        apply(lambda row: predictor.predict(row)['mean'], axis=1)
 
                     with PdfPages(os.path.join(ROOT_DIR, 'tests', 'college_football_test.pdf')) as pdf:
                         # Scatter plot from each source

@@ -53,7 +53,8 @@ class TestPredictors(TestCase):
                     # Generate preds
                     logger.info('Generate Prediction')
                     predictor = predictors[(random_effect, feature_set, response)]
-                    df['y_preds'] = df.apply(lambda row: predictor(row)['mean'], axis=1)
+                    df['y_preds'] = df[['RandomEffect' + aid.features]].\
+                        apply(lambda row: predictor.predict(row)['mean'], axis=1)
 
                     with PdfPages(os.path.join(ROOT_DIR, 'tests', 'nfl_test.pdf')) as pdf:
                         # Scatter plot from each source
@@ -78,7 +79,7 @@ class TestPredictors(TestCase):
                         pdf.savefig()
                         plt.close()
 
-    def test_custom_college(self):
+    def test_custom_nfl(self):
         with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl', 'predictor_set_{}.pkl'.format(version)), 'rb') \
                 as fp:
             predictors = pickle.load(fp)
@@ -86,8 +87,8 @@ class TestPredictors(TestCase):
         # Good rushing game for Iowa
         bears = {
             'RandomEffect': 'CHI',
-            'rushingYards': 150,
-            'rushingAttempts': 30
+            'rushYards': 150,
+            'rushAttempts': 30
         }
 
         for response in NFLBettingAid.responses:

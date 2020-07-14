@@ -28,7 +28,7 @@ class BetPredictor(object):
         self.predictor = predictor
         self.re_params = re_params
 
-    def predict(self, data: dict) -> dict:
+    def __call__(self, data: dict) -> dict:
         """
         Scale and predict from input data
         """
