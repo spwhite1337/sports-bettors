@@ -183,16 +183,18 @@ class BaseBettingAid(object):
 
         # Specify random_effect and map to integer
         df['RandomEffect'] = self._define_random_effect(df)
-        groups = sorted(list(set(df['RandomEffect'])))
-        self.random_effect_map = dict(zip(groups, range(1, len(groups) + 1)))  # Stan indexes from 1, not 0
-        self.random_effect_inv = {'a[' + str(v) + ']': k for k, v in self.random_effect_map.items()}
-        df['RandomEffect'] = df['RandomEffect'].map(self.random_effect_map)
 
         # Subset and Sort
         df = df[['RandomEffect'] + ['response'] + self.features].sort_values('RandomEffect').reset_index(drop=True)
 
         # Drop nas
         df = df.dropna(axis=0).reset_index(drop=True)
+
+        # Configure random effect
+        groups = sorted(list(set(df['RandomEffect'])))
+        self.random_effect_map = dict(zip(groups, range(1, len(groups) + 1)))  # Stan indexes from 1, not 0
+        self.random_effect_inv = {'a[' + str(v) + ']': k for k, v in self.random_effect_map.items()}
+        df['RandomEffect'] = df['RandomEffect'].map(self.random_effect_map)
 
         # Scale
         for feature in self.features:
