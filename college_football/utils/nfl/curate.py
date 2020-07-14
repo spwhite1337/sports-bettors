@@ -54,5 +54,5 @@ def curate_nfl():
             # Gather
             curation.append(curated)
     df_curation = pd.DataFrame.from_records(curation)
-    logger.info('Saving Curation.')
+    logger.info('Saving Curation with shape: {}'.format(df_curation.shape))
     df_curation.to_csv(os.path.join(save_dir, 'df_curation.csv'), index=False)
