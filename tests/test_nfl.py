@@ -37,7 +37,8 @@ class TestPredictors(TestCase):
                     logger.info('Load Data')
                     df_data = aid.etl()
 
-                    # This mimics the .fit_transform() method in the base model but does not scale the data
+                    # Transform the data but don't scale it
+                    logger.info('Transform Data')
                     data = aid.fit_transform(df_data, skip_scaling=True)
                     # Drop params for pystan
                     data.pop('N')
