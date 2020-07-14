@@ -42,7 +42,6 @@ def run_experiments():
     parser = argparse.ArgumentParser(prog='Run experiments.')
     parser.add_argument('--league', required=True)
     parser.add_argument('--overwrite', action='store_true')
-    parser.add_argument('--predictors', action='store_true', help='Generate predictor set from fit models.')
     parser.add_argument('--skipfit', action='store_true')
     args = parser.parse_args()
 
