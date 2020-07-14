@@ -5,7 +5,8 @@ from unittest import TestCase
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from college_football.utils.college_football.models import CollegeFootballBettingAid
+from sports_bettors.utils.college_football.models import CollegeFootballBettingAid
+from sports_bettors.utils.nfl.models import NFLBettingAid
 
 from config import ROOT_DIR, logger, version
 
@@ -13,7 +14,7 @@ from config import ROOT_DIR, logger, version
 class TestPredictors(TestCase):
 
     def test_college_predictors(self):
-        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'sports_bettors', 'predictor_set.pkl'), 'rb') as fp:
+        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', 'predictor_set.pkl'), 'rb') as fp:
             predictors = pickle.load(fp)
 
         # Loop experiments
@@ -21,7 +22,7 @@ class TestPredictors(TestCase):
             for feature_set in CollegeFootballBettingAid.feature_sets.keys():
                 for response in CollegeFootballBettingAid.responses:
                     logger.info('Load preds from betting aid: {}, {}, {}.'.format(feature_set, random_effect, response))
-                    with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'sports_bettors', response, feature_set,
+                    with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', response, feature_set,
                                            random_effect, 'classifier_{}.pkl'.format(version)), 'rb') as fp:
                         aid = pickle.load(fp)
 
@@ -66,7 +67,7 @@ class TestPredictors(TestCase):
                         plt.close()
 
     def test_custom_college(self):
-        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'sports_bettors', 'predictor_set.pkl'), 'rb') as fp:
+        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', 'predictor_set.pkl'), 'rb') as fp:
             predictors = pickle.load(fp)
 
         # Good rushing game for Iowa
