@@ -28,7 +28,7 @@ class TestPredictors(TestCase):
                     model_path = os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', response,
                                               feature_set, random_effect, 'model_{}.pkl'.format(version))
                     if not os.path.exists(model_path):
-                        logger.info('Warning: No model for {}, {}, {}'.format(random_effect, feature_set, response))
+                        logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
                         continue
 
                     # Initialize a betting aid
