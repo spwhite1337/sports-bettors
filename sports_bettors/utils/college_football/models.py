@@ -105,8 +105,6 @@ class CollegeFootballBettingAid(BaseBettingAid):
         # Get trues
         y = self.fit_transform(self.etl())['y']
         preds = self.summary[self.summary['labels'].str.contains('y_hat')]['mean'].values
-        if self.response_distributions[self.response] == 'bernoulli_logit':
-            preds = logit(preds)
 
         # Random Intercepts
         df_random_effects = self.summary[self.summary['labels'].str.startswith('a[')]. \
