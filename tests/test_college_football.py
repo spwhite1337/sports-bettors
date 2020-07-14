@@ -28,11 +28,17 @@ class TestPredictors(TestCase):
                     logger.info('Load Data')
                     df_data = aid.etl()
 
+                    # This mimic the .fit_transform() method in the base model
                     logger.info('Transform Data')
-                    df_data['RandomEffect'] = aid._define_random_effect(df_data)  # These should be "raw" inputs
-                    df = aid.filters[aid.response](df_data).copy()
-                    df = aid._engineer_features(df)
+                    df = aid._engineer_features(df_data)
                     df['y_true'] = aid.response_creators[aid.response](df)
+                    df = aid.filters[aid.response](df).copy()
+                    df['RandomEffect'] = aid._define_random_effect(df)  # These should be "raw" inputs
+                    # Subset and Sort
+                    df = df[['RandomEffect'] + ['response'] + aid.features].sort_values('RandomEffect').reset_index(
+                        drop=True)
+                    # Drop na
+                    df = df.dropna(axis=0)
 
                     logger.info('Get predictions from pystan')
                     df['y_aid'] = aid.summary[aid.summary['labels'].str.contains('y_hat')]['mean'].values

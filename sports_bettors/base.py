@@ -220,11 +220,17 @@ class BaseBettingAid(object):
         # Filter if necessary
         df = self.filters[self.response](df)
 
+        # Engineer Features
+        df = self._engineer_features(df)
+
         # Specify Random Effect
         df['RandomEffect'] = self._define_random_effect(df)
 
-        # Engineer Features
-        df = self._engineer_features(df)
+        # Subset and Sort
+        df = df[['RandomEffect'] + self.features].sort_values('RandomEffect').reset_index(drop=True)
+
+        # Drop nas
+        df = df.dropna(axis=0).reset_index(drop=True)
 
         # Scale
         if len(self.scales) == 0:
