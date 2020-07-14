@@ -37,7 +37,7 @@ class NFLBettingAid(BaseBettingAid):
     # Feature set to use for modeling (each value must be in the curated dataset or as a key in feature_creators)
     feature_sets = {
         'RushOnly': Features('RushOnly', ['rushYards', 'rushAttempts']),
-        'PassOnly': Features('PassOnly', ['netPassingYards', 'passAttempts']),
+        'PassOnly': Features('PassOnly', ['NetPassYards', 'passAttempts']),
         'Offense': Features('Offense', ['rushYards', 'NetPassYards', 'rushAttempts', 'passAttempts']),
         'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
         'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
