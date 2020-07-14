@@ -34,6 +34,7 @@ class BetPredictor(object):
         """
         # Get random effect
         random_effect = data.pop('RandomEffect')
+        # Get intercept and fill with global mean / sd
         re_vals = self.predictor['random_effect'].get(random_effect, (
             self.re_params[0] - self.re_params[1], self.re_params[0], self.re_params[0] + self.re_params[1]
         ))
@@ -354,9 +355,9 @@ class BaseBettingAid(object):
         with open(os.path.join(self.results_dir, save_path), 'wb') as fp:
             pickle.dump(self.model, fp)
 
-        summary_path = re.sub('classifier', 'summary', save_path)
+        summary_path = re.sub('classifier.pkl', 'summary.csv', save_path)
         logger.info('Saving summary to {}'.format(save_path))
-        self.summary.to_csv(summary_path, index=False)
+        self.summary.to_csv(os.path.join(self.results_dir, summary_path), index=False)
 
         predictor_path = re.sub('classifier', 'predictor', save_path)
         logger.info('Saving predictor to {}'.format(predictor_path))
