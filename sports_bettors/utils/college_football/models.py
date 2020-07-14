@@ -17,7 +17,7 @@ Features = namedtuple('Features', ['label', 'features'])
 
 class CollegeFootballBettingAid(BaseBettingAid):
     """
-    Object define parameters for college football
+    Object to define parameters for college football
     """
     # Random effect in hierarchical model. One can specify either the team or the opponent name; or they can specify
     # The teams rank or the opponent's rank.
