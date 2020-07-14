@@ -350,9 +350,13 @@ class BaseBettingAid(object):
             logger.info('WARNING: Overwriting file')
             input('Press enter to continue.')
 
-        logger.info('Saving object to {}'.format(save_path))
+        logger.info('Saving model to {}'.format(save_path))
         with open(os.path.join(self.results_dir, save_path), 'wb') as fp:
             pickle.dump(self.model, fp)
+
+        summary_path = re.sub('classifier', 'summary', save_path)
+        logger.info('Saving summary to {}'.format(save_path))
+        self.summary.to_csv(summary_path, index=False)
 
         predictor_path = re.sub('classifier', 'predictor', save_path)
         logger.info('Saving predictor to {}'.format(predictor_path))
