@@ -42,7 +42,7 @@ def curate_nfl():
             curated.update({label: val for label, val in zip(away_features, away_vals)})
 
             # Wrangle home points
-            score_labels = ['pts_Q1', 'pts_Q2', 'pts_Q3', 'pts_Q4']
+            score_labels = ['pts_Q1', 'pts_Q2', 'pts_Q3', 'pts_Q4', 'points']
             home_score_labels = ['home_' + label for label in score_labels]
             home_scores = [val for val in game_data['quarter_values'][0][2:6] + [game_data['quarter_values'][0][-1]]]
             curated.update({label: val for label, val in zip(home_score_labels, home_scores)})
