@@ -16,7 +16,7 @@ automatically generated diagnostics report. A light-weight predictor object is a
 posterior probabilities for a new input vector without full-sampling of the posterior (There is a reason Stan isn't 
 often used in ML production).
 
-# Procedure
+## Procedure
 
 - Python 3.5
 - `cd sports-bettors`
@@ -24,7 +24,7 @@ often used in ML production).
 - On Windows: `conda install libpython m2w64-toolchain -c msys2`
     - This install a C++ compiler (This requires conda, see pystan docs for more info)
 
-# Get Data
+## Get Data
 
 - Download data with: `sb_download --league [league]`
     - College Football data is downloaded from https://api.collegefootballdata.com/api/docs/?url=/api-docs.json
@@ -32,20 +32,20 @@ often used in ML production).
     script will need to be modified
 - Curate data with `sb_curate --league [league]`
 
-# Run Experiments
+## Run Experiments
 
 - Fit models and generate predictor objects with `sb_run_experiments --league [league]`
 - Optional args to facilitate batching the fit of all models
     - overwrite previously fit models with `sb_run_experiments --league [league] --overwrite`
     - Fit predictor objects for the models created so far with `sb_run_experiments --league [league] --skipfit`
 
-# Unit Tests
+## Unit Tests
 
 - `cd tests`
 - `python -m unittest`
 - Unit tests generate plots of simulated posteriors vs. approximated predictions from the predictor objects. The 
 two should be close. 
 
-# Predictions
+## Predictions
 
 - TODO: 
