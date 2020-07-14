@@ -58,10 +58,10 @@ def run_experiments():
     for response in os.listdir(os.path.join(base_dir)):
         for feature_set in os.listdir(os.path.join(base_dir, response)):
             for random_effect in os.listdir(os.path.join(base_dir, response, feature_set)):
+                # Load predictor
                 with open(os.path.join(base_dir, response, feature_set, random_effect,
-                                       'model_{}.pkl'.format(version)), 'rb') as fp:
-                    aid = pickle.load(fp)
-                predictors[(random_effect, feature_set, response)] = aid.predictor
+                                       'predictor_{}.pkl'.format(version)), 'rb') as fp:
+                    predictors[(random_effect, feature_set, response)] = pickle.load(fp)
 
     logger.info('Saving Predictor Set for {}'.format(args.league))
     with open(os.path.join(ROOT_DIR, 'modeling', 'results', args.league, 'predictor_set_{}.pkl'.format(version)),
