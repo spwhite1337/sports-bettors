@@ -62,7 +62,7 @@ def curate_nfl():
     def _dash_curate(stat: str, idx: int):
         stat = re.sub('--', '-', stat)
         try:
-            return int(float(stat.split('-')[idx])) if len(stat) > 2 else np.nan
+            return int(float(stat.split('-')[idx]))
         except Exception as err:
             logger.info('{}: {}'.format(stat, err))
             return np.nan
