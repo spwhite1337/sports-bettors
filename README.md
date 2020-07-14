@@ -1,52 +1,41 @@
-# Iowa Football Stats
+# Sports Bettors
 
-Get Data:
- - Use this API to get box scores: https://api.collegefootballdata.com/api/docs/?url=/api-docs.json#/
+Project to create betting aids for my favorite sports. The online gambling sites I use typically implement options 
+to (i) bet on a winner, (ii) bet against a spread or (iii) bet an over / under on total points. This project helps one
+combine these bets by conditioning a probability of one on the results of the other. Additionally, one can formalize
+intuitions about a team's performance by, for example, conditioning a win probability on 200 rushing yards for a 
+favorite team.
 
-Goals:
- - Create a betting aid that allows a user to input a team and conditioned stat differential:
-    - Options include
-        - One Team vs. anybody
-            - This is fit as a hierarchical model with the team as a random effect
-        - One Team vs. a ranked opponent
-            - This is fit as a hierarchical model with the team and rank as a random effect
-        - One Team vs. a Specific Opponent 
-            - This is fit as a hierarchical model with the matchup as the random effect (will be tough)
-        - If there are less than X-games then return an error because the model is not robust.
-            
-        - Stats Differentials
-            - Can be one or many inputs like +100 rush yards, -50 Pass yards, +0 Turnover
-            - If they only input some, can either force other inputs to 0; or can fit a model that doesn't use that stat.
-        - Output the point differential
-        - Also output a scatter plot in plotly/dashly that displays point differential vs. selected covariates with 
-        optional filters. 
-        
-Necessary data:
-    - One Team vs. Anybody:
-        - Team DataSet Fields
-            - Team
-            - TeamScore
-            - Opponent Score
-            - HomeAdvantage
-            - Team Stats
-            - Opponent Stats
-            - Engineered Features (differentials)
-        - TeamRank DataSet Fields
-            - Team
-            - Opponent Rank
-            - TeamScore
-            - Opponent Score
-            - HomeAdvantage
-            - TeamStats
-            - OpponentStats
-            - Engineered Features (differentials)
-        - Matchup DataSet Fields
-            - Matchup
-            - PointDifferential
-            - StatDifferential
-            
-            
-On Windows: Run this after `pip install -e .` to install a C++ compiler (This requires conda, see pystan docs for more 
-info)
- - `conda install libpython m2w64-toolchain -c msys2`
-    
+As of 7/14/2020; models are available for two leagues: `college_football` and `nfl`
+
+# Procedure
+
+- Python 3.5
+- `cd sports-bettors`
+- `pip install -e .`
+- On Windows: `conda install libpython m2w64-toolchain -c msys2`
+    - This install a C++ compiler (This requires conda, see pystan docs for more info)
+
+# Get Data
+
+- Download data with: `sb_download --league [league]`
+    - College Football data is downloaded from https://api.collegefootballdata.com/api/docs/?url=/api-docs.json
+    - NFL Data is scraped from https://www.pro-football-reference.com/. If the web front-end changes this download 
+    script will need to be modified
+- Curate data with `sb_curate --league [league]`
+
+# Run Experiments
+
+- Fit models and generate predictor objects with `sb_run_experiments --league [league]`
+- Optional: overwrite previously fit models with `sb_run_experiments --league [league] --overwrite`
+
+# Unit Tests
+
+- `cd tests`
+- `python -m unittest`
+- Unit tests generate plots of simulated posteriors vs. approximated predictions from the predictor objects. The 
+two should be close. 
+
+# Predictions
+
+- TODO: 
