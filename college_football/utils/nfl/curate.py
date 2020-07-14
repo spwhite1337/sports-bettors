@@ -64,8 +64,7 @@ def curate_nfl():
         try:
             return int(float(stat.split('-')[idx])) if len(stat) > 2 else np.nan
         except Exception as err:
-            print(err)
-            print(stat)
+            logger.info('{}: {}'.format(stat, err))
             return np.nan
 
     for home_away in ['home', 'away']:
