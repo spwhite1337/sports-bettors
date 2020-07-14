@@ -17,6 +17,7 @@ setup(
         'numpy',
         'matplotlib',
         'seaborn',
+        'scipy',
         'requests',
         'plotly',
         'dash',
