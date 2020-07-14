@@ -43,20 +43,23 @@ def run_experiments():
     parser.add_argument('--league', required=True)
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--predictors', action='store_true', help='Generate predictor set from fit models.')
+    parser.add_argument('--skipfit', action='store_true')
     args = parser.parse_args()
 
     assert args.league in betting_aids.keys()
-    logger.info('Running Experiments for {}; Overwrite {}'.format(args.league, args.overwrite))
-    execute_experiments(args.league, args.overwrite)
+
+    if not args.skipfit:
+        logger.info('Running Experiments for {}; Overwrite {}'.format(args.league, args.overwrite))
+        execute_experiments(args.league, args.overwrite)
 
     if args.predictors:
         logger.info('Generating Predictor Sets for {}'.format(args.league))
         predictors = {}
         base_dir = os.path.join(ROOT_DIR, 'modeling', 'results', args.league)
-        for response in os.listdir(os.path.join(base_dir, args.league)):
-            for feature_set in os.listdir(os.path.join(base_dir, args.league, response)):
-                for random_effect in os.listdir(os.path.join(base_dir, args.league, response, feature_set)):
-                    with open(os.path.join(base_dir, args.league, response, feature_set, random_effect,
+        for response in os.listdir(os.path.join(base_dir)):
+            for feature_set in os.listdir(os.path.join(base_dir, response)):
+                for random_effect in os.listdir(os.path.join(base_dir, response, feature_set)):
+                    with open(os.path.join(base_dir, response, feature_set, random_effect,
                                            'classifier_{}.pkl'.format(version)), 'rb') as fp:
                         aid = pickle.load(fp)
                     predictors[(random_effect, feature_set, response)] = aid.predictor

@@ -352,7 +352,7 @@ class BaseBettingAid(object):
 
         logger.info('Saving object to {}'.format(save_path))
         with open(os.path.join(self.results_dir, save_path), 'wb') as fp:
-            pickle.dump(self, fp)
+            pickle.dump(self.model, fp)
 
         predictor_path = re.sub('classifier', 'predictor', save_path)
         logger.info('Saving predictor to {}'.format(predictor_path))
