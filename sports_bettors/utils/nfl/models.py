@@ -40,8 +40,8 @@ class NFLBettingAid(BaseBettingAid):
         'RushOnly': Features('RushOnly', ['rushYards', 'rushAttempts']),
         'PassOnly': Features('PassOnly', ['NetPassYards', 'passAttempts']),
         'Offense': Features('Offense', ['rushYards', 'NetPassYards', 'rushAttempts', 'passAttempts']),
-        'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
-        'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
+        # 'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
+        # 'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
         'PointsScored': Features('PointsScored', ['total_points']),
         'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv', 'to_margin',
                                 'firstdowns_adv'])
