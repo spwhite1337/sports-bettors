@@ -21,6 +21,13 @@ class TestPredictors(TestCase):
         for random_effect in CollegeFootballBettingAid.random_effects:
             for feature_set in CollegeFootballBettingAid.feature_sets.keys():
                 for response in CollegeFootballBettingAid.responses:
+                    # Check if it exists
+                    model_path = os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', response,
+                                              feature_set, random_effect, 'model_{}.pkl'.format(version))
+                    if not os.path.exists(model_path):
+                        logger.info('Warning: No model for {}, {}, {}'.format(random_effect, feature_set, response))
+                        continue
+
                     logger.info('Load preds from betting aid: {}, {}, {}.'.format(feature_set, random_effect, response))
                     with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football', response, feature_set,
                                            random_effect, 'model_{}.pkl'.format(version)), 'rb') as fp:

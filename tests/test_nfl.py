@@ -21,9 +21,15 @@ class TestPredictors(TestCase):
         for random_effect in NFLBettingAid.random_effects:
             for feature_set in NFLBettingAid.feature_sets.keys():
                 for response in NFLBettingAid.responses:
+                    # Check if it exists
+                    model_path = os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl', response, feature_set,
+                                              random_effect, 'model_{}.pkl'.format(version))
+                    if not os.path.exists(model_path):
+                        logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
+                        continue
+
                     logger.info('Load preds from betting aid: {}, {}, {}.'.format(feature_set, random_effect, response))
-                    with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl', response, feature_set,
-                                           random_effect, 'model_{}.pkl'.format(version)), 'rb') as fp:
+                    with open(model_path, 'rb') as fp:
                         aid = pickle.load(fp)
 
                     logger.info('Load Data')
