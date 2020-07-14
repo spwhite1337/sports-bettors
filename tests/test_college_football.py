@@ -57,7 +57,12 @@ class TestPredictors(TestCase):
                     df['y_preds'] = df[['RandomEffect'] + aid.features].\
                         apply(lambda row: predictor.predict(row)['mean'], axis=1)
 
-                    with PdfPages(os.path.join(ROOT_DIR, 'tests', 'college_football_test.pdf')) as pdf:
+                    # Save
+                    save_dir = os.path.join(ROOT_DIR, 'tests', 'results', response, feature_set, random_effect)
+                    if not os.path.exists(save_dir):
+                        os.makedirs(save_dir)
+
+                    with PdfPages(os.path.join(save_dir, 'college_football_test.pdf')) as pdf:
                         # Scatter plot from each source
                         plt.figure(figsize=(8, 8))
                         plt.plot(df['y_fit'], df['y_preds'], alpha=0.5)
