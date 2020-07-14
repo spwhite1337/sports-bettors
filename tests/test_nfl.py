@@ -1,6 +1,9 @@
 import os
+import re
 import pickle
 from unittest import TestCase
+
+import pandas as pd
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -28,27 +31,22 @@ class TestPredictors(TestCase):
                         logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
                         continue
 
-                    logger.info('Load preds from betting aid: {}, {}, {}.'.format(feature_set, random_effect, response))
-                    with open(model_path, 'rb') as fp:
-                        aid = pickle.load(fp)
+                    # Initialize a betting aid
+                    aid = NFLBettingAid(random_effect=random_effect, features=feature_set, response=response)
 
                     logger.info('Load Data')
                     df_data = aid.etl()
 
-                    # This mimic the .fit_transform() method in the base model
-                    logger.info('Transform Data')
-                    df = aid._engineer_features(df_data)
-                    df['y_true'] = aid.response_creators[aid.response](df)
-                    df = aid.filters[aid.response](df).copy()
-                    df['RandomEffect'] = aid._define_random_effect(df)  # These should be "raw" inputs
-                    # Subset and Sort
-                    df = df[['RandomEffect'] + ['response'] + aid.features].sort_values('RandomEffect').reset_index(
-                        drop=True)
-                    # Drop na
-                    df = df.dropna(axis=0)
+                    # This mimics the .fit_transform() method in the base model but does not scale the data
+                    data = aid.fit_transform(df_data, skip_scaling=True)
+                    # Drop params for pystan
+                    data.pop('N')
+                    data.pop('J')
+                    df = pd.DataFrame.from_dict(data)
 
                     logger.info('Get predictions from pystan')
-                    df['y_aid'] = aid.summary[aid.summary['labels'].str.contains('y_hat')]['mean'].values
+                    summary_path = re.sub('model_{}.pkl'.format(version), 'summary_{}.csv'.format(version), model_path)
+                    df['y_fit'] = pd.read_csv(summary_path)['y'].values
 
                     # Generate preds
                     logger.info('Generate Prediction')
@@ -58,7 +56,7 @@ class TestPredictors(TestCase):
                     with PdfPages(os.path.join(ROOT_DIR, 'tests', 'nfl_test.pdf')) as pdf:
                         # Scatter plot from each source
                         plt.figure(figsize=(8, 8))
-                        plt.plot(df['y_aid'], df['y_preds'], alpha=0.5)
+                        plt.plot(df['y_fit'], df['y_preds'], alpha=0.5)
                         plt.xlabel('Pystan Predictions')
                         plt.ylabel('Predictor')
                         plt.title('Predictions Test.')
@@ -69,7 +67,7 @@ class TestPredictors(TestCase):
 
                         # Histogram of residuals
                         plt.figure(figsize=(8, 8))
-                        plt.hist(df['y_aid'] - df['y_preds'], alpha=0.5, bins=20)
+                        plt.hist(df['y_fit'] - df['y_preds'], alpha=0.5, bins=20)
                         plt.xlabel('Residual (Pystan - predictor)')
                         plt.ylabel('Count')
                         plt.title('Residuals of Predictions')

@@ -167,7 +167,7 @@ class BaseBettingAid(object):
                 df[feature] = df.apply(lambda row: self.feature_creators[feature](row), axis=1)
         return df
 
-    def fit_transform(self, df: pd.DataFrame) -> dict:
+    def fit_transform(self, df: pd.DataFrame, skip_scaling: bool = False) -> dict:
         """
         Create features and scale
         """
@@ -197,9 +197,10 @@ class BaseBettingAid(object):
         df['RandomEffect'] = df['RandomEffect'].map(self.random_effect_map)
 
         # Scale
-        for feature in self.features:
-            self.scales[feature] = (df[feature].mean(), df[feature].std())
-            df[feature] = (df[feature] - self.scales[feature][0]) / self.scales[feature][1]
+        if not skip_scaling:
+            for feature in self.features:
+                self.scales[feature] = (df[feature].mean(), df[feature].std())
+                df[feature] = (df[feature] - self.scales[feature][0]) / self.scales[feature][1]
 
         # Convert data to dictionary for Pystan API input
         pystan_data = {feature: df[feature].values for feature in self.features}
