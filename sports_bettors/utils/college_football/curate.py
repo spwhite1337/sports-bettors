@@ -9,12 +9,12 @@ from config import ROOT_DIR, logger
 
 def curate_college():
     """
-    Curate college_football football data
+    Curate sports_bettors football data
     """
     logger.info('Load Raw Data.')
-    df_games = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_games.csv'))
-    df_stats = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_stats.csv'))
-    df_rankings = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_rankings.csv'))
+    df_games = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'sports_bettors', 'df_games.csv'))
+    df_stats = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'sports_bettors', 'df_stats.csv'))
+    df_rankings = pd.read_csv(os.path.join(ROOT_DIR, 'data', 'sports_bettors', 'df_rankings.csv'))
 
     logger.info('Wrangle stats.')
 
@@ -112,4 +112,4 @@ def curate_college():
     df_modeling['matchup'] = df_modeling.apply(lambda row: _define_matchup(row['team'], row['opponent']), axis=1)
 
     logger.info('Save Curated data for {} games.'.format(df_modeling.shape))
-    df_modeling.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_curated.csv'), index=False)
+    df_modeling.to_csv(os.path.join(ROOT_DIR, 'data', 'sports_bettors', 'df_curated.csv'), index=False)

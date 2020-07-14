@@ -17,7 +17,7 @@ Features = namedtuple('Features', ['label', 'features'])
 
 class CollegeFootballBettingAid(BaseBettingAid):
     """
-    Object define parameters for college_football football
+    Object define parameters for sports_bettors football
     """
     # Random effect in hierarchical model. One can specify either the team or the opponent name; or they can specify
     # The teams rank or the opponent's rank.
@@ -80,8 +80,8 @@ class CollegeFootballBettingAid(BaseBettingAid):
     }
 
     # I/O
-    input_path = os.path.join(ROOT_DIR, 'data', 'college_football', 'df_curated.csv')
-    results_dir = os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football')
+    input_path = os.path.join(ROOT_DIR, 'data', 'sports_bettors', 'df_curated.csv')
+    results_dir = os.path.join(ROOT_DIR, 'modeling', 'results', 'sports_bettors')
 
     # Override this in base because you need to fillna for ranked teams
     def _define_random_effect(self, df: pd.DataFrame) -> pd.DataFrame:

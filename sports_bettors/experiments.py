@@ -1,7 +1,7 @@
 import os
 import pickle
 import argparse
-from modeling.models import CollegeFootballBettingAid
+from sports_bettors.utils.college_football.models import CollegeFootballBettingAid
 
 from config import ROOT_DIR, logger, version
 
@@ -16,7 +16,7 @@ def run_experiments():
     parser.add_argument('--predictors', action='store_true', help='Generate predictor set from fit models.')
     args = parser.parse_args()
 
-    if args.league == 'college_football':
+    if args.league == 'sports_bettors':
         predictors = {}
         for random_effect in CollegeFootballBettingAid.random_effects:
             for feature_set in CollegeFootballBettingAid.feature_sets.keys():

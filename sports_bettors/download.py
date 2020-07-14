@@ -6,7 +6,7 @@ from college_football.utils.nfl.download import DownloadNFLData
 
 def download_cli():
     parser = argparse.ArgumentParser(prog='Download Football Data')
-    parser.add_argument('--league', default='college_football')
+    parser.add_argument('--league', default='sports_bettors')
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--retry', action='store_true')
     args = parser.parse_args()
@@ -14,7 +14,7 @@ def download_cli():
 
 
 def download(league: str, retry: bool, overwrite: bool = False):
-    if league == 'college_football':
+    if league == 'sports_bettors':
         downloader = DownloadCollegeFootballData()
         if not retry:
             df_games = downloader.download_games()

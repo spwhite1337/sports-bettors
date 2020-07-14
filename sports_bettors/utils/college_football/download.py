@@ -11,7 +11,7 @@ from config import ROOT_DIR, logger
 
 class DownloadCollegeFootballData(object):
     """
-    Object to download data from college_football football data api
+    Object to download data from sports_bettors football data api
     """
     base_url = 'https://api.collegefootballdata.com/'
 
@@ -41,7 +41,7 @@ class DownloadCollegeFootballData(object):
     ]
 
     def __init__(self, save_dir: str = None):
-        self.save_dir = os.path.join(ROOT_DIR, 'data', 'college_football') if save_dir is None else save_dir
+        self.save_dir = os.path.join(ROOT_DIR, 'data', 'sports_bettors') if save_dir is None else save_dir
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
 
@@ -119,7 +119,7 @@ class DownloadCollegeFootballData(object):
 
         # Save
         logger.info('Saving Rankings.')
-        df.to_csv(os.path.join(ROOT_DIR, 'data', 'college_football', 'df_rankings.csv'), index=False)
+        df.to_csv(os.path.join(ROOT_DIR, 'data', 'sports_bettors', 'df_rankings.csv'), index=False)
         df_fails.to_csv(os.path.join(self.save_dir, 'df_failed_rankings.csv'), index=False)
 
         return df, df_fails
@@ -192,7 +192,7 @@ class DownloadCollegeFootballData(object):
         """
         Some games fail due to connection issues with the API; retry these games here
         """
-        failed_ids = os.path.join(ROOT_DIR, 'data', 'college_football', 'df_failed_stats.csv')
+        failed_ids = os.path.join(ROOT_DIR, 'data', 'sports_bettors', 'df_failed_stats.csv')
         if not os.path.exists(failed_ids):
             logger.info('Download stats before retrying.')
             return
