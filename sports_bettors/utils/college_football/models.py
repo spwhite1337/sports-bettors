@@ -9,7 +9,7 @@ from sklearn.metrics import roc_curve, auc
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-from modeling.base import BaseBettingAid
+from sports_bettors.base import BaseBettingAid
 from config import ROOT_DIR, logger
 
 Features = namedtuple('Features', ['label', 'features'])
