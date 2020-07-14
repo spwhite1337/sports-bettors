@@ -52,19 +52,18 @@ def run_experiments():
         logger.info('Running Experiments for {}; Overwrite {}'.format(args.league, args.overwrite))
         execute_experiments(args.league, args.overwrite)
 
-    if args.predictors:
-        logger.info('Generating Predictor Sets for {}'.format(args.league))
-        predictors = {}
-        base_dir = os.path.join(ROOT_DIR, 'modeling', 'results', args.league)
-        for response in os.listdir(os.path.join(base_dir)):
-            for feature_set in os.listdir(os.path.join(base_dir, response)):
-                for random_effect in os.listdir(os.path.join(base_dir, response, feature_set)):
-                    with open(os.path.join(base_dir, response, feature_set, random_effect,
-                                           'model_{}.pkl'.format(version)), 'rb') as fp:
-                        aid = pickle.load(fp)
-                    predictors[(random_effect, feature_set, response)] = aid.predictor
+    logger.info('Generating Predictor Sets for {}'.format(args.league))
+    predictors = {}
+    base_dir = os.path.join(ROOT_DIR, 'modeling', 'results', args.league)
+    for response in os.listdir(os.path.join(base_dir)):
+        for feature_set in os.listdir(os.path.join(base_dir, response)):
+            for random_effect in os.listdir(os.path.join(base_dir, response, feature_set)):
+                with open(os.path.join(base_dir, response, feature_set, random_effect,
+                                       'model_{}.pkl'.format(version)), 'rb') as fp:
+                    aid = pickle.load(fp)
+                predictors[(random_effect, feature_set, response)] = aid.predictor
 
-        logger.info('Saving Predictor Set for {}'.format(args.league))
-        with open(os.path.join(ROOT_DIR, 'modeling', 'results', args.league, 'predictor_set_{}.pkl'.format(version)),
-                  'wb') as fp:
-            pickle.dump(predictors, fp)
+    logger.info('Saving Predictor Set for {}'.format(args.league))
+    with open(os.path.join(ROOT_DIR, 'modeling', 'results', args.league, 'predictor_set_{}.pkl'.format(version)),
+              'wb') as fp:
+        pickle.dump(predictors, fp)
