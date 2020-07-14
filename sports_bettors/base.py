@@ -39,8 +39,9 @@ class BetPredictor(object):
             self.re_params[0] - self.re_params[1], self.re_params[0], self.re_params[0] + self.re_params[1]
         ))
 
-        # Scale data
-        data = {feature: (val - self.scales[feature][0]) / self.scales[feature][1] for feature, val in data.items()}
+        # Scale data and skip features that aren't in this model
+        data = {feature: (val - self.scales[feature][0]) / self.scales[feature][1] for feature, val in data.items()
+                if feature in data.keys()}
 
         # Get output including mean, ub, and lb
         output = {
