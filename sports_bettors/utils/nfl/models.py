@@ -136,15 +136,13 @@ class NFLBettingAid(BaseBettingAid):
             if self.random_effect in ['team', 'opponent']:
                 # nfc north
                 plt.figure(figsize=(8, 8))
-                df_nfcn = df_random_effects[df_random_effects['labels'].isin([
-                    'Iowa', 'Wisconsin', 'Michigan', 'MichiganState', 'OhioState', 'Indiana', 'Illinois', 'Nebraska',
-                    'PennState', 'Minnesota', 'Rutgers', 'Maryland'
-                ])].sort_values('mean', ascending=False).reset_index(drop=True)
+                df_nfcn = df_random_effects[df_random_effects['labels'].isin(['CHI', 'GNB', 'DET', 'MIN'])].\
+                    sort_values('mean', ascending=False).reset_index(drop=True)
                 plt.bar(df_nfcn['labels'], df_nfcn['mean'])
                 plt.errorbar(x=df_nfcn.index, y=df_nfcn['mean'], yerr=df_nfcn['sd'], fmt='none', ecolor='black')
                 plt.grid(True)
                 plt.hlines(xmax=max(df_nfcn.index) + 1, xmin=min(df_nfcn.index) - 1, y=0, linestyles='dashed')
-                plt.title('Big Ten Teams')
+                plt.title('NFC North Teams')
                 plt.xticks(rotation=90)
                 plt.tight_layout()
                 pdf.savefig()

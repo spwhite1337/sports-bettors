@@ -190,6 +190,9 @@ class BaseBettingAid(object):
         # Subset and Sort
         df = df[['RandomEffect'] + ['response'] + self.features].sort_values('RandomEffect').reset_index(drop=True)
 
+        # Drop nas
+        df = df.dropna(axis=0).reset_index(drop=True)
+
         # Scale
         for feature in self.features:
             self.scales[feature] = (df[feature].mean(), df[feature].std())
