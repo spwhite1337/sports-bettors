@@ -346,7 +346,7 @@ class BaseBettingAid(object):
         Save object
         """
         if save_path is None:
-            save_path = 'classifier_{}.pkl'.format(self.version)
+            save_path = 'model_{}.pkl'.format(self.version)
         if os.path.exists(os.path.join(self.results_dir, save_path)):
             logger.info('WARNING: Overwriting file')
             input('Press enter to continue.')
@@ -355,11 +355,11 @@ class BaseBettingAid(object):
         with open(os.path.join(self.results_dir, save_path), 'wb') as fp:
             pickle.dump(self.model, fp)
 
-        summary_path = re.sub('classifier.pkl', 'summary.csv', save_path)
+        summary_path = re.sub('model.pkl', 'summary.csv', save_path)
         logger.info('Saving summary to {}'.format(save_path))
         self.summary.to_csv(os.path.join(self.results_dir, summary_path), index=False)
 
-        predictor_path = re.sub('classifier', 'predictor', save_path)
+        predictor_path = re.sub('model', 'predictor', save_path)
         logger.info('Saving predictor to {}'.format(predictor_path))
         with open(os.path.join(self.results_dir, predictor_path), 'wb') as fp:
             pickle.dump(self.predictor, fp)

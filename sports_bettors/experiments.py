@@ -60,7 +60,7 @@ def run_experiments():
             for feature_set in os.listdir(os.path.join(base_dir, response)):
                 for random_effect in os.listdir(os.path.join(base_dir, response, feature_set)):
                     with open(os.path.join(base_dir, response, feature_set, random_effect,
-                                           'classifier_{}.pkl'.format(version)), 'rb') as fp:
+                                           'model_{}.pkl'.format(version)), 'rb') as fp:
                         aid = pickle.load(fp)
                     predictors[(random_effect, feature_set, response)] = aid.predictor
 

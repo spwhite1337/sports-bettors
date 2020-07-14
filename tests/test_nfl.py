@@ -22,7 +22,7 @@ class TestPredictors(TestCase):
                 for response in NFLBettingAid.responses:
                     logger.info('Load preds from betting aid: {}, {}, {}.'.format(feature_set, random_effect, response))
                     with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl', response, feature_set,
-                                           random_effect, 'classifier_{}.pkl'.format(version)), 'rb') as fp:
+                                           random_effect, 'model_{}.pkl'.format(version)), 'rb') as fp:
                         aid = pickle.load(fp)
 
                     logger.info('Load Data')
