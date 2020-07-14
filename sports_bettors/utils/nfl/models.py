@@ -18,8 +18,8 @@ class NFLBettingAid(BaseBettingAid):
     """
     Object to define parameters for NFL football
     """
-    # Random effect in hierarchical model. One can specify either the team or the opponent name; or they can specify
-    # The teams rank or the opponent's rank.
+    # Random effect in hierarchical model. One can specify either the team or the opponent name. No rankings for NFL
+    # as they aren't as robust across time or across the season as college.
     random_effects = ['team', 'opponent']
 
     # Feature Definitions
@@ -41,6 +41,7 @@ class NFLBettingAid(BaseBettingAid):
         'Offense': Features('Offense', ['rushYards', 'NetPassYards', 'rushAttempts', 'passAttempts']),
         'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
         'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
+        'PointsScored': Features('PointsScored', ['total_points']),
         'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv', 'to_margin',
                                 'firstdowns_adv'])
     }

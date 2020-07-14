@@ -15,6 +15,10 @@ def execute_experiments(league: str, overwrite: bool = False):
     for random_effect in betting_aid.random_effects:
         for feature_set in betting_aid.feature_sets.keys():
             for response in betting_aid.responses:
+                # Skip combinations that are over-specified
+                if (feature_set == 'PointScored') and (response == 'TotalPoints'):
+                    continue
+
                 # Check if model already fit
                 if not overwrite:
                     if os.path.exists(os.path.join(ROOT_DIR, 'modeling', 'results', league, response,
