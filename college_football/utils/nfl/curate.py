@@ -62,7 +62,7 @@ def curate_nfl():
     def _dash_curate(stat: str, idx: int):
         stat = re.sub('--', '-', stat)
         try:
-            return int(float(stat.split('-')[idx]))
+            return int(float(stat.split('-')[idx])) if len(stat) > 2 else np.nan
         except Exception as err:
             logger.info('{}: {}'.format(stat, err))
             return np.nan
@@ -178,5 +178,5 @@ def curate_nfl():
         return '_vs_'.join(sorted([main_team, opponent]))
     df_modeling['matchup'] = df_modeling.apply(lambda row: _define_matchup(row['team'], row['opponent']), axis=1)
 
-    logger.info('Save Curated data for {} games.'.format(df_modeling.shape))
+    logger.info('Save Curated data for {} games.'.format(df_modeling.shape[0]))
     df_modeling.to_csv(os.path.join(ROOT_DIR, 'data', 'nfl', 'curation', 'df_curated.csv'), index=False)
