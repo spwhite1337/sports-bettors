@@ -93,5 +93,7 @@ class TestPredictors(TestCase):
         }
 
         for response in CollegeFootballBettingAid.responses:
+            if ('team', 'RushOnly', response) not in predictors.keys():
+                continue
             output = predictors[('team', 'RushOnly', response)](iowa)
             logger.info('{}: {}'.format(response, output))
