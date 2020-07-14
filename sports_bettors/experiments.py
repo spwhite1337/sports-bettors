@@ -23,7 +23,7 @@ def execute_experiments(league: str, overwrite: bool = False):
                 if not overwrite:
                     if os.path.exists(os.path.join(ROOT_DIR, 'modeling', 'results', league, response,
                                                    feature_set, random_effect,
-                                                   'classifier_{}.pkl'.format(version))):
+                                                   'model_{}.pkl'.format(version))):
                         logger.info('{} ~ {} | {} already exists, skipping'.format(feature_set, response,
                                                                                    random_effect))
                         continue
