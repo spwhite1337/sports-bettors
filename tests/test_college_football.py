@@ -48,7 +48,8 @@ class TestPredictors(TestCase):
 
                     logger.info('Get predictions from pystan summary')
                     summary_path = re.sub('model_{}.pkl'.format(version), 'summary_{}.csv'.format(version), model_path)
-                    df['y_fit'] = pd.read_csv(summary_path)['y'].values
+                    df_summary = pd.read_csv(summary_path)
+                    df['y_fit'] = df_summary[df_summary['labels'].str.contains('y_hat')]['mean'].values
 
                     # Generate preds
                     logger.info('Generate Prediction')
