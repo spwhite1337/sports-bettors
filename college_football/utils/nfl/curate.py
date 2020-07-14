@@ -113,19 +113,19 @@ def curate_nfl():
             lambda stat: int(float(stat.split('-')[1])) if len(stat.split('-')) > 1 else np.nan)
 
         # Possession Time
-        df_curation[home_away + '_possessionTime'] = df_curation[home_away + '_TimeofPossession'].fillna('00:00')
+        df_curation[home_away + '_TimeofPossession'] = df_curation[home_away + '_TimeofPossession'].fillna('00:00')
         df_curation[home_away + '_possessionTime'] = df_curation[home_away + '_TimeofPossession'].apply(
-            lambda stat: float(stat.split(':')[0]) + float(stat.split(':')[1]) / 60 if isinstance(stat, str) else np.nan)
+            lambda stat: float(stat.split(':')[0]) + float(stat.split(':')[1]) / 60 if len(stat) > 4 else np.nan)
 
         # Convert back to NA
         df_curation[home_away + '_possessionTime'] = df_curation.apply(
-            lambda row: row[home_away + '_possessionTime'] if row['year'] > 1983 else np.nan
+            lambda row: row[home_away + '_possessionTime'] if row['year'] > 1983 else np.nan, axis=1
         )
         df_curation[home_away + '_possessionTime'] = df_curation.apply(
-            lambda row: row[home_away + '_FourthDownConv'] if row['year'] > 1991 else np.nan
+            lambda row: row[home_away + '_FourthDownConv'] if row['year'] > 1991 else np.nan, axis=1
         )
         df_curation[home_away + '_possessionTime'] = df_curation.apply(
-            lambda row: row[home_away + '_ThirdDownConv'] if row['year'] > 1991 else np.nan
+            lambda row: row[home_away + '_ThirdDownConv'] if row['year'] > 1991 else np.nan, axis=1
         )
 
     # Wrangle from home / away to team / opponent
