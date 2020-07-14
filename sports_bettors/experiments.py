@@ -58,6 +58,12 @@ def run_experiments():
         for feature_set in os.listdir(os.path.join(base_dir, response)):
             for random_effect in os.listdir(os.path.join(base_dir, response, feature_set)):
                 # Load predictor
+                predictor_path = os.path.join(base_dir, response, feature_set, random_effect,
+                                              'predictor_{}.pkl'.format(version))
+                if not os.path.exists(predictor_path):
+                    logger.info('Warning: Dir for {}, {}, {} exists but no predictor'.format(response, feature_set,
+                                                                                             random_effect))
+                    continue
                 with open(os.path.join(base_dir, response, feature_set, random_effect,
                                        'predictor_{}.pkl'.format(version)), 'rb') as fp:
                     predictors[(random_effect, feature_set, response)] = pickle.load(fp)
