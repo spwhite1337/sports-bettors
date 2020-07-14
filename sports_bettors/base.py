@@ -364,7 +364,7 @@ class BaseBettingAid(object):
         with open(os.path.join(self.results_dir, save_path), 'wb') as fp:
             pickle.dump(self.model, fp)
 
-        summary_path = re.sub('model.pkl', 'summary.csv', save_path)
+        summary_path = re.sub('model_{}.pkl'.format(self.version), 'summary_{}.csv'.format(self.version), save_path)
         logger.info('Saving summary to {}'.format(save_path))
         self.summary.to_csv(os.path.join(self.results_dir, summary_path), index=False)
 
