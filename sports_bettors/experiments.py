@@ -1,12 +1,8 @@
 import os
 import pickle
 import argparse
-from sports_bettors.utils.college_football.models import CollegeFootballBettingAid
-from sports_bettors.utils.nfl.models import NFLBettingAid
 
-from config import ROOT_DIR, logger, version
-
-betting_aids = {'nfl': NFLBettingAid, 'college_football': CollegeFootballBettingAid}
+from config import ROOT_DIR, logger, version, betting_aids
 
 
 def execute_experiments(league: str, overwrite: bool = False):
