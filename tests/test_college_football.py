@@ -55,7 +55,7 @@ class TestPredictors(TestCase):
                     logger.info('Generate Prediction')
                     predictor = predictors[(random_effect, feature_set, response)]
                     df['y_preds'] = df[['RandomEffect'] + aid.features].\
-                        apply(lambda row: predictor.predict(row)['mean'], axis=1)
+                        apply(lambda row: predictor(row)['mean'], axis=1)
 
                     # Save
                     save_dir = os.path.join(ROOT_DIR, 'tests', 'results', response, feature_set, random_effect)
