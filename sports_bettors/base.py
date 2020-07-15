@@ -357,9 +357,6 @@ class BaseBettingAid(object):
         """
         if save_path is None:
             save_path = 'model_{}.pkl'.format(self.version)
-        if os.path.exists(os.path.join(self.results_dir, save_path)):
-            logger.info('WARNING: Overwriting file')
-            input('Press enter to continue.')
 
         logger.info('Saving model to {}'.format(save_path))
         with open(os.path.join(self.results_dir, save_path), 'wb') as fp:
