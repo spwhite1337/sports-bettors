@@ -342,7 +342,7 @@ class BaseBettingAid(object):
             ))
         }
 
-        # Add noise is applicable
+        # Add noise if applicable
         if self.response_distributions[self.response] != 'bernoulli_logit':
             predictor['noise'] = (noise - noise_sd, noise, noise + noise_sd)
 
