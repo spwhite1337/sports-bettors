@@ -49,11 +49,15 @@ class TestPredictors(TestCase):
                     summary_path = re.sub('model_{}.pkl'.format(version), 'summary_{}.csv'.format(version), model_path)
                     df_summary = pd.read_csv(summary_path)
                     df['y_fit'] = df_summary[df_summary['labels'].str.contains('y_hat')]['mean'].values
+                    df['y_fit_ci'] = df_summary[df_summary['labels'].str.contains('y_hat')]['sd'].values * 2
 
                     # Generate preds
                     logger.info('Generate Prediction')
                     predictor = predictors[(random_effect, feature_set, response)]
                     df['y_preds'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['mean'], axis=1)
+                    df['y_preds_ci'] = df[['RandomEffect'] + aid.features].apply(
+                        lambda r: predictor(r)['ub'] - predictor(r)['lb'],
+                        axis=1)
 
                     # Save
                     save_dir = os.path.join(ROOT_DIR, 'tests', 'results', response, feature_set, random_effect)
@@ -71,6 +75,21 @@ class TestPredictors(TestCase):
                         plt.xlabel('Pystan Predictions')
                         plt.ylabel('Predictor')
                         plt.title('Predictions Test.')
+                        plt.grid(True)
+                        plt.tight_layout()
+                        pdf.savefig()
+                        plt.close()
+
+                        # Scatter plot of errors
+                        df_sample = df.sample(min(df.shape[0], 1000))
+                        lb = min([df_sample['y_fit_ci'].min(), df_sample['y_preds_ci'].min()])
+                        ub = max([df_sample['y_fit_ci'].max(), df_sample['y_preds_ci'].max()])
+                        plt.figure(figsize=(8, 8))
+                        plt.scatter(df_sample['y_fit_ci'], df_sample['y_preds_ci'], alpha=0.5)
+                        plt.plot([lb, ub], [lb, ub], color='black', linestyle='dashed')
+                        plt.xlabel('Pystan CI (approx)')
+                        plt.ylabel('Predictor CI (approx)')
+                        plt.title('Predictions CI Test.')
                         plt.grid(True)
                         plt.tight_layout()
                         pdf.savefig()
