@@ -43,8 +43,18 @@ class BetPredictor(object):
         data = {feature: (val - self.scales[feature][0]) / self.scales[feature][1] for feature, val in data.items()
                 if feature in data.keys()}
 
-        # Get output including mean, ub, and lb
-        # Noise does no add to the mean value, but the largest estimate of the noise is subtracted / added for lb / ub
+        # Get output including mean, ub, and lb as an approximate of the posterior distribution of the stan model.
+        # Full sampling of the posterior is very cumbersome with stan, we can either:
+        # # (i) Refit the model with the predictions as a generated parameter in the model code
+        # # (ii) Extract the parameters of the posterior distributions and sample them at the input x.
+        # # (iii) Approximate the results of sampled posteriors with the parameters of the posteriors
+        # (i) is prohibitively slow but has highest accuracy. (ii) has similar accuracy to (i) but pretty slow for
+        # Bulk predictions. (iii) is really quick and adopted here. See the results of the unittests to assess the
+        # quality of this approximation as a point estimate.
+        # In short, the 'mean' key of the output is point estimate when assuming the MAP value of the posterior.
+        # the lower bound ('lb') takes the minimum value of x * coef where coef can be either the mean-val + sd or
+        # mean-val - sd (the lower of the two depends on the sign of x). Similar for the upper bound.
+        # For continuous outputs, noise is added based on the mean + sd for lb / ub
         output = {
             'lb': re_vals[0] + np.sum([
                 np.min([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
