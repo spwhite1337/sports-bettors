@@ -50,7 +50,7 @@ class BetPredictor(object):
             ]) + self.predictor.get('noise', (0, 0, 0))[0],
             'mean': re_vals[1] + np.sum([
                 self.predictor['coefficients'][f][1] * v for f, v in data.items()
-            ]) + self.predictor.get('noise', (0, 0, 0))[1],
+            ]),
             'ub': re_vals[2] + np.sum([
                 np.max([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
             ]) + self.predictor.get('noise', (0, 0, 0))[2],
