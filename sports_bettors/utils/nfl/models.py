@@ -48,7 +48,7 @@ class NFLBettingAid(BaseBettingAid):
     }
 
     # Potential Responses
-    responses = ['Win', 'WinMargin', 'LossMargin', 'TotalPoints', 'Margin']
+    responses = ['TotalPoints', 'Win', 'WinMargin', 'LossMargin', 'Margin']
 
     # Response Definitions
     response_creators = {
