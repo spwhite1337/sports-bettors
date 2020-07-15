@@ -44,10 +44,11 @@ class BetPredictor(object):
                 if feature in data.keys()}
 
         # Get output including mean, ub, and lb
+        # Noise does no add to the mean value, but the largest estimate of the noise is subtracted / added for lb / ub
         output = {
             'lb': re_vals[0] + np.sum([
                 np.min([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
-            ]) + self.predictor.get('noise', (0, 0, 0))[0],
+            ]) - self.predictor.get('noise', (0, 0, 0))[2],
             'mean': re_vals[1] + np.sum([
                 self.predictor['coefficients'][f][1] * v for f, v in data.items()
             ]),
