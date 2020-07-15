@@ -156,7 +156,7 @@ class BaseBettingAid(object):
         logger.info('Loading Curated Data')
         input_path = self.input_path if input_path is None else input_path
         if not os.path.exists(input_path):
-            raise FileNotFoundError('No curated data, run `cf_curate`')
+            raise FileNotFoundError('No curated data, run `sb_curate`')
         return pd.read_csv(input_path)
 
     def _define_random_effect(self, df: pd.DataFrame) -> pd.DataFrame:
