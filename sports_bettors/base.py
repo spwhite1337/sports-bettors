@@ -304,13 +304,14 @@ class BaseBettingAid(object):
         model_code = self.model_code()
 
         # Fit stan model
-        self.model = pystan.stan(model_code=model_code, data=input_data, iter=self.iterations, chains=self.chains,
-                                 verbose=self.verbose,
-                                 model_name='{}_{}_{}'.format(self.feature_label, self.random_effect, self.response),
+        self.model = pystan.StanModel(model_code=model_code, model_name='{}_{}_{}'.format(self.feature_label,
+                                                                                  self.random_effect, self.response))
+        fit = self.model.sampling(data=input_data, iter=self.iterations, chains=self.chains, verbose=self.verbose,
                                  seed=187)
+
         # Get model summary
         logger.info('Getting model summary for diagnostics')
-        summary = self.model.summary()
+        summary = fit.summary()
         self.summary = pd.DataFrame(summary['summary'], columns=summary['summary_colnames']). \
             assign(labels=summary['summary_rownames'])
 
@@ -349,7 +350,7 @@ class BaseBettingAid(object):
         # Define predictor object
         self.predictor = BetPredictor(scales=self.scales, predictor=predictor, re_params=(intercept, intercept_sd))
 
-        return self.model, self.summary
+        return self.model, self.summary, self.predictor
 
     def save(self, save_path: str = None):
         """
