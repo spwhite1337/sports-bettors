@@ -1,5 +1,4 @@
 import os
-import re
 import pickle
 
 from typing import Tuple
@@ -33,7 +32,7 @@ class BetPredictor(object):
         Scale and predict from input data
         """
         # Get random effect
-        random_effect = data.pop('RandomEffect')
+        random_effect = data.get('RandomEffect')
         # Get intercept and fill with global mean / sd
         re_vals = self.predictor['random_effect'].get(random_effect, (
             self.re_params[0] - self.re_params[1], self.re_params[0], self.re_params[0] + self.re_params[1]
@@ -316,9 +315,10 @@ class BaseBettingAid(object):
 
         # Fit stan model
         self.model = pystan.StanModel(model_code=model_code, model_name='{}_{}_{}'.format(self.feature_label,
-                                                                                  self.random_effect, self.response))
+                                                                                          self.random_effect,
+                                                                                          self.response))
         fit = self.model.sampling(data=input_data, iter=self.iterations, chains=self.chains, verbose=self.verbose,
-                                 seed=187)
+                                  seed=187)
 
         # Get model summary
         logger.info('Getting model summary for diagnostics')
@@ -326,59 +326,15 @@ class BaseBettingAid(object):
         self.summary = pd.DataFrame(summary['summary'], columns=summary['summary_colnames']). \
             assign(labels=summary['summary_rownames'])
 
-        # Random Effects
-        df_re = self.summary[self.summary['labels'].str.startswith('a[')].reset_index(drop=True)
-        df_re['labels'] = df_re['labels'].map(self.random_effect_inv)
-
-        # Coefficients
-        df_coefs = self.summary[self.summary['labels'].str.contains('^b[0-9]', regex=True)]. \
-            assign(labels=self.features)
-
-        # Global intercept
-        intercept = self.summary[self.summary['labels'] == 'mu_a']['mean'].iloc[0]
-        intercept_sd = self.summary[self.summary['labels'] == 'mu_a']['sd'].iloc[0]
-
-        # Noise
-        noise = self.summary[self.summary['labels'] == 'sigma_y']['mean'].iloc[0]
-        noise_sd = self.summary[self.summary['labels'] == 'sigma_y']['sd'].iloc[0]
-
-        # Convert to bare-model for API predictions
-        predictor = {
-            'random_effect': dict(zip(
-                df_re['labels'],
-                list(zip(df_re['mean'] - df_re['sd'], df_re['mean'], df_re['mean'] + df_re['sd']))
-            )),
-            'coefficients': dict(zip(
-                df_coefs['labels'],
-                list(zip(df_coefs['mean'] - df_coefs['sd'], df_coefs['mean'], df_coefs['mean'] + df_coefs['sd']))
-            ))
-        }
-
-        # Add noise if applicable
-        if self.response_distributions[self.response] != 'bernoulli_logit':
-            predictor['noise'] = (noise - noise_sd, noise, noise + noise_sd)
-
-        # Define predictor object
-        self.predictor = BetPredictor(scales=self.scales, predictor=predictor, re_params=(intercept, intercept_sd))
-
-        return self.model, self.summary, self.predictor
+        return self.model, self.summary
 
     def save(self, save_path: str = None):
         """
         Save object
         """
         if save_path is None:
-            save_path = 'model_{}.pkl'.format(self.version)
+            save_path = 'aid_{}.pkl'.format(self.version)
 
-        logger.info('Saving model to {}'.format(save_path))
+        logger.info('Saving aid to {}'.format(save_path))
         with open(os.path.join(self.results_dir, save_path), 'wb') as fp:
-            pickle.dump(self.model, fp)
-
-        summary_path = re.sub('model_{}.pkl'.format(self.version), 'summary_{}.csv'.format(self.version), save_path)
-        logger.info('Saving summary to {}'.format(save_path))
-        self.summary.to_csv(os.path.join(self.results_dir, summary_path), index=False)
-
-        predictor_path = re.sub('model', 'predictor', save_path)
-        logger.info('Saving predictor to {}'.format(predictor_path))
-        with open(os.path.join(self.results_dir, predictor_path), 'wb') as fp:
-            pickle.dump(self.predictor, fp)
+            pickle.dump(self, fp)
