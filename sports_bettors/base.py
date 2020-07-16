@@ -56,13 +56,13 @@ class BetPredictor(object):
         output = {
             'lb': re_vals[0] + np.sum([
                 self.calculator['coefficients'][f][0] * v for f, v in data.items()
-            ]) - self.calculator.get('noise', (0, 0, 0))[2],
+            ]),
             'mean': re_vals[1] + np.sum([
                 self.calculator['coefficients'][f][1] * v for f, v in data.items()
             ]),
             'ub': re_vals[2] + np.sum([
-                self.calculator['coefficients'][f][2] for f, v in data.items()
-            ]) + self.calculator.get('noise', (0, 0, 0))[2],
+                self.calculator['coefficients'][f][2] * v for f, v in data.items()
+            ]),
         }
 
         return output
