@@ -60,7 +60,8 @@ The result for each model will be outputs as an approximation of the posterior d
 Note that for `Win` response, the outputs are log-odds.
 
 ```
->sb_predict --league nfl --random_effect team --random_effect_val CHI --feature_set RushOnly
+>sb_predict --league nfl --random_effect team --feature_set RushOnly
+Input Value for RandomEffect (team): CHI
 Input Value for rushYards: 150
 Input Value for rushAttempts: 30
 INFO:config:Loading predictor set for nfl

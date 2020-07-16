@@ -55,7 +55,6 @@ def prediction_cli():
     parser.add_argument('--league', type=str, required=True)
     parser.add_argument('--feature_set', type=str, required=True)
     parser.add_argument('--random_effect', type=str, required=True)
-    parser.add_argument('--random_effect_val', type=str, required=False)
     args = parser.parse_args()
 
     # Get aid
@@ -65,7 +64,8 @@ def prediction_cli():
     if args.random_effect not in aid.random_effects:
         raise ValueError('random_effect must be in {}'.format(aid.random_effects))
 
-    inputs = {'RandomEffect': args.random_effect_val}
+    # Inputs
+    inputs = {'RandomEffect': input('Input Value for RandomEffect ({}): '.format(args.random_effect))}
     for feature in aid.feature_sets[args.feature_set].features:
         inputs[feature] = float(input('Input Value for {}: '.format(feature)))
 
