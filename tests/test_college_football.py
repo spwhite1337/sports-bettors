@@ -70,7 +70,7 @@ class TestPredictors(TestCase):
                     with PdfPages(os.path.join(save_dir, 'college_football_test.pdf')) as pdf:
                         # Scatter plot from each source
                         plt.figure(figsize=(8, 8))
-                        plt.plot(df['y_fit'], df['y_preds'], alpha=0.5)
+                        plt.scatter(df['y_fit'], df['y_preds'], alpha=0.5)
                         plt.xlabel('Pystan Predictions')
                         plt.ylabel('Predictor')
                         plt.title('Predictions Test.')
