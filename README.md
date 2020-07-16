@@ -82,5 +82,25 @@ INFO:config:{('team', 'RushOnly', 'LossMargin'): {'lb': -0.3078409089154306,
                                      'mean': 12.564914539722725,
                                      'ub': 22.12533306516403}}
 
-
+>sb_predict --league college_football --random_effect team --feature_set RushOnly
+Input Value for RandomEffect (team): Iowa
+Input Value for rushingYards: 150
+Input Value for rushingAttempts: 30
+INFO:config:Loading predictor set for college_football
+INFO:config:{'RandomEffect': 'Iowa', 'rushingYards': 150.0, 'rushingAttempts': 30.0}
+INFO:config:{('team', 'RushOnly', 'LossMargin'): {'lb': -8.05546164046454,
+                                      'mean': 6.693706556567932,
+                                      'ub': 21.442874753600403},
+ ('team', 'RushOnly', 'Margin'): {'lb': -12.014449857615572,
+                                  'mean': 7.641162796263397,
+                                  'ub': 27.296775450142366},
+ ('team', 'RushOnly', 'TotalPoints'): {'lb': 29.50366178535086,
+                                       'mean': 47.898364227578945,
+                                       'ub': 66.29306666980703},
+ ('team', 'RushOnly', 'Win'): {'lb': 0.23971163857666822,
+                               'mean': 0.43064431853860385,
+                               'ub': 0.6215769985005395},
+ ('team', 'RushOnly', 'WinMargin'): {'lb': 3.6044349504541238,
+                                     'mean': 18.049121264808306,
+                                     'ub': 32.493807579162485
 ```
