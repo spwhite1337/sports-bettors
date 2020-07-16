@@ -16,6 +16,7 @@ from config import ROOT_DIR, logger, version
 class TestPredictors(TestCase):
 
     def test_college_predictors(self):
+        logger.info('Working on College Football')
         with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football',
                                'predictor_set_{}.pkl'.format(version)), 'rb') as fp:
             predictors = pickle.load(fp)
@@ -53,7 +54,7 @@ class TestPredictors(TestCase):
                     df['y_fit_ci'] = df_summary[df_summary['labels'].str.contains('y_hat')]['sd'].values * 2
 
                     # Generate preds
-                    logger.info('Generate Prediction')
+                    logger.info('Generate Predictions')
                     predictor = predictors[(random_effect, feature_set, response)]
                     df['y_preds'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['mean'], axis=1)
                     df['y_preds_ci'] = df[['RandomEffect'] + aid.features].apply(

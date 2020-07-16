@@ -16,6 +16,7 @@ from config import ROOT_DIR, logger, version
 class TestPredictors(TestCase):
 
     def test_college_predictors(self):
+        logger.info('Working on NFL.')
         with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl', 'predictor_set_{}.pkl'.format(version)), 'rb') \
                 as fp:
             predictors = pickle.load(fp)
@@ -52,7 +53,7 @@ class TestPredictors(TestCase):
                     df['y_fit_ci'] = df_summary[df_summary['labels'].str.contains('y_hat')]['sd'].values * 2
 
                     # Generate preds
-                    logger.info('Generate Prediction')
+                    logger.info('Generate Predictions')
                     predictor = predictors[(random_effect, feature_set, response)]
                     df['y_preds'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['mean'], axis=1)
                     df['y_preds_ci'] = df[['RandomEffect'] + aid.features].apply(
@@ -111,14 +112,13 @@ class TestPredictors(TestCase):
                 as fp:
             predictors = pickle.load(fp)
 
-        # Good rushing game for Iowa
-        bears = {
-            'RandomEffect': 'CHI',
-            'rushYards': 150,
-            'rushAttempts': 30
-        }
-
         for response in NFLBettingAid.responses:
+            # Good rushing game for Bears
+            bears = {
+                'RandomEffect': 'CHI',
+                'rushYards': 150,
+                'rushAttempts': 30
+            }
             if ('team', 'RushOnly', response) not in predictors.keys():
                 continue
             output = predictors[('team', 'RushOnly', response)](bears)
