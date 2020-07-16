@@ -21,7 +21,8 @@ def execute_experiments(league: str, overwrite: bool = False, debug: bool = Fals
                 if (feature_set == 'PointScored') and (response == 'TotalPoints'):
                     continue
                 if debug:
-                    if (feature_set != 'RushOnly') or (response not in ['TotalPoints', 'Win']):
+                    if (feature_set != 'RushOnly') or (response not in ['TotalPoints', 'Win']) or \
+                            (random_effect != 'team'):
                         continue
 
                 # Check if model already fit
