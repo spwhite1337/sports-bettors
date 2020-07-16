@@ -113,13 +113,13 @@ class TestPredictors(TestCase):
                 as fp:
             predictors = pickle.load(fp)
 
+        # Good rushing game for Bears
+        bears = {
+            'RandomEffect': 'CHI',
+            'rushYards': 150,
+            'rushAttempts': 30
+        }
         for response in NFLBettingAid.responses:
-            # Good rushing game for Bears
-            bears = {
-                'RandomEffect': 'CHI',
-                'rushYards': 150,
-                'rushAttempts': 30
-            }
             if ('team', 'RushOnly', response) not in predictors.keys():
                 continue
             output = predictors[('team', 'RushOnly', response)](bears)
