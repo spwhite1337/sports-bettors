@@ -10,7 +10,8 @@ setup(
     entry_points={'console_scripts': [
         'sb_download = sports_bettors.download:download_cli',
         'sb_curate = sports_bettors.curate:curate_data',
-        'sb_run_experiments = sports_bettors.experiments:run_experiments'
+        'sb_run_experiments = sports_bettors.experiments:run_experiments',
+        'sb_predict = sports_bettors.predict:prediction_cli'
     ]},
     install_requires=[
         'pandas',
