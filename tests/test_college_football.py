@@ -56,9 +56,10 @@ class TestPredictors(TestCase):
                     # Generate preds
                     logger.info('Generate Predictions')
                     predictor = predictors[(random_effect, feature_set, response)]
-                    df['y_preds'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['mean'], axis=1)
+                    df['y_preds'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r.copy())['mean'],
+                                                                              axis=1)
                     df['y_preds_ci'] = df[['RandomEffect'] + aid.features].apply(
-                        lambda r: predictor(r)['ub'] - predictor(r)['lb'],
+                        lambda r: predictor(r.copy())['ub'] - predictor(r.copy())['lb'],
                         axis=1)
 
                     # Save
@@ -109,14 +110,13 @@ class TestPredictors(TestCase):
                                'predictor_set_{}.pkl'.format(version)), 'rb') as fp:
             predictors = pickle.load(fp)
 
-        # Good rushing game for Iowa
-        iowa = {
-            'RandomEffect': 'Iowa',
-            'rushingYards': 150,
-            'rushingAttempts': 30
-        }
-
         for response in CollegeFootballBettingAid.responses:
+            # Good rushing game for Iowa
+            iowa = {
+                'RandomEffect': 'Iowa',
+                'rushingYards': 150,
+                'rushingAttempts': 30
+            }
             if ('team', 'RushOnly', response) not in predictors.keys():
                 continue
             output = predictors[('team', 'RushOnly', response)](iowa)
