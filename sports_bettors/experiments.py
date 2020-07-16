@@ -1,5 +1,4 @@
 import os
-import pickle
 import argparse
 
 from sports_bettors.utils.college_football.models import CollegeFootballBettingAid
@@ -10,7 +9,10 @@ from config import ROOT_DIR, logger, version
 betting_aids = {'nfl': NFLBettingAid, 'college_football': CollegeFootballBettingAid}
 
 
-def execute_experiments(league: str, overwrite: bool = False):
+def execute_experiments(league: str, overwrite: bool = False, debug: bool = False):
+    """
+    Execute experiments defined from betting aid objects
+    """
     betting_aid = betting_aids[league]
     for random_effect in betting_aid.random_effects:
         for feature_set in betting_aid.feature_sets.keys():
@@ -18,6 +20,9 @@ def execute_experiments(league: str, overwrite: bool = False):
                 # Skip combinations that are over-specified
                 if (feature_set == 'PointScored') and (response == 'TotalPoints'):
                     continue
+                if debug:
+                    if (feature_set != 'RushOnly') or (response not in ['TotalPoints', 'Win']):
+                        continue
 
                 # Check if model already fit
                 if not overwrite:
@@ -42,33 +47,8 @@ def run_experiments():
     parser = argparse.ArgumentParser(prog='Run experiments.')
     parser.add_argument('--league', required=True)
     parser.add_argument('--overwrite', action='store_true')
-    parser.add_argument('--skipfit', action='store_true')
+    parser.add_argument('--debug', action='store_true')
     args = parser.parse_args()
-
     assert args.league in betting_aids.keys()
-
-    if not args.skipfit:
-        logger.info('Running Experiments for {}; Overwrite {}'.format(args.league, args.overwrite))
-        execute_experiments(args.league, args.overwrite)
-
-    logger.info('Generating Predictor Sets for {}'.format(args.league))
-    predictors = {}
-    base_dir = os.path.join(ROOT_DIR, 'modeling', 'results', args.league)
-    for response in os.listdir(os.path.join(base_dir)):
-        for feature_set in os.listdir(os.path.join(base_dir, response)):
-            for random_effect in os.listdir(os.path.join(base_dir, response, feature_set)):
-                # Load predictor
-                predictor_path = os.path.join(base_dir, response, feature_set, random_effect,
-                                              'predictor_{}.pkl'.format(version))
-                if not os.path.exists(predictor_path):
-                    logger.info('Warning: Dir for {}, {}, {} exists but no predictor'.format(response, feature_set,
-                                                                                             random_effect))
-                    continue
-                with open(os.path.join(base_dir, response, feature_set, random_effect,
-                                       'predictor_{}.pkl'.format(version)), 'rb') as fp:
-                    predictors[(random_effect, feature_set, response)] = pickle.load(fp)
-
-    logger.info('Saving Predictor Set for {}'.format(args.league))
-    with open(os.path.join(ROOT_DIR, 'modeling', 'results', args.league, 'predictor_set_{}.pkl'.format(version)),
-              'wb') as fp:
-        pickle.dump(predictors, fp)
+    logger.info('Running Experiments for {}; Overwrite {}'.format(args.league, args.overwrite))
+    execute_experiments(args.league, args.overwrite, args.debug)
