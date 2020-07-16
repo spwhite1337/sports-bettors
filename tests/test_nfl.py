@@ -27,13 +27,14 @@ class TestPredictors(TestCase):
                 for response in NFLBettingAid.responses:
                     # Check if it exists
                     model_path = os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl', response, feature_set,
-                                              random_effect, 'model_{}.pkl'.format(version))
+                                              random_effect, 'aid_{}.pkl'.format(version))
                     if not os.path.exists(model_path):
-                        # logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
+                        logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
                         continue
 
-                    # Initialize a betting aid
-                    aid = NFLBettingAid(random_effect=random_effect, features=feature_set, response=response)
+                    # Load betting aid
+                    with open(model_path, 'rb') as fp:
+                        aid = pickle.load(fp)
 
                     logger.info('Load Data')
                     df_data = aid.etl()
@@ -47,10 +48,8 @@ class TestPredictors(TestCase):
                     df = pd.DataFrame.from_dict(data)
 
                     logger.info('Get predictions from pystan')
-                    summary_path = re.sub('model_{}.pkl'.format(version), 'summary_{}.csv'.format(version), model_path)
-                    df_summary = pd.read_csv(summary_path)
-                    df['y_fit'] = df_summary[df_summary['labels'].str.contains('y_hat')]['mean'].values
-                    df['y_fit_ci'] = df_summary[df_summary['labels'].str.contains('y_hat')]['sd'].values * 2
+                    df['y_fit'] = aid.summary[aid.summary['labels'].str.contains('y_hat')]['mean'].values
+                    df['y_fit_ci'] = aid.summary[aid.summary['labels'].str.contains('y_hat')]['sd'].values * 2
 
                     # Generate preds
                     logger.info('Generate Predictions')
@@ -66,6 +65,7 @@ class TestPredictors(TestCase):
                     if not os.path.exists(save_dir):
                         os.makedirs(save_dir)
 
+                    # Diagnostics
                     with PdfPages(os.path.join(save_dir, 'nfl_test.pdf')) as pdf:
                         # Scatter plot from each source
                         df_sample = df.sample(min(df.shape[0], 1000))
