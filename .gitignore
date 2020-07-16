@@ -5,4 +5,3 @@
 *.egg-info
 .ipynb_checkpoints/
 *.pkl
-*.csv
