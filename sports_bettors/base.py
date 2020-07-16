@@ -22,9 +22,9 @@ class BetPredictor(object):
     And returns
     """
 
-    def __init__(self, scales: dict, predictor: dict, re_params: Tuple[float, float]):
+    def __init__(self, scales: dict, calculator: dict, re_params: Tuple[float, float]):
         self.scales = scales
-        self.predictor = predictor
+        self.calculator = calculator
         self.re_params = re_params
 
     def __call__(self, data: dict) -> dict:
@@ -34,13 +34,13 @@ class BetPredictor(object):
         # Get random effect
         random_effect = data.get('RandomEffect')
         # Get intercept and fill with global mean / sd
-        re_vals = self.predictor['random_effect'].get(random_effect, (
+        re_vals = self.calculator['random_effect'].get(random_effect, (
             self.re_params[0] - self.re_params[1], self.re_params[0], self.re_params[0] + self.re_params[1]
         ))
 
         # Scale data and skip features that aren't in this model
         data = {feature: (val - self.scales[feature][0]) / self.scales[feature][1] for feature, val in data.items()
-                if feature in data.keys()}
+                if feature in self.scales.keys()}
 
         # Get output including mean, ub, and lb as an approximate of the posterior distribution of the stan model.
         # Full sampling of the posterior is very cumbersome with stan, we can either:
@@ -55,14 +55,14 @@ class BetPredictor(object):
         # For continuous outputs, noise is added based on the mean + sd for lb / ub
         output = {
             'lb': re_vals[0] + np.sum([
-                self.predictor['coefficients'][f][0] * v for f, v in data.items()
-            ]) - self.predictor.get('noise', (0, 0, 0))[2],
+                self.calculator['coefficients'][f][0] * v for f, v in data.items()
+            ]) - self.calculator.get('noise', (0, 0, 0))[2],
             'mean': re_vals[1] + np.sum([
-                self.predictor['coefficients'][f][1] * v for f, v in data.items()
+                self.calculator['coefficients'][f][1] * v for f, v in data.items()
             ]),
             'ub': re_vals[2] + np.sum([
-                self.predictor['coefficients'][f][2] for f, v in data.items()
-            ]) + self.predictor.get('noise', (0, 0, 0))[2],
+                self.calculator['coefficients'][f][2] for f, v in data.items()
+            ]) + self.calculator.get('noise', (0, 0, 0))[2],
         }
 
         return output
