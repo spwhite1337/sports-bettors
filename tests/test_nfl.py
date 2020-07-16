@@ -47,16 +47,17 @@ class TestPredictors(TestCase):
                     data.pop('J')
                     df = pd.DataFrame.from_dict(data)
 
-                    logger.info('Get predictions from pystan')
+                    logger.info('Get predictions from pystan summary')
                     df['y_fit'] = aid.summary[aid.summary['labels'].str.contains('y_hat')]['mean'].values
-                    df['y_fit_ci'] = aid.summary[aid.summary['labels'].str.contains('y_hat')]['sd'].values * 2
+                    df['y_fit_lb'] = df['y_fit'] - aid.summary[aid.summary['labels'].str.contains('y_hat')]['sd'].values
+                    df['y_fit_ub'] = df['y_fit'] + aid.summary[aid.summary['labels'].str.contains('y_hat')]['sd'].values
 
                     # Generate preds
                     logger.info('Generate Predictions')
                     predictor = predictors[(random_effect, feature_set, response)]
                     df['y_preds'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['mean'], axis=1)
-                    df['y_preds_ci'] = df[['RandomEffect'] + aid.features].apply(
-                        lambda r: predictor(r)['ub'] - predictor(r)['lb'], axis=1)
+                    df['y_preds_lb'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['lb'], axis=1)
+                    df['y_preds_ub'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['ub'], axis=1)
 
                     # Save
                     save_dir = os.path.join(ROOT_DIR, 'tests', 'results', response, feature_set, random_effect)
@@ -82,14 +83,28 @@ class TestPredictors(TestCase):
 
                         # Scatter plot of errors
                         df_sample = df.sample(min(df.shape[0], 1000))
-                        lb = min([df_sample['y_fit_ci'].min(), df_sample['y_preds_ci'].min()])
-                        ub = max([df_sample['y_fit_ci'].max(), df_sample['y_preds_ci'].max()])
+                        lb = min([df_sample['y_fit_lb'].min(), df_sample['y_preds_lb'].min()])
+                        ub = max([df_sample['y_fit_lb'].max(), df_sample['y_preds_lb'].max()])
                         plt.figure(figsize=(8, 8))
-                        plt.scatter(df_sample['y_fit_ci'], df_sample['y_preds_ci'], alpha=0.5)
+                        plt.scatter(df_sample['y_fit_lb'], df_sample['y_preds_lb'], alpha=0.5)
                         plt.plot([lb, ub], [lb, ub], color='black', linestyle='dashed')
-                        plt.xlabel('Pystan CI (approx)')
-                        plt.ylabel('Predictor CI (approx)')
-                        plt.title('Predictions CI Test.')
+                        plt.xlabel('Pystan LB (approx)')
+                        plt.ylabel('Predictor LB (approx)')
+                        plt.title('Lower Bounds')
+                        plt.grid(True)
+                        plt.tight_layout()
+                        pdf.savefig()
+                        plt.close()
+
+                        df_sample = df.sample(min(df.shape[0], 1000))
+                        lb = min([df_sample['y_fit_ub'].min(), df_sample['y_preds_ub'].min()])
+                        ub = max([df_sample['y_fit_ub'].max(), df_sample['y_preds_ub'].max()])
+                        plt.figure(figsize=(8, 8))
+                        plt.scatter(df_sample['y_fit_ub'], df_sample['y_preds_ub'], alpha=0.5)
+                        plt.plot([lb, ub], [lb, ub], color='black', linestyle='dashed')
+                        plt.xlabel('Pystan UB (approx)')
+                        plt.ylabel('Predictor UB (approx)')
+                        plt.title('Upper Bounds')
                         plt.grid(True)
                         plt.tight_layout()
                         pdf.savefig()

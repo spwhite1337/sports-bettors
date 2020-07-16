@@ -46,8 +46,10 @@ class SportsPredictor(object):
         logger.info(inputs)
         outputs = {}
         for response in aid.responses:
-            output = self.predictors[(random_effect, feature_set, response)](inputs)
-            outputs[(random_effect, feature_set, response)] = output
+            key = (random_effect, feature_set, response)
+            if key in self.predictors.keys():
+                output = self.predictors[key](inputs)
+                outputs[(random_effect, feature_set, response)] = output
 
         logger.info(pformat(outputs))
         return outputs
