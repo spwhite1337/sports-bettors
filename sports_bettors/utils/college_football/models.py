@@ -3,7 +3,6 @@ from collections import namedtuple
 
 import pandas as pd
 import numpy as np
-from scipy.special import logit
 
 from sklearn.metrics import roc_curve, auc
 
@@ -11,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 from sports_bettors.base import BaseBettingAid
-from config import ROOT_DIR, logger
+from config import Config, logger
 
 Features = namedtuple('Features', ['label', 'features'])
 
@@ -82,8 +81,8 @@ class CollegeFootballBettingAid(BaseBettingAid):
     }
 
     # I/O
-    input_path = os.path.join(ROOT_DIR, 'data', 'college_football', 'curation', 'df_curated.csv')
-    results_dir = os.path.join(ROOT_DIR, 'modeling', 'results', 'college_football')
+    input_path = os.path.join(Config.CURATED_DIR, 'college_football', 'df_curated.csv')
+    results_dir = os.path.join(Config.RESULTS_DIR, 'college_football')
 
     # Override this in base because you need to fillna for ranked teams
     def _define_random_effect(self, df: pd.DataFrame) -> pd.DataFrame:

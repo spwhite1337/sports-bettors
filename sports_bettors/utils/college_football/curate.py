@@ -4,15 +4,15 @@ import re
 from tqdm import tqdm
 import pandas as pd
 
-from config import ROOT_DIR, logger
+from config import Config, logger
 
 
 def curate_college():
     """
     Curate sports_bettors football data
     """
-    RAW_DIR = os.path.join(ROOT_DIR, 'data', 'college_football', 'raw')
-    CURATION_DIR = os.path.join(ROOT_DIR, 'data', 'college_football', 'curation')
+    RAW_DIR = os.path.join(Config.RAW_DIR, 'college_football')
+    CURATION_DIR = os.path.join(Config.CURATED_DIR, 'college_football')
     if not os.path.exists(CURATION_DIR):
         os.makedirs(CURATION_DIR)
 

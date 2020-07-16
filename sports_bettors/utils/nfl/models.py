@@ -2,7 +2,6 @@ import os
 from collections import namedtuple
 
 import numpy as np
-from scipy.special import expit
 
 from sklearn.metrics import roc_curve, auc
 
@@ -10,7 +9,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
 from sports_bettors.base import BaseBettingAid
-from config import ROOT_DIR, logger
+from config import Config, logger
 
 Features = namedtuple('Features', ['label', 'features'])
 
@@ -78,8 +77,8 @@ class NFLBettingAid(BaseBettingAid):
     }
 
     # I/O
-    input_path = os.path.join(ROOT_DIR, 'data', 'nfl', 'curation', 'df_curated.csv')
-    results_dir = os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl')
+    input_path = os.path.join(Config.CURATED_DIR, 'nfl', 'df_curated.csv')
+    results_dir = os.path.join(Config.RESULTS_DIR, 'nfl')
 
     def diagnose(self):
         """

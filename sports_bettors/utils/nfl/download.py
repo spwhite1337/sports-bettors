@@ -9,7 +9,7 @@ import pandas as pd
 from tqdm import tqdm
 from datetime import datetime
 
-from config import ROOT_DIR, logger
+from config import Config, logger
 
 
 class DownloadNFLData(object):
@@ -26,7 +26,7 @@ class DownloadNFLData(object):
     base_url = "https://www.pro-football-reference.com/boxscores/{}0{}.htm"
 
     def __init__(self, save_dir: str = None, overwrite: bool = False):
-        self.save_dir = os.path.join(ROOT_DIR, 'data', 'nfl', 'raw') if save_dir is None else save_dir
+        self.save_dir = os.path.join(Config.RAW_DIR, 'nfl') if save_dir is None else save_dir
         self.overwrite = overwrite
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)

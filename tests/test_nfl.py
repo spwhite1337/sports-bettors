@@ -1,5 +1,4 @@
 import os
-import re
 import pickle
 from unittest import TestCase
 
@@ -10,15 +9,14 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 from sports_bettors.utils.nfl.models import NFLBettingAid
 
-from config import ROOT_DIR, logger, version
+from config import Config, logger
 
 
 class TestPredictors(TestCase):
 
     def test_college_predictors(self):
         logger.info('Working on NFL.')
-        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl', 'predictor_set_{}.pkl'.format(version)), 'rb') \
-                as fp:
+        with open(os.path.join(Config.RESULTS_DIR, 'nfl', 'predictor_set_{}.pkl'.format(Config.version)), 'rb') as fp:
             predictors = pickle.load(fp)
 
         # Loop experiments
@@ -26,8 +24,8 @@ class TestPredictors(TestCase):
             for feature_set in NFLBettingAid.feature_sets.keys():
                 for response in NFLBettingAid.responses:
                     # Check if it exists
-                    model_path = os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl', response, feature_set,
-                                              random_effect, 'aid_{}.pkl'.format(version))
+                    model_path = os.path.join(Config.RESULTS_DIR, 'nfl', response, feature_set, random_effect,
+                                              'aid_{}.pkl'.format(Config.version))
                     if not os.path.exists(model_path):
                         logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
                         continue
@@ -60,7 +58,7 @@ class TestPredictors(TestCase):
                     df['y_preds_ub'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['ub'], axis=1)
 
                     # Save
-                    save_dir = os.path.join(ROOT_DIR, 'tests', 'results', response, feature_set, random_effect)
+                    save_dir = os.path.join(Config.TEST_RESULTS_DIR, response, feature_set, random_effect)
                     if not os.path.exists(save_dir):
                         os.makedirs(save_dir)
 
@@ -122,7 +120,7 @@ class TestPredictors(TestCase):
                         plt.close()
 
     def test_custom_nfl(self):
-        with open(os.path.join(ROOT_DIR, 'modeling', 'results', 'nfl', 'predictor_set_{}.pkl'.format(version)), 'rb') \
+        with open(os.path.join(Config.RESULTS_DIR, 'nfl', 'predictor_set_{}.pkl'.format(Config.version)), 'rb') \
                 as fp:
             predictors = pickle.load(fp)
 

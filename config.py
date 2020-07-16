@@ -12,8 +12,11 @@ logger.setLevel(logging.INFO)
 # Get root dir
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 
-version = 'v1'
-
 
 class Config(object):
-    pass
+    ROOT_DIR = ROOT_DIR
+    RAW_DIR = os.path.join(ROOT_DIR, 'data', 'raw')
+    CURATED_DIR = os.path.join(ROOT_DIR, 'data', 'curated')
+    RESULTS_DIR = os.path.join(ROOT_DIR, 'results')
+    TEST_RESULTS_DIR = os.path.join(ROOT_DIR, 'tests', 'results')
+    version = 'v1'

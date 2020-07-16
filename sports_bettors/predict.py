@@ -8,17 +8,17 @@ from sports_bettors.utils.nfl.models import NFLBettingAid
 from sports_bettors.utils.college_football.models import CollegeFootballBettingAid
 from sports_bettors.base import BetPredictor, BaseBettingAid
 
-from config import ROOT_DIR, logger, version
+from config import Config, logger
 
 
 class SportsPredictor(object):
     """
     Object to organize predictions of sporting events conditioned on inputs where applicable
     """
-    load_dir = os.path.join(ROOT_DIR, 'modeling', 'results')
+    load_dir = Config.RESULTS_DIR
     aids = {'nfl': NFLBettingAid, 'college_football': CollegeFootballBettingAid}
 
-    def __init__(self, league: str, version: str = version):
+    def __init__(self, league: str, version: str = Config.version):
         self.league = league
         self.predictors = None
         self.version = version
@@ -99,13 +99,13 @@ class SportsPredictor(object):
         """
         logger.info('Generating Predictor Sets for {}'.format(self.league))
         predictors = {}
-        base_dir = os.path.join(ROOT_DIR, 'modeling', 'results', self.league)
+        base_dir = os.path.join(Config.RESULTS_DIR, self.league)
         for response in os.listdir(os.path.join(base_dir)):
             for feature_set in os.listdir(os.path.join(base_dir, response)):
                 for random_effect in os.listdir(os.path.join(base_dir, response, feature_set)):
                     # Load predictor
                     aid_path = os.path.join(base_dir, response, feature_set, random_effect,
-                                            'aid_{}.pkl'.format(version))
+                                            'aid_{}.pkl'.format(Config.version))
                     with open(aid_path, 'rb') as fp:
                         aid = pickle.load(fp)
                     calculator, re_params = self._get_calculator(aid)
@@ -113,7 +113,7 @@ class SportsPredictor(object):
                     predictors[(random_effect, feature_set, response)] = predictor
 
         logger.info('Saving Predictor Set for {}'.format(self.league))
-        with open(os.path.join(ROOT_DIR, 'modeling', 'results', self.league, 'predictor_set_{}.pkl'.format(version)),
+        with open(os.path.join(Config.RESULTS_DIR, self.league, 'predictor_set_{}.pkl'.format(Config.version)),
                   'wb') as fp:
             pickle.dump(predictors, fp)
         self.predictors = predictors

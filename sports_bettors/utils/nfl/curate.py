@@ -6,11 +6,11 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 
-from config import ROOT_DIR, logger
+from config import Config, logger
 
 
 def curate_nfl():
-    save_dir = os.path.join(ROOT_DIR, 'data', 'nfl', 'curation')
+    save_dir = os.path.join(Config.CURATED_DIR, 'nfl')
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
@@ -20,8 +20,8 @@ def curate_nfl():
 
     curation = []
     logger.info('Importing NFL Data to Pandas')
-    for team in tqdm([fn for fn in os.listdir(os.path.join(ROOT_DIR, 'data', 'nfl', 'raw')) if '_raw' in fn]):
-        with open(os.path.join(ROOT_DIR, 'data', 'nfl', 'raw', team)) as fp:
+    for team in tqdm([fn for fn in os.listdir(os.path.join(Config.RAW_DIR, 'nfl')) if '_raw' in fn]):
+        with open(os.path.join(Config.RAW_DIR, 'nfl', team)) as fp:
             team_data = json.load(fp)
 
         # Iterate through dates for team
@@ -179,4 +179,4 @@ def curate_nfl():
     df_modeling['matchup'] = df_modeling.apply(lambda row: _define_matchup(row['team'], row['opponent']), axis=1)
 
     logger.info('Save Curated data for {} games.'.format(df_modeling.shape[0]))
-    df_modeling.to_csv(os.path.join(ROOT_DIR, 'data', 'nfl', 'curation', 'df_curated.csv'), index=False)
+    df_modeling.to_csv(os.path.join(Config.CURATED_DIR, 'nfl', 'df_curated.csv'), index=False)

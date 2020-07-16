@@ -10,7 +10,7 @@ import numpy as np
 import pystan
 
 
-from config import ROOT_DIR, logger, version
+from config import Config, logger
 
 
 Features = namedtuple('Features', ['label', 'features'])
@@ -109,12 +109,12 @@ class BaseBettingAid(object):
     }
 
     # I/O
-    input_path = os.path.join(ROOT_DIR, 'data', 'df_curated.csv')
-    results_dir = os.path.join(ROOT_DIR, 'modeling', 'results')
+    input_path = Config.CURATED_DIR
+    results_dir = Config.RESULTS_DIR
 
     def __init__(self,
                  # I/O
-                 version: str = version,
+                 version: str = Config.version,
 
                  # Transformation
                  random_effect: str = 'Team',

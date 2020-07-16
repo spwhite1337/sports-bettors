@@ -4,7 +4,7 @@ import argparse
 from sports_bettors.utils.college_football.models import CollegeFootballBettingAid
 from sports_bettors.utils.nfl.models import NFLBettingAid
 
-from config import ROOT_DIR, logger, version
+from config import Config, logger
 
 betting_aids = {'nfl': NFLBettingAid, 'college_football': CollegeFootballBettingAid}
 
@@ -27,9 +27,8 @@ def execute_experiments(league: str, overwrite: bool = False, debug: bool = Fals
 
                 # Check if model already fit
                 if not overwrite:
-                    if os.path.exists(os.path.join(ROOT_DIR, 'modeling', 'results', league, response,
-                                                   feature_set, random_effect,
-                                                   'model_{}.pkl'.format(version))):
+                    if os.path.exists(os.path.join(Config.RESULTS_DIR, league, response, feature_set, random_effect,
+                                                   'model_{}.pkl'.format(Config.version))):
                         logger.info('{} ~ {} | {} already exists, skipping'.format(feature_set, response,
                                                                                    random_effect))
                         continue
