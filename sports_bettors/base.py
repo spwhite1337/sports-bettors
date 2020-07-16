@@ -51,18 +51,17 @@ class BetPredictor(object):
         # Bulk predictions. (iii) is really quick and adopted here. See the results of the unittests to assess the
         # quality of this approximation as a point estimate.
         # In short, the 'mean' key of the output is point estimate when assuming the MAP value of the posterior.
-        # the lower bound ('lb') takes the minimum value of x * coef where coef can be either the mean-val + sd or
-        # mean-val - sd (the lower of the two depends on the sign of x). Similar for the upper bound.
+        # the lower bound ('lb') takes mean - sd while upper takes mean + sd
         # For continuous outputs, noise is added based on the mean + sd for lb / ub
         output = {
             'lb': re_vals[0] + np.sum([
-                np.min([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
+                self.predictor['coefficients'][f][0] * v for f, v in data.items()
             ]) - self.predictor.get('noise', (0, 0, 0))[2],
             'mean': re_vals[1] + np.sum([
                 self.predictor['coefficients'][f][1] * v for f, v in data.items()
             ]),
             'ub': re_vals[2] + np.sum([
-                np.max([c * v for c in self.predictor['coefficients'][f]]) for f, v in data.items()
+                self.predictor['coefficients'][f][2] for f, v in data.items()
             ]) + self.predictor.get('noise', (0, 0, 0))[2],
         }
 
