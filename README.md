@@ -23,7 +23,7 @@ often used in ML production).
 - `cd sports-bettors`
 - `pip install -e .`
 - On Windows: `conda install libpython m2w64-toolchain -c msys2`
-    - This install a C++ compiler (This requires conda, see pystan docs for more info)
+    - This installs a C++ compiler (This requires conda, see pystan docs for more info)
 
 ## Get Data
 
