@@ -12,7 +12,7 @@ game statistics as the fixed effects. The team could be also be specified by opp
 conditions. For `college_football`, the rank of the team / opponent can also be used with "unranked" opponents 
 comprising the largest group.
 
-Each experiment assess a random-effect, feature-set, and response combination. The results of which can be seen in an
+Each experiment assesses a random-effect, feature-set, and response combination. The results of which can be seen in an
 automatically generated diagnostics report. A light-weight predictor object is also generated which will approximate the
 posterior probabilities for a new input vector without full-sampling of the posterior (There is a reason Stan isn't 
 often used in ML production).
