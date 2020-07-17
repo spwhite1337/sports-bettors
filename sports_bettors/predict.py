@@ -43,7 +43,7 @@ class SportsPredictor(object):
         assert random_effect in aid.random_effects
         assert 'RandomEffect' in inputs.keys()
 
-        logger.info(inputs)
+        logger.info('Input: {}'.format(inputs))
         outputs = {}
         for response in aid.responses:
             key = (random_effect, feature_set, response)
@@ -51,7 +51,7 @@ class SportsPredictor(object):
                 output = self.predictors[key](inputs)
                 outputs[(random_effect, feature_set, response)] = output
 
-        logger.info(pformat(outputs))
+        logger.info('Output: \n {}'.format(pformat(outputs)))
         return outputs
 
     @staticmethod
