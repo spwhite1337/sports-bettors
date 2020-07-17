@@ -17,12 +17,12 @@ def download_cli():
 
     if args.aws:
         logger.info('Downloading Data from AWS')
-        include_flags = '--include college_football/* --include nfl/*'
-        aws_sync = 'aws s3 {} {} {}'.format(Config.CLOUD_DATA, Config.DATA_DIR, include_flags)
+        include_flags = '--exclude * --include college_football/* --include nfl/*'
+        aws_sync = 'aws s3 sync {} {} {}'.format(Config.CLOUD_DATA, Config.DATA_DIR, include_flags)
         os.system(aws_sync)
         logger.info('Downloading Results from AWS')
-        include_flags = '--include aid_{}.pkl'.format(Config.version)
-        aws_sync = 'aws s3 {} {} {}'.format(Config.CLOUD_RESULTS, Config.RESULTS_DIR, include_flags)
+        include_flags = '--exclude * --include aid_{}.pkl'.format(Config.version)
+        aws_sync = 'aws s3 sync {} {} {}'.format(Config.CLOUD_RESULTS, Config.RESULTS_DIR, include_flags)
         os.system(aws_sync)
     else:
         if args.league is None:
