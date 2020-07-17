@@ -145,7 +145,7 @@ def api_cli():
         inputs[feature] = float(input('Input Value for {}: '.format(feature)))
 
     # Get predictions
-    prediction(args.league, args.random_effect, args.feature_set, inputs)
+    api(args.league, args.random_effect, args.feature_set, inputs)
 
 
 def create_predictor_sets():
