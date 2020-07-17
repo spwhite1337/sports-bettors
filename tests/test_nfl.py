@@ -14,7 +14,7 @@ from config import Config, logger
 
 class TestPredictors(TestCase):
 
-    def test_college_predictors(self):
+    def test_nfl_predictors(self):
         logger.info('Working on NFL.')
         with open(os.path.join(Config.RESULTS_DIR, 'nfl', 'predictor_set_{}.pkl'.format(Config.version)), 'rb') as fp:
             predictors = pickle.load(fp)
