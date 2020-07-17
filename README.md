@@ -17,6 +17,8 @@ automatically generated diagnostics report. A light-weight predictor object is a
 posterior probabilities for a new input vector without full-sampling of the posterior (There is a reason Stan isn't 
 often used in ML production).
 
+<img src="/docs/sports_bettors_logo.jpg" alt="Sports Betting" width="256">
+
 ## Procedure
 
 - Python 3.5
