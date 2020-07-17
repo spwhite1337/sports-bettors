@@ -38,7 +38,6 @@ often used in ML production).
 - Fit models and generate predictor objects with `sb_run_experiments --league [league]`
 - Optional args to facilitate batching the fit of all models
     - overwrite previously fit models with `sb_run_experiments --league [league] --overwrite`
-    - Fit predictor objects for the models created so far with `sb_run_experiments --league [league] --skipfit`
 - Generate light-weight predictor objects with `sb_generate_predictors --league [league]`
 
 ## Unit Tests
