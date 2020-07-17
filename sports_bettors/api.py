@@ -119,13 +119,13 @@ class SportsPredictor(object):
         self.predictors = predictors
 
 
-def prediction(league: str, random_effect: str, feature_set: str, inputs: dict):
+def api(league: str, random_effect: str, feature_set: str, inputs: dict):
     predictor = SportsPredictor(league=league)
     predictor.load()
-    predictor.predict(inputs =inputs, random_effect=random_effect, feature_set=feature_set)
+    predictor.predict(inputs=inputs, random_effect=random_effect, feature_set=feature_set)
 
 
-def prediction_cli():
+def api_cli():
     parser = argparse.ArgumentParser(prog='Sports Predictions')
     parser.add_argument('--league', type=str, required=True)
     parser.add_argument('--feature_set', type=str, required=True)
