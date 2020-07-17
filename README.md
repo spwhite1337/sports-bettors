@@ -51,8 +51,8 @@ two should be close.
 ## Predictions
 
 You can access the api from the command line by specifying (i) the league, (ii) the Random Effect type (e.g. `team` or
-`opponent`), (iii) the value of the random effect, and (iv) the feature set of interest (e.g. `RushOnly`,
- `PointsScored`). You will then be prompted to input values for each of the features in the selected feature set. 
+`opponent`), and (iii) the feature set of interest (e.g. `RushOnly`, `PointsScored`). You will then be prompted to input 
+values for each of the features in the selected feature set. 
  - Note: RandomEffect values must be put in exactly. In the future I will add a parser but for the most part the nfl
  teams are three letters, all caps (CHI, GNB) and college teams are camelcase (Iowa, OhioState).
 
