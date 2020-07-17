@@ -12,7 +12,8 @@ setup(
         'sb_curate = sports_bettors.curate:curate_data',
         'sb_run_experiments = sports_bettors.experiments:run_experiments',
         'sb_predict = sports_bettors.predict:prediction_cli',
-        'sb_generate_predictors = sports_bettors.predict:create_predictor_sets'
+        'sb_generate_predictors = sports_bettors.predict:create_predictor_sets',
+        'sb_upload = sports_bettors.upload:upload'
     ]},
     install_requires=[
         'pandas',
@@ -24,6 +25,7 @@ setup(
         'scikit-learn',
         'tqdm',
         'pystan',
-        'beautifulsoup4'
+        'beautifulsoup4',
+        'awscli'
     ]
 )
