@@ -9,7 +9,7 @@ from config import Config, logger
 
 def download_cli():
     parser = argparse.ArgumentParser(prog='Download Football Data')
-    parser.add_argument('--league', required=True)
+    parser.add_argument('--league', required=False)
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--retry', action='store_true')
     parser.add_argument('--aws', action='store_true')
@@ -25,6 +25,8 @@ def download_cli():
         aws_sync = 'aws s3 {} {} {}'.format(Config.CLOUD_RESULTS, Config.RESULTS_DIR, include_flags)
         os.system(aws_sync)
     else:
+        if args.league is None:
+            ValueError('league argument required if not syncing with AWS')
         download(league=args.league, retry=args.retry)
 
 
