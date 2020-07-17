@@ -58,7 +58,7 @@ class TestPredictors(TestCase):
                     df['y_preds_ub'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['ub'], axis=1)
 
                     # Save
-                    save_dir = os.path.join(Config.TEST_RESULTS_DIR, response, feature_set, random_effect)
+                    save_dir = os.path.join(Config.TEST_RESULTS_DIR, 'nfl', response, feature_set, random_effect)
                     if not os.path.exists(save_dir):
                         os.makedirs(save_dir)
 
