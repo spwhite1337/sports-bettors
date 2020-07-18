@@ -133,6 +133,7 @@ def api_cli():
     parser.add_argument('--league', type=str, required=True)
     parser.add_argument('--feature_set', type=str, required=True)
     parser.add_argument('--random_effect', type=str, required=True)
+    parser.add_argument('--display_output', action='store_true')
     args = parser.parse_args()
 
     # Get aid
@@ -148,7 +149,7 @@ def api_cli():
         inputs[feature] = float(input('Input Value for {}: '.format(feature)))
 
     # Get predictions
-    api(args.league, args.random_effect, args.feature_set, inputs)
+    api(args.league, args.random_effect, args.feature_set, inputs, args.display_output)
 
 
 def create_predictor_sets():
