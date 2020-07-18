@@ -1,7 +1,7 @@
 import os
 import pickle
 import argparse
-from pprint import pformat
+import pprint
 from typing import Tuple
 
 from sports_bettors.utils.nfl.models import NFLBettingAid
@@ -31,7 +31,7 @@ class SportsPredictor(object):
         with open(os.path.join(self.load_dir, self.league, 'predictor_set_{}.pkl'.format(self.version)), 'rb') as fp:
             self.predictors = pickle.load(fp)
 
-    def predict(self, random_effect: str, feature_set: str, inputs: dict, display_output: bool = False) -> dict:
+    def predict(self, random_effect: str, feature_set: str, inputs: dict) -> dict:
         """
         Predict with all models in predictor set, imputing missing values to the mean of the training set
         """
@@ -50,9 +50,6 @@ class SportsPredictor(object):
             if key in self.predictors.keys():
                 output = self.predictors[key](inputs)
                 outputs[(random_effect, feature_set, response)] = output
-
-        if display_output:
-            logger.info('Output: \n {}'.format(pformat(outputs)))
 
         return outputs
 
@@ -121,10 +118,14 @@ class SportsPredictor(object):
         self.predictors = predictors
 
 
-def api(league: str, random_effect: str, feature_set: str, inputs: dict):
+def api(league: str, random_effect: str, feature_set: str, inputs: dict, display_output: bool = False):
     predictor = SportsPredictor(league=league)
     predictor.load()
-    predictor.predict(inputs=inputs, random_effect=random_effect, feature_set=feature_set)
+    output = predictor.predict(inputs=inputs, random_effect=random_effect, feature_set=feature_set)
+    if display_output:
+        pp = pprint.PrettyPrinter(indent=4, compact=True)
+        logger.info('Output: {}'.format(pp.pprint(output)))
+    return output
 
 
 def api_cli():
