@@ -124,7 +124,7 @@ def api(league: str, random_effect: str, feature_set: str, inputs: dict, display
     output = predictor.predict(inputs=inputs, random_effect=random_effect, feature_set=feature_set)
     if display_output:
         pp = pprint.PrettyPrinter(indent=4, compact=True)
-        logger.info('Output: {}'.format(pp.pprint(output)))
+        logger.info('Output: \n{}'.format(pp.pformat(output)))
     return output
 
 
