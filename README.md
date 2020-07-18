@@ -24,6 +24,7 @@ often used in ML production).
 - Python 3.5
 - `cd sports-bettors`
 - `pip install -e .`
+- `aws configure` (enter AWS keys in prompt)
 - On Windows: `conda install libpython m2w64-toolchain -c msys2`
     - This installs a C++ compiler (This requires conda, see pystan docs for other distributions)
 - Optional: Download datasets and results sets with `sb_download --aws`
