@@ -26,6 +26,8 @@ often used in ML production).
 - `pip install -e .`
 - On Windows: `conda install libpython m2w64-toolchain -c msys2`
     - This installs a C++ compiler (This requires conda, see pystan docs for other distributions)
+- Optional: Download datasets and results sets with `sb_download --aws`
+    - Skip datasets or results sets with `sb_download --aws --skipdata --skipresults`
 
 ## Get Data
 
