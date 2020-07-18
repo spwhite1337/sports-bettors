@@ -31,7 +31,7 @@ often used in ML production).
 
 ## Get Data
 
-- Download data with: `sb_download --league [league]`
+- Download raw data with: `sb_download --league [league]`
     - College Football data is downloaded from https://api.collegefootballdata.com/api/docs/?url=/api-docs.json
     - NFL Data is scraped from https://www.pro-football-reference.com/. If the web front-end changes this download 
     script will need to be modified
@@ -39,9 +39,8 @@ often used in ML production).
 
 ## Run Experiments
 
-- Fit models and generate predictor objects with `sb_run_experiments --league [league]`
-- Optional args to facilitate batching the fit of all models
-    - overwrite previously fit models with `sb_run_experiments --league [league] --overwrite`
+- Fit models with `sb_run_experiments --league [league]`
+- Optional: overwrite previously fit models with `sb_run_experiments --league [league] --overwrite`
 - Generate light-weight predictor objects with `sb_generate_predictors --league [league]`
 
 ## Unit Tests
