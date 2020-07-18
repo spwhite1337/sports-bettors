@@ -18,7 +18,7 @@ def execute_experiments(league: str, overwrite: bool = False, debug: bool = Fals
         for feature_set in betting_aid.feature_sets.keys():
             for response in betting_aid.responses:
                 # Skip combinations that are over-specified
-                if (feature_set == 'PointScored') and (response == 'TotalPoints'):
+                if (feature_set == 'PointsScored') and (response == 'TotalPoints'):
                     continue
                 if debug:
                     if (feature_set != 'RushOnly') or (response not in ['TotalPoints', 'Win']) or \
