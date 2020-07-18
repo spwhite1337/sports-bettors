@@ -31,7 +31,7 @@ class SportsPredictor(object):
         with open(os.path.join(self.load_dir, self.league, 'predictor_set_{}.pkl'.format(self.version)), 'rb') as fp:
             self.predictors = pickle.load(fp)
 
-    def predict(self, random_effect: str, feature_set: str, inputs: dict) -> dict:
+    def predict(self, random_effect: str, feature_set: str, inputs: dict, display_results: bool = False) -> dict:
         """
         Predict with all models in predictor set, imputing missing values to the mean of the training set
         """
@@ -51,7 +51,9 @@ class SportsPredictor(object):
                 output = self.predictors[key](inputs)
                 outputs[(random_effect, feature_set, response)] = output
 
-        logger.info('Output: \n {}'.format(pformat(outputs)))
+        if display_results:
+            logger.info('Output: \n {}'.format(pformat(outputs)))
+
         return outputs
 
     @staticmethod
