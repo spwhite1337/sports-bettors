@@ -1,3 +1,10 @@
+import os
+import re
+import argparse
+
+from config import Config, logger
+
+
 parser = argparse.ArgumentParser(prog='Upload card classifier')
 parser.add_argument('--windows', action='store_true')
 parser.add_argument('--skipdata', action='store_true')
@@ -11,7 +18,7 @@ dryrun_arg = ' --dryrun'
 results_sync = '{} {}'.format(Config.CLOUD_RESULTS, Config.RESULTS_DIR)
 data_sync = '{} {}'.format(Config.CLOUD_DATA, Config.DATA_DIR)
 
-include_flag = " -- exclude '.gitignore'"
+include_flag = " --exclude '.gitignore'"
 if args.windows:
     include_flag = re.sub("'", "", include_flag)
 
