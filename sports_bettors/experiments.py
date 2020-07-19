@@ -1,5 +1,6 @@
 import os
 import argparse
+from tqdm import tqdm
 
 from sports_bettors.utils.college_football.models import CollegeFootballBettingAid
 from sports_bettors.utils.nfl.models import NFLBettingAid
@@ -14,9 +15,9 @@ def execute_experiments(league: str, overwrite: bool = False, debug: bool = Fals
     Execute experiments defined from betting aid objects
     """
     betting_aid = betting_aids[league]
-    for random_effect in betting_aid.random_effects:
-        for feature_set in betting_aid.feature_sets.keys():
-            for response in betting_aid.responses:
+    for random_effect in tqdm(betting_aid.random_effects):
+        for feature_set in tqdm(betting_aid.feature_sets.keys()):
+            for response in tqdm(betting_aid.responses):
                 # Skip combinations that are over-specified
                 if (feature_set == 'PointsScored') and (response == 'TotalPoints'):
                     continue
