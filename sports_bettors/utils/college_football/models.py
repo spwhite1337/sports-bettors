@@ -81,8 +81,8 @@ class CollegeFootballBettingAid(BaseBettingAid):
     }
 
     # I/O
-    input_path = os.path.join(Config.CURATED_DIR, 'college_football', 'df_curated.csv')
-    results_dir = os.path.join(Config.RESULTS_DIR, 'college_football')
+    input_path = os.path.join(Config.DATA_DIR, 'sports_bettors', 'curated', 'college_football', 'df_curated.csv')
+    results_dir = os.path.join(Config.RESULTS_DIR, 'sports_bettors', 'college_football')
 
     # Override this in base because you need to fillna for ranked teams
     def _define_random_effect(self, df: pd.DataFrame) -> pd.DataFrame:

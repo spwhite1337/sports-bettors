@@ -11,8 +11,8 @@ def curate_college():
     """
     Curate sports_bettors football data
     """
-    RAW_DIR = os.path.join(Config.RAW_DIR, 'college_football')
-    CURATION_DIR = os.path.join(Config.CURATED_DIR, 'college_football')
+    RAW_DIR = os.path.join(Config.DATA_DIR, 'sports_bettors', 'raw', 'college_football')
+    CURATION_DIR = os.path.join(Config.DATA_DIR, 'sports_bettors', 'curated', 'college_football')
     if not os.path.exists(CURATION_DIR):
         os.makedirs(CURATION_DIR)
 

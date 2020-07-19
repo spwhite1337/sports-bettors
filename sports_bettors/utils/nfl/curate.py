@@ -10,7 +10,7 @@ from config import Config, logger
 
 
 def curate_nfl():
-    save_dir = os.path.join(Config.CURATED_DIR, 'nfl')
+    save_dir = os.path.join(Config.DATA_DIR, 'sports_bettors', 'curated', 'nfl')
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
@@ -20,8 +20,9 @@ def curate_nfl():
 
     curation = []
     logger.info('Importing NFL Data to Pandas')
-    for team in tqdm([fn for fn in os.listdir(os.path.join(Config.RAW_DIR, 'nfl')) if '_raw' in fn]):
-        with open(os.path.join(Config.RAW_DIR, 'nfl', team)) as fp:
+    for team in tqdm([fn for fn in os.listdir(os.path.join(Config.DATA_DIR, 'sports_bettors', 'raw', 'nfl'))
+                      if '_raw' in fn]):
+        with open(os.path.join(Config.DATA_DIR, 'sports_bettors', 'raw', 'nfl', team)) as fp:
             team_data = json.load(fp)
 
         # Iterate through dates for team
@@ -179,4 +180,4 @@ def curate_nfl():
     df_modeling['matchup'] = df_modeling.apply(lambda row: _define_matchup(row['team'], row['opponent']), axis=1)
 
     logger.info('Save Curated data for {} games.'.format(df_modeling.shape[0]))
-    df_modeling.to_csv(os.path.join(Config.CURATED_DIR, 'nfl', 'df_curated.csv'), index=False)
+    df_modeling.to_csv(os.path.join(Config.DATA_DIR, 'sports_bettors', 'curated', 'nfl', 'df_curated.csv'), index=False)

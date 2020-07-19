@@ -77,8 +77,8 @@ class NFLBettingAid(BaseBettingAid):
     }
 
     # I/O
-    input_path = os.path.join(Config.CURATED_DIR, 'nfl', 'df_curated.csv')
-    results_dir = os.path.join(Config.RESULTS_DIR, 'nfl')
+    input_path = os.path.join(Config.DATA_DIR, 'sports_bettors', 'curated', 'nfl', 'df_curated.csv')
+    results_dir = os.path.join(Config.RESULTS_DIR, 'sports_bettors', 'nfl')
 
     def diagnose(self):
         """

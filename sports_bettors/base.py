@@ -109,8 +109,8 @@ class BaseBettingAid(object):
     }
 
     # I/O
-    input_path = Config.CURATED_DIR
-    results_dir = Config.RESULTS_DIR
+    input_path = os.path.join(Config.DATA_DIR, 'sports_bettors', 'curated')
+    results_dir = os.path.join(Config.RESULTS_DIR, 'sports_bettors')
 
     def __init__(self,
                  # I/O
