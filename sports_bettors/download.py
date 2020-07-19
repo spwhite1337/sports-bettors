@@ -26,22 +26,20 @@ def download_cli():
         dryrun_arg = ' --dryrun'
         results_sync = '{} {}'.format(Config.CLOUD_RESULTS, Config.RESULTS_DIR)
         data_sync = '{} {}'.format(Config.CLOUD_DATA, Config.DATA_DIR)
-        data_include = " --exclude '*' --include 'sports_bettors/*'"
-        results_include = " --exclude '*' --include 'sports_bettors/'".format(Config.version)
+        include_flags = " --exclude '*' --include 'sports_bettors/*'"
 
         if args.windows:
-            data_include = re.sub("'", "", data_include)
-            results_include = re.sub("'", "", results_include)
+            include_flags = re.sub("'", "", include_flags)
 
         if not args.skipdata:
             logger.info('Downloading Data from AWS')
-            sb_sync = sync_base + data_sync + data_include
+            sb_sync = sync_base + data_sync + include_flags
             sb_sync += dryrun_arg if args.dryrun else ''
             logger.info(sb_sync)
             os.system(sb_sync)
         if not args.skipresults:
             logger.info('Downloading Results from AWS')
-            sb_sync = sync_base + results_sync + results_include
+            sb_sync = sync_base + results_sync + include_flags
             sb_sync += dryrun_arg if args.dryrun else ''
             logger.info(sb_sync)
             os.system(sb_sync)
