@@ -1,4 +1,5 @@
 import os
+import re
 import argparse
 
 from sports_bettors.utils.college_football.download import DownloadCollegeFootballData
@@ -13,21 +14,37 @@ def download_cli():
     parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--retry', action='store_true')
     parser.add_argument('--aws', action='store_true')
+    parser.add_argument('--windows', action='store_true')
     parser.add_argument('--skipdata', action='store_true')
     parser.add_argument('--skipresults', action='store_true')
+    parser.add_argument('--dryrun', action='store_true')
     args = parser.parse_args()
 
     if args.aws:
+        # General commands
+        sync_base = 'aws s3 sync '
+        dryrun_arg = ' --dryrun'
+        results_sync = '{} {}'.format(Config.CLOUD_RESULTS, Config.RESULTS_DIR)
+        data_sync = '{} {}'.format(Config.CLOUD_DATA, Config.DATA_DIR)
+        data_include = " --exclude '*' --include 'college_football/*' --include 'nfl/*'"
+        results_include = " --exclude '*' --include 'aid_{}.pkl'".format(Config.version)
+
+        if args.windows:
+            data_include = re.sub("'", "", data_include)
+            results_include = re.sub("'", "", results_include)
+
         if not args.skipdata:
             logger.info('Downloading Data from AWS')
-            include_flags = "--exclude '*' --include 'college_football/*' --include 'nfl/*'"
-            aws_sync = 'aws s3 sync {} {} {}'.format(Config.CLOUD_DATA, Config.DATA_DIR, include_flags)
-            os.system(aws_sync)
+            sb_sync = sync_base + data_sync + data_include
+            sb_sync += dryrun_arg if args.dryrun else ''
+            logger.info(sb_sync)
+            os.system(sb_sync)
         if not args.skipresults:
             logger.info('Downloading Results from AWS')
-            include_flags = "--exclude '*' --include 'aid_{}.pkl'".format(Config.version)
-            aws_sync = 'aws s3 sync {} {} {}'.format(Config.CLOUD_RESULTS, Config.RESULTS_DIR, include_flags)
-            os.system(aws_sync)
+            sb_sync = sync_base + results_sync + results_include
+            sb_sync += dryrun_arg if args.dryrun else ''
+            logger.info(sb_sync)
+            os.system(sb_sync)
     else:
         if args.league is None:
             ValueError('league argument required if not syncing with AWS')
