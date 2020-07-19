@@ -26,8 +26,8 @@ def download_cli():
         dryrun_arg = ' --dryrun'
         results_sync = '{} {}'.format(Config.CLOUD_RESULTS, Config.RESULTS_DIR)
         data_sync = '{} {}'.format(Config.CLOUD_DATA, Config.DATA_DIR)
-        data_include = " --exclude '*' --include 'college_football/*' --include 'nfl/*'"
-        results_include = " --exclude '*' --include 'aid_{}.pkl'".format(Config.version)
+        data_include = " --exclude '*' --include 'sports_bettors/*'"
+        results_include = " --exclude '*' --include 'sports_bettors/'".format(Config.version)
 
         if args.windows:
             data_include = re.sub("'", "", data_include)
