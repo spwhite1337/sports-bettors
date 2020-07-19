@@ -31,6 +31,6 @@ if not args.skipdata:
 if not args.skipresults:
     logger.info('Uploading Results')
     sb_sync = sync_base + results_sync + include_flag
-    sb_sync += dryrun_arg if args.dryun else ''
+    sb_sync += dryrun_arg if args.dryrun else ''
     logger.info(sb_sync)
     os.system(sb_sync)
