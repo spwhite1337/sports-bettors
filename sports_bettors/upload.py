@@ -15,8 +15,8 @@ args = parser.parse_args()
 # General commands
 sync_base = 'aws s3 sync '
 dryrun_arg = ' --dryrun'
-results_sync = '{} {}'.format(Config.CLOUD_RESULTS, Config.RESULTS_DIR)
-data_sync = '{} {}'.format(Config.CLOUD_DATA, Config.DATA_DIR)
+results_sync = '{} {}'.format(Config.RESULTS_DIR, Config.CLOUD_RESULTS)
+data_sync = '{} {}'.format(Config.DATA_DIR, Config.CLOUD_DATA)
 
 include_flag = " --exclude '.gitignore'"
 if args.windows:
