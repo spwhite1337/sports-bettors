@@ -65,6 +65,29 @@ The result for each model will be outputs as an approximation of the posterior d
 Note that for `Win` response, the outputs are log-odds.
 
 ```
+>sb_predict --league college_football --random_effect team --feature_set RushOnly --display_output
+Input Value for RandomEffect (team): Iowa
+Input Value for rushingYards: 150
+Input Value for rushingAttempts: 30
+INFO:config:Loading predictor set for college_football
+INFO:config:Input: {'RandomEffect': 'Iowa', 'rushingAttempts': 30.0, 'rushingYards': 150.0}
+INFO:config:Output:
+{   ('team', 'RushOnly', 'LossMargin'): {   'lb': 5.203407115684713,
+                                            'mean': 6.693706556567932,
+                                            'ub': 8.184005997451152},
+    ('team', 'RushOnly', 'Margin'): {   'lb': 6.585329165536013,
+                                        'mean': 7.641162796263397,
+                                        'ub': 8.696996426990781},
+    ('team', 'RushOnly', 'TotalPoints'): {   'lb': 46.89018052371675,
+                                             'mean': 47.898364227578945,
+                                             'ub': 48.90654793144114},
+    ('team', 'RushOnly', 'Win'): {   'lb': 0.2877182200285193,
+                                     'mean': 0.43064431853860385,
+                                     'ub': 0.5735704170486884},
+    ('team', 'RushOnly', 'WinMargin'): {   'lb': 17.350635208395776,
+                                           'mean': 18.049121264808306,
+                                           'ub': 18.747607321220833}}
+
 >sb_predict --league nfl --random_effect team --feature_set RushOnly
 Input Value for RandomEffect (team): CHI
 Input Value for rushYards: 150
