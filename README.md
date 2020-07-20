@@ -27,7 +27,8 @@ often used in ML production).
 - `aws configure` (enter AWS keys in prompt, email me for a pair)
 - On Windows: `conda install libpython m2w64-toolchain -c msys2`
     - This installs a C++ compiler (This requires conda, see pystan docs for other distributions)
-- Optional: Download datasets and results sets with `sb_download --aws`
+- Optional: Download datasets and results sets with `sb_download --aws`; `--windows` if on windows machine and 
+`--dryrun` to test the download.
     - Skip datasets or results sets with `sb_download --aws --skipdata --skipresults`
 
 ## Get Data
