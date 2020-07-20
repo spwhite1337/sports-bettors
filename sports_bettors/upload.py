@@ -18,7 +18,7 @@ dryrun_arg = ' --dryrun'
 results_sync = '{} {}'.format(Config.RESULTS_DIR, Config.CLOUD_RESULTS)
 data_sync = '{} {}'.format(Config.DATA_DIR, Config.CLOUD_DATA)
 
-include_flag = " --exclude '.gitignore'"
+include_flag = " --exclude '*/.gitignore'"
 if args.windows:
     include_flag = re.sub("'", "", include_flag)
 
