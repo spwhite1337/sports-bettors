@@ -19,6 +19,12 @@ often used in ML production).
 
 <img src="/docs/sports_bettors_logo.jpg" alt="Sports Betting" width="512">
 
+---
+<p>
+    <img src="docs/pystan_logo.jpg", alt="Pystan Logo" with="256">
+</p>
+---
+
 ## Procedure
 
 - Python 3.5
