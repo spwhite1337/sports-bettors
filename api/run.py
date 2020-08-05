@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from sports_bettors.dash import add_sb_dash
 
 app = Flask(__name__)

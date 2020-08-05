@@ -118,3 +118,11 @@ INFO:config:Output:
                                            'mean': 12.564914539722725,
                                            'ub': 12.888295529727962}}
 ```
+
+## Dashboard
+
+A dashboard is available to explore results. 
+
+- `cd api`
+- `set FLASK_APP=run.py`
+- `flask run`
