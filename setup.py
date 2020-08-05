@@ -26,6 +26,9 @@ setup(
         'tqdm',
         'pystan',
         'beautifulsoup4',
+        'flask',
+        'plotly',
+        'dash',
         'awscli'
     ]
 )
