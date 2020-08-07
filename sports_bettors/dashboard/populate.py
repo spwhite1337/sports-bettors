@@ -3,6 +3,7 @@ import pickle
 
 import pandas as pd
 import numpy as np
+from scipy.special import expit
 
 
 from sports_bettors.api import SportsPredictor
@@ -33,19 +34,13 @@ def populate(league: str, feature_set: str, random_effect: str, random_effect_va
         if feature_set == 'PointsScored':
             for total_points in range(10, 100):
                 input_set['inputs']['total_points'] = total_points
-
                 output = predictor.predict(**input_set)[(random_effect, feature_set, 'Win')]
                 record = {
                     'RandomEffect': random_effect_val,
                     'total_points': total_points,
-                    'WinLB': output['mu']['lb'],
-                    'Win': output['mu']['mean'],
-                    'WinUB': output['mu']['ub']
+                    'WinLB': expit(output['mu']['lb']),
+                    'Win': expit(output['mu']['mean']),
+                    'WinUB': expit(output['mu']['ub'])
                 }
-
                 records.append(record)
-
-    print(len(records))
-
-    return pd.DataFrame.from_records(records).to_json()
-
+    return pd.DataFrame.from_records(records)

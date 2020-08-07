@@ -1,6 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+import plotly.express as px
 
 from sports_bettors.dashboard.project_params import params
 from sports_bettors.dashboard.populate import populate
@@ -12,14 +13,16 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         routes_pathname_prefix=routes_pathname_prefix,
         server=server
     )
-    dashapp.layout = html.Div(children=[
-        html.H1('Hi From Dash (sports bettors)')
-    ])
 
     df = populate(league='nfl', feature_set='PointsScored', random_effect='team',
                   random_effect_vals=['CHI', 'GNB'], output_type='probability'
                   )
+    fig = px.scatter(df, x='total_points', y='Win')
 
+    dashapp.layout = html.Div(children=[
+        html.H1('Hi From Dash (sports bettors)'),
+        dcc.Graph(id='example-fig', figure=fig)
+    ])
     # On load; calculate default data set. The change in these parameters will be triggered by a button:
     #   League: college-football;
     #   Conditions: PointsScored;
