@@ -71,8 +71,8 @@ class SportsPredictor(object):
         intercept_sd = aid.summary[aid.summary['labels'] == 'mu_a']['sd'].iloc[0]
 
         # Noise
-        noise = aid.summary[aid.summary['labels'] == 'sigma_y']['mean'].iloc[0]
-        noise_sd = aid.summary[aid.summary['labels'] == 'sigma_y']['sd'].iloc[0]
+        sigma = aid.summary[aid.summary['labels'] == 'sigma_y']['mean'].iloc[0]
+        sigma_sd = aid.summary[aid.summary['labels'] == 'sigma_y']['sd'].iloc[0]
 
         # Convert to lightweight predictor
         calculator = {
@@ -88,7 +88,7 @@ class SportsPredictor(object):
 
         # Add noise if continuous response
         if aid.response_distributions[aid.response] != 'bernoulli_logit':
-            calculator['noise'] = (noise - noise_sd, noise, noise + noise_sd)
+            calculator['noise'] = (sigma - sigma_sd, sigma, sigma + sigma_sd)
 
         return calculator, (intercept, intercept_sd)
 
