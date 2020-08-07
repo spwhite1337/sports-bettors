@@ -14,19 +14,22 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         server=server
     )
 
-    df = populate(league='nfl', feature_set='PointsScored', random_effect='team',
-                  random_effect_vals=['CHI', 'GNB'], output_type='probability'
-                  )
+    df = populate(league='nfl', feature_set='PointsScored', team='CHI', opponent='GNB', output_type='probability')
     fig = px.scatter(df, x='total_points', y='Win')
 
     dashapp.layout = html.Div(children=[
         html.H1('Hi From Dash (sports bettors)'),
         dcc.Graph(id='example-fig', figure=fig)
     ])
+
+    # Select a match-up (team_a and team_b)
+    # Plot results for team_a as 'team' and team_b as 'opponent' (inverted)
+
     # On load; calculate default data set. The change in these parameters will be triggered by a button:
     #   League: college-football;
     #   Conditions: PointsScored;
-    #   Teams: Iowa, Wisconsin, Michigan
+    #   Team: Iowa
+    #   Opponent: Wisconsin
     #   Output: Probability or Log-odds (We might be able to return this and toggle it reactively)
 
     # Store data in 3 hidden divs
@@ -39,5 +42,9 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     #       calculate probability of losing with error bars by 0 -> 21 for each team (Figure that depends on slice)
     #           Fields: Team, TotalPoints, LossMargin, LB, E, UB
     #       calculate probability of margin with error bars by -21 -> 21 for each team (Figure that depends on slice)
+
+    # Normalize all probabilities of winning so that the sum = 1
+    # Combine margins for an expected margin
+    # Combine Win/Loss margins
 
     return dashapp.server

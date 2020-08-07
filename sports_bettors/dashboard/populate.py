@@ -13,7 +13,7 @@ def clean_inputs(inputs: dict) -> dict:
     return inputs
 
 
-def populate(league: str, feature_set: str, random_effect: str, random_effect_vals: list, output_type: str):
+def populate(league: str, feature_set: str, team: str, opponent: str, output_type: str, **kwargs):
     """
     Generate a json friendly dataframe of sports-bettors outputs
     """
@@ -23,24 +23,27 @@ def populate(league: str, feature_set: str, random_effect: str, random_effect_va
     predictor.load()
 
     records = []
-    for random_effect_val in random_effect_vals:
-        input_set = {
-            'random_effect': random_effect,
-            'feature_set': feature_set,
-            'inputs': {
-                'RandomEffect': random_effect_val
-            }
+    input_set = {
+        'random_effect': 'team',
+        'feature_set': feature_set,
+        'inputs': {
+            'RandomEffect': team
         }
-        if feature_set == 'PointsScored':
-            for total_points in range(10, 100):
-                input_set['inputs']['total_points'] = total_points
-                output = predictor.predict(**input_set)[(random_effect, feature_set, 'Win')]
-                record = {
-                    'RandomEffect': random_effect_val,
-                    'total_points': total_points,
-                    'WinLB': expit(output['mu']['lb']),
-                    'Win': expit(output['mu']['mean']),
-                    'WinUB': expit(output['mu']['ub'])
-                }
-                records.append(record)
+    }
+    if feature_set == 'PointsScored':
+        for total_points in range(10, 100):
+            input_set['inputs']['total_points'] = total_points
+            output = predictor.predict(**input_set)[('team', feature_set, 'Win')]
+            record = {
+                'RandomEffect': team,
+                'total_points': total_points,
+                'WinLB': expit(output['mu']['lb']),
+                'Win': expit(output['mu']['mean']),
+                'WinUB': expit(output['mu']['ub'])
+            }
+            records.append(record)
+
+    elif feature_set == 'RushOnly':
+        pass
+
     return pd.DataFrame.from_records(records)
