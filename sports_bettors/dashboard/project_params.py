@@ -19,7 +19,8 @@ params = {
         'random_effects': NFLBettingAid.random_effects,
         'random_effect_vals': {
             'Chicago Bears': 'CHI',
-            'Green Bay Packers': 'GNB'
+            'Green Bay Packers': 'GNB',
+            'Pittsburgh Steelers': 'PIT'
         },
         'responses': NFLBettingAid.responses
     }
