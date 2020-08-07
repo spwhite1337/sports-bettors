@@ -1,6 +1,8 @@
 import dash
 import dash_html_components as html
 
+from sports_bettors.dashboard.project_params import params
+
 
 def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'):
     dashapp = dash.Dash(
@@ -25,5 +27,6 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     #           Fields: Team, TotalPoints, WinMargin, LB, E, UB
     #       calculate probability of losing with error bars by 0 -> 21 for each team (Figure that depends on slice)
     #           Fields: Team, TotalPoints, LossMargin, LB, E, UB
+    #       calculate probability of margin with error bars by -21 -> 21 for each team (Figure that depends on slice)
 
     return dashapp.server
