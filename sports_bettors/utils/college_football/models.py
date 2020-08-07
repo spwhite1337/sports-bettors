@@ -35,19 +35,23 @@ class CollegeFootballBettingAid(BaseBettingAid):
         'ptime_adv': lambda row: row['possessionTime'] - row['opp_possessionTime'],
         'firstdowns_adv': lambda row: row['firstDowns'] - row['opp_firstDowns'],
         'pass_proportion': lambda row: row['passAttempts'] / (row['passAttempts'] + row['rushingAttempts']),
-        'total_points': lambda row: row['points'] + row['opp_points']
+        'total_points': lambda row: row['points'] + row['opp_points'],
+        'rush_yds_x_atms': lambda row: row['rushingYards'] * row['rushingAttempts'],
+        'pass_yds_x_atms': lambda row: row['netPassingYards'] * row['passAttempts'],
+        'rush_yds_adv_x_pass_yds_adv': lambda row: (row['rushingYards'] - row['opp_rushingYards']) *
+                                                   (row['netPassingYards'] - row['opp_netPassingYards']),
+        'rush_yds_x_pass_yds': lambda row: row['rushingYards'] * row['netPassingYards']
     }
 
     # Feature set to use for modeling (each value must be in the curated dataset or as a key in feature_creators)
     feature_sets = {
-        'RushOnly': Features('RushOnly', ['rushingYards', 'rushingAttempts']),
-        'PassOnly': Features('PassOnly', ['netPassingYards', 'passAttempts']),
-        'Offense': Features('Offense', ['rushingYards', 'netPassingYards', 'rushingAttempts', 'passAttempts']),
-        # 'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin']),
-        # 'PlaySelection': Features('PlaySelection', ['pass_proportion', 'fourthDownAttempts']),
+        'RushOnly': Features('RushOnly', ['rushingYards', 'rushingAttempts', 'rush_yds_x_atms']),
+        'PassOnly': Features('PassOnly', ['netPassingYards', 'passAttempts', 'pass_yds_x_atms']),
+        'Offense': Features('Offense', ['rushingYards', 'netPassingYards', 'rushingAttempts', 'passAttempts',
+                                        'rush_yds_x_atms', 'pass_yds_x_atms', 'rush_yds_x_pass_yds']),
+        'OffenseAdv': Features('OffenseAdv', ['rush_yds_adv', 'pass_yds_adv', 'to_margin',
+                                              'rush_yds_adv_x_pass_yds_adv']),
         'PointsScored': Features('PointsScored', ['total_points']),
-        'All': Features('All', ['is_home', 'rush_yds_adv', 'pass_yds_adv', 'penalty_yds_adv', 'ptime_adv', 'to_margin',
-                                'firstdowns_adv'])
     }
 
     # Potential Responses
