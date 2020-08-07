@@ -16,7 +16,8 @@ class TestPredictors(TestCase):
 
     def test_college_predictors(self):
         logger.info('Working on College Football')
-        with open(os.path.join(Config.RESULTS_DIR, 'college_football', 'predictor_set_{}.pkl'.format(Config.version)),
+        with open(os.path.join(Config.RESULTS_DIR, 'sports_bettors', 'college_football',
+                               'predictor_set_{}.pkl'.format(Config.version)),
                   'rb') as fp:
             predictors = pickle.load(fp)
 
@@ -25,7 +26,7 @@ class TestPredictors(TestCase):
             for feature_set in CollegeFootballBettingAid.feature_sets.keys():
                 for response in CollegeFootballBettingAid.responses:
                     # Check if it exists
-                    model_path = os.path.join(Config.RESULTS_DIR, 'college_football', response,
+                    model_path = os.path.join(Config.RESULTS_DIR, 'sports_bettors', 'college_football', response,
                                               feature_set, random_effect, 'aid_{}.pkl'.format(Config.version))
                     if not os.path.exists(model_path):
                         logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
@@ -122,7 +123,8 @@ class TestPredictors(TestCase):
                         plt.close()
 
     def test_custom_college(self):
-        with open(os.path.join(Config.RESULTS_DIR, 'college_football', 'predictor_set_{}.pkl'.format(Config.version)),
+        with open(os.path.join(Config.RESULTS_DIR, 'sports_bettors', 'college_football',
+                               'predictor_set_{}.pkl'.format(Config.version)),
                   'rb') as fp:
             predictors = pickle.load(fp)
 

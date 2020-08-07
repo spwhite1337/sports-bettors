@@ -16,7 +16,8 @@ class TestPredictors(TestCase):
 
     def test_nfl_predictors(self):
         logger.info('Working on NFL.')
-        with open(os.path.join(Config.RESULTS_DIR, 'nfl', 'predictor_set_{}.pkl'.format(Config.version)), 'rb') as fp:
+        with open(os.path.join(Config.RESULTS_DIR, 'sports_bettors', 'nfl',
+                               'predictor_set_{}.pkl'.format(Config.version)), 'rb') as fp:
             predictors = pickle.load(fp)
 
         # Loop experiments
@@ -24,8 +25,8 @@ class TestPredictors(TestCase):
             for feature_set in NFLBettingAid.feature_sets.keys():
                 for response in NFLBettingAid.responses:
                     # Check if it exists
-                    model_path = os.path.join(Config.RESULTS_DIR, 'nfl', response, feature_set, random_effect,
-                                              'aid_{}.pkl'.format(Config.version))
+                    model_path = os.path.join(Config.RESULTS_DIR, 'sports_bettors', 'nfl', response, feature_set,
+                                              random_effect, 'aid_{}.pkl'.format(Config.version))
                     if not os.path.exists(model_path):
                         logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
                         continue
@@ -120,7 +121,8 @@ class TestPredictors(TestCase):
                         plt.close()
 
     def test_custom_nfl(self):
-        with open(os.path.join(Config.RESULTS_DIR, 'nfl', 'predictor_set_{}.pkl'.format(Config.version)), 'rb') \
+        with open(os.path.join(Config.RESULTS_DIR, 'sports_bettors', 'nfl',
+                               'predictor_set_{}.pkl'.format(Config.version)), 'rb') \
                 as fp:
             predictors = pickle.load(fp)
 

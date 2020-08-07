@@ -99,7 +99,7 @@ class SportsPredictor(object):
         logger.info('Generating Predictor Sets for {}'.format(self.league))
         predictors = {}
         base_dir = os.path.join(Config.RESULTS_DIR, 'sports_bettors', self.league)
-        for response in os.listdir(os.path.join(base_dir)):
+        for response in [d for d in os.listdir(os.path.join(base_dir)) if '.pkl' not in d]:
             for feature_set in os.listdir(os.path.join(base_dir, response)):
                 for random_effect in os.listdir(os.path.join(base_dir, response, feature_set)):
                     # Load predictor
