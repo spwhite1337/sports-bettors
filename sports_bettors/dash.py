@@ -22,6 +22,8 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         dcc.Graph(id='example-fig', figure=fig)
     ])
 
+    # Load historical match-up data (if any)
+
     # Select a match-up (team_a and team_b)
     # Plot results for team_a as 'team' and team_b as 'opponent' (inverted)
 
