@@ -70,7 +70,7 @@ class SportsPredictor(object):
         intercept = aid.summary[aid.summary['labels'] == 'mu_a']['mean'].iloc[0]
         intercept_sd = aid.summary[aid.summary['labels'] == 'mu_a']['sd'].iloc[0]
 
-        # Noise
+        # Sigma for continuous responses
         sigma = aid.summary[aid.summary['labels'] == 'sigma_y']['mean'].iloc[0]
         sigma_sd = aid.summary[aid.summary['labels'] == 'sigma_y']['sd'].iloc[0]
 
