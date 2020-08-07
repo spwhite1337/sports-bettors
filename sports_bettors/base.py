@@ -52,18 +52,27 @@ class BetPredictor(object):
         # quality of this approximation as a point estimate.
         # In short, the 'mean' key of the output is point estimate when assuming the MAP value of the posterior.
         # the lower bound ('lb') takes mean - sd while upper takes mean + sd
-        # For continuous outputs, noise is added based on the mean + sd for lb / ub
+        # For continuous outputs, sigma is included as well
         output = {
-            'lb': re_vals[0] + np.sum([
-                self.calculator['coefficients'][f][0] * v for f, v in data.items()
-            ]),
-            'mean': re_vals[1] + np.sum([
-                self.calculator['coefficients'][f][1] * v for f, v in data.items()
-            ]),
-            'ub': re_vals[2] + np.sum([
-                self.calculator['coefficients'][f][2] * v for f, v in data.items()
-            ]),
+            'mu': {
+                'lb': re_vals[0] + np.sum([
+                    self.calculator['coefficients'][f][0] * v for f, v in data.items()
+                ]),
+                'mean': re_vals[1] + np.sum([
+                    self.calculator['coefficients'][f][1] * v for f, v in data.items()
+                ]),
+                'ub': re_vals[2] + np.sum([
+                    self.calculator['coefficients'][f][2] * v for f, v in data.items()
+                ]),
+            },
         }
+
+        if 'noise' in self.calculator.keys():
+            output['sigma'] = {
+                'lb': self.calculator['noise'][0],
+                'mean': self.calculator['noise'][1],
+                'ub': self.calculator['noise'][2]
+            }
 
         return output
 
