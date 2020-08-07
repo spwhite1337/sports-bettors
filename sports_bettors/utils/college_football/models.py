@@ -21,7 +21,7 @@ class CollegeFootballBettingAid(BaseBettingAid):
     """
     # Random effect in hierarchical model. One can specify either the team or the opponent name; or they can specify
     # The teams rank or the opponent's rank.
-    random_effects = ['team', 'opponent', 'ranked_team', 'ranked_opponent']
+    random_effects = ['team', 'opponent']
 
     # Poll to use when determining rank
     polls = ['APTop25Rank', 'BCSStandingsRank', 'CoachesPollRank']
