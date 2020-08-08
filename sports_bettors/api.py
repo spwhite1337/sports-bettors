@@ -104,6 +104,8 @@ class SportsPredictor(object):
                     # Load predictor
                     aid_path = os.path.join(base_dir, response, feature_set, random_effect,
                                             'aid_{}.pkl'.format(Config.version))
+                    if not os.path.exists(aid_path):
+                        continue
                     with open(aid_path, 'rb') as fp:
                         aid = pickle.load(fp)
                     calculator, re_params = self._get_calculator(aid)
