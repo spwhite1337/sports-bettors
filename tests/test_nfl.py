@@ -54,9 +54,12 @@ class TestPredictors(TestCase):
                     # Generate preds
                     logger.info('Generate Predictions')
                     predictor = predictors[(random_effect, feature_set, response)]
-                    df['y_preds'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['mean'], axis=1)
-                    df['y_preds_lb'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['lb'], axis=1)
-                    df['y_preds_ub'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['ub'], axis=1)
+                    df['y_preds'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['mu']['mean'],
+                                                                              axis=1)
+                    df['y_preds_lb'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['mu']['lb'],
+                                                                                 axis=1)
+                    df['y_preds_ub'] = df[['RandomEffect'] + aid.features].apply(lambda r: predictor(r)['mu']['ub'],
+                                                                                 axis=1)
 
                     # Save
                     save_dir = os.path.join(Config.TEST_RESULTS_DIR, 'nfl', response, feature_set, random_effect)
