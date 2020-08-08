@@ -66,7 +66,7 @@ class TestPredictors(TestCase):
                         os.makedirs(save_dir)
 
                     # Diagnostics
-                    with PdfPages(os.path.join(save_dir, 'test_predictions.pdf')) as pdf:
+                    with PdfPages(os.path.join(save_dir, 'test_predictions_{}.pdf'.format(Config.version))) as pdf:
                         # Scatter plot from each source
                         df_sample = df.sample(min(df.shape[0], 1000))
                         lb = min([df_sample['y_fit'].min(), df_sample['y_preds'].min()])
