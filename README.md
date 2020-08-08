@@ -148,5 +148,5 @@ INFO:config:Output:
 A dashboard is available to explore results. 
 
 - `cd api`
-- `set FLASK_APP=run.py`
+- `set FLASK_APP=run.py` (`export` in bash)
 - `flask run`
