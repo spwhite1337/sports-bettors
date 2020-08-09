@@ -14,6 +14,9 @@ class ConfigCallbacks(object):
     """
     @staticmethod
     def dropdowns(league: str):
+        """
+        Populate dropdowns
+        """
         team_opts = params[Config.version]['team-opts'][league]
         feature_set_opts = params[Config.version]['feature-sets-opts'][league]
         return team_opts, utils['show'], team_opts, utils['show'], feature_set_opts, utils['show']
