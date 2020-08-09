@@ -49,7 +49,7 @@ def win_probability(predictor, league: str, variable: str, feature_set: str, par
 def normalize_win_prob(team: pd.DataFrame, opp: pd.DataFrame, variable: str) -> pd.DataFrame:
     df = team.drop('RandomEffect', axis=1).merge(opp.drop('RandomEffect', axis=1), on=variable, how='inner')
     # When controlling for opponent, 1 - P(Win) is the probability of the opponent winning. We force the sum of
-    # These P(Win | team) + (1 - P(Win | Opponent) to be 1.
+    # P(Win | team) + (1 - P(Win | Opponent) to be 1.
     df['Win'] = df['Win_team'] / (df['Win_team'] + (1 - df['Win_opp']))
     return df
 
