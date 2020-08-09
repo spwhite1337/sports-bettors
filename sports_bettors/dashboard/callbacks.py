@@ -3,7 +3,7 @@ import plotly.express as px
 
 from sports_bettors.dashboard.params import params, utils
 from sports_bettors.dashboard.utils.history import populate as history_populate
-from sports_bettors.dashboard.utils.results import populate as results_populate
+from sports_bettors.dashboard.utils.results import ResultsPopulator
 
 from config import Config
 
@@ -69,7 +69,7 @@ class DataCallbacks(object):
         if not all([league, feature_set, team, opponent, variable]):
             return pd.DataFrame().to_json()
 
-        # Drop nones
+        # Drop nones in parameters
         parameters = [p for p in parameters if p]
 
         # Convert to dictionary
@@ -80,8 +80,8 @@ class DataCallbacks(object):
             return p
         parameters = _parse_parameters(parameters)
 
-        # Get results
-        df = results_populate(
+        # Results
+        populator = ResultsPopulator(
             league=league,
             feature_set=feature_set,
             team=team,
@@ -89,6 +89,10 @@ class DataCallbacks(object):
             variable=variable,
             parameters=parameters
         )
+
+        # Win probabilities
+        df = populator.win_probabilities()
+
         return df.to_json()
 
 
