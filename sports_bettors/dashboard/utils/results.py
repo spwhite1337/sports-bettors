@@ -136,7 +136,7 @@ class ResultsPopulator(object):
             for win_margin in params[Config.sb_version]['response-ranges'][self.league]['WinMargin']:
                 prob = norm.cdf(win_margin, mu, sigma)
                 record = {
-                    self.variable: var,
+                    'variable_val': var,
                     'WinMargin': win_margin,
                     'Probability': prob
                 }

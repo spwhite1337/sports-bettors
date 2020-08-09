@@ -139,6 +139,9 @@ class PlotCallbacks(object):
         if df.shape[0] == 0:
             fig = utils['empty_figure']
         else:
+            if variable_val is None:
+                return utils['empty_figure']
+            variable_val = variable_val['points'][0]['x']
             # Win margin figure
             df = df[df['variable_val'] == variable_val]
             fig = px.line(df, x='WinMargin', y='Probability')
