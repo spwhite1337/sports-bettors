@@ -50,7 +50,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             dcc.Input(id='parameter-4', style=utils['no_show']),
             html.Button('Update Results', id='update-results-data', n_clicks=0),
             dcc.Graph(id='win-fig', figure=utils['empty_figure']),
-            dcc.Graph(id='margin-fig', figure=utils['empty_figure'])
+            dcc.Graph(id='win-margin-fig', figure=utils['empty_figure'])
         ]),
     ])
 
@@ -175,7 +175,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     def results_data(trigger, league, feature_set, team, opponent, variable, *parameters):
         return DataCallbacks.results(league, feature_set, team, opponent, variable, *parameters)
 
-    # Make the figure
+    # Win figure
     @dashapp.callback(
         Output('win-fig', 'figure'),
         [
@@ -187,5 +187,16 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     )
     def win_figure(df, variable):
         return PlotCallbacks.win_figure(df, variable)
+
+    # Win-margin figure
+    @dashapp.callback(
+        Output('win-margin-figure', 'figure'),
+        [
+            Input('results-win-margin-data', 'children'),
+            Input('win-fig', 'hoverData')
+        ]
+    )
+    def win_margin_figure(df, variable_val):
+        return PlotCallbacks.win_margin_figure(df, variable_val)
 
     return dashapp.server

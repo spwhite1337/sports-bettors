@@ -115,18 +115,31 @@ class PlotCallbacks(object):
         return fig, utils['show'], utils['show']
 
     @staticmethod
-    def win_figure(df_win, variable: str):
+    def win_figure(df, variable: str):
         """
         Plot results
         """
-        df_win = pd.read_json(df_win, orient='records')
-        if df_win.shape[0] == 0:
-            fig_win = utils['empty_figure']
+        df = pd.read_json(df, orient='records')
+        if df.shape[0] == 0:
+            fig = utils['empty_figure']
         else:
             # Win Probability Figure
-            df_win = df_win.sort_values(variable)
-            fig_win = px.line(df_win, x=variable, y='Win', error_y='WinUB', error_y_minus='WinLB')
+            df = df.sort_values(variable)
+            fig = px.line(df, x=variable, y='Win', error_y='WinUB', error_y_minus='WinLB')
 
         # Win Margin Figure
-        return fig_win
+        return fig
 
+    @staticmethod
+    def win_margin_figure(df, variable_val):
+        """
+        Plot results
+        """
+        df = pd.read_json(df)
+        if df.shape[0] == 0:
+            fig = utils['empty_figure']
+        else:
+            # Win margin figure
+            df = df[df['variable_val'] == variable_val]
+            fig = px.line(df, x='WinMargin', y='Probability')
+        return fig
