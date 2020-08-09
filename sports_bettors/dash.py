@@ -26,23 +26,29 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
 
     dashapp.layout = html.Div(children=[
         html.H1('Hi From Dash (sports bettors)'),
-        dcc.Dropdown(id='league', options=params[Config.version]['league-opts'], value='college_football'),
-        dcc.Dropdown(id='team', style=utils['no_show']),
-        dcc.Dropdown(id='opponent', style=utils['no_show']),
+        html.Div(id='selectors', children=[
+            dcc.Dropdown(id='league', options=params[Config.version]['league-opts'], value='college_football'),
+            dcc.Dropdown(id='team', style=utils['no_show']),
+            dcc.Dropdown(id='opponent', style=utils['no_show']),
+        ]),
 
         # History
-        html.Div(id='history-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
-        dcc.Dropdown(id='history-x', style=utils['no_show']),
-        dcc.Dropdown(id='history-y', style=utils['no_show']),
-        html.Button('Update History', id='update-history-data', n_clicks=0),
-        dcc.Graph(id='history-fig'),
+        html.Div(id='history', children=[
+            html.Div(id='history-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
+            dcc.Dropdown(id='history-x', style=utils['no_show']),
+            dcc.Dropdown(id='history-y', style=utils['no_show']),
+            html.Button('Update History', id='update-history-data', n_clicks=0),
+            dcc.Graph(id='history-fig'),
+        ]),
 
         # Results
-        html.Div(id='results-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
-        dcc.Dropdown(id='feature-sets', style=utils['no_show']),
-        html.Button('Update Results', id='update-results-data', n_clicks=0),
-        dcc.Graph(id='win-fig'),
-        dcc.Graph(id='margin-fig')
+        html.Div(id='results', children=[
+            html.Div(id='results-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
+            dcc.Dropdown(id='feature-sets', style=utils['no_show']),
+            html.Button('Update Results', id='update-results-data', n_clicks=0),
+            dcc.Graph(id='win-fig'),
+            dcc.Graph(id='margin-fig')
+        ]),
     ])
 
     # Drop down population
@@ -145,26 +151,20 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     # Select a match-up (team_a and team_b)
     # Plot results for team_a as 'team' and team_b as 'opponent' (inverted)
 
-    # On load; calculate default data set. The change in these parameters will be triggered by a button:
-    #   League: college-football;
-    #   Conditions: PointsScored;
-    #   Team: Iowa
-    #   Opponent: Wisconsin
-    #   Output: Probability or Log-odds (We might be able to return this and toggle it reactively)
+    # Define a 'variable' for each feature_set, then rest of the conditions are parameters
+    # Calculate WinProbability / UB / LB for a range of "variable" values at the fixed parameters
+    # For each slice of variable, parameters -> calculate probability of winning by various margins,
+    #   loss margins, win-margins
+    # Result will be 4 dfs:
+    #   - Win Probability as variable is changed
+    #       - [variable, parameters, WinProb, WinProbUB, WinProbLB, team]
+    #   - Margin Likelihood as variable is changed
+    #       - [variable, parameters, margin, CumProb, CumProbLB, CumProbUB, team]
+    #   - WinMargin Likelihood
+    #   - LossMargin Likelihood
 
-    # Store data in 3 hidden divs
-    # for team in teams:
-    #   for total_points_in_game in range(10, 100):
-    #       calculate probability of winning with error bars (Main Figure) for each team
-    #           Fields: Team, TotalPoints, LB, E, UB
-    #       calculate probability of winning with error bars by 0 -> 21 for each team (Figure that depends on slice)
-    #           Fields: Team, TotalPoints, WinMargin, LB, E, UB
-    #       calculate probability of losing with error bars by 0 -> 21 for each team (Figure that depends on slice)
-    #           Fields: Team, TotalPoints, LossMargin, LB, E, UB
-    #       calculate probability of margin with error bars by -21 -> 21 for each team (Figure that depends on slice)
-
-    # Normalize all probabilities of winning so that the sum = 1
-    # Combine margins for an expected margin
-    # Combine Win/Loss margins
+    # Normalize probabilities across teams
+    #   - Combine margins for an expected margin
+    #   - Combine Win/Loss margins
 
     return dashapp.server
