@@ -91,9 +91,10 @@ class DataCallbacks(object):
         )
 
         # Win probabilities
-        df = populator.win_probabilities()
+        df_win = populator.win()
+        df_win_margin = populator.win_margin()
 
-        return df.to_json(), df.to_json()
+        return df_win.to_json(), df_win_margin.to_json()
 
 
 class PlotCallbacks(object):

@@ -91,7 +91,7 @@ class ResultsPopulator(object):
 
         return pd.DataFrame().from_records(records)
 
-    def win_probabilities(self) -> pd.DataFrame:
+    def win(self) -> pd.DataFrame:
         """
         Calculate win probability as a function of `variable`
         """
@@ -113,7 +113,7 @@ class ResultsPopulator(object):
 
         return df
 
-    def _win_margin(self):
+    def win_margin(self):
         """
         Probability of win margins
         """
