@@ -55,6 +55,42 @@ utils = {
                 'Points Scored': 'total_points',
             }
         }
+    },
+    'feature_creators': {
+        'v2': {
+            'college_football': {
+                'RushOnly': {
+                    'rush_yds_x_atms': lambda p: p['rushingYards'] * p['rushingAttempts']
+                },
+                'PassOnly': {
+                    'pass_yds_x_atms': lambda p: p['netPassingYards'] * p['passAttempts']
+                },
+                'Offense': {
+                    'rush_yds_x_atms': lambda p: p['rushingYards'] * p['rushingAttempts'],
+                    'pass_yds_x_atms': lambda p: p['netPassingYards'] * p['passAttempts'],
+                    'rush_yds_x_pass_yds': lambda p: p['rushingYards'] * p['netPassingYards']
+                },
+                'OffenseAdv': {
+                    'rush_yds_adv_x_pass_yds_adv': lambda p: p['rush_yds_adv'] * p['pass_yds_adv']
+                }
+            },
+            'nfl': {
+                'RushOnly': {
+                    'rush_yds_x_atms': lambda p: p['rushYards'] * p['rushAttempts']
+                },
+                'PassOnly': {
+                    'pass_yds_x_atms': lambda p: p['NetPassYards'] * p['passAttempts']
+                },
+                'Offense': {
+                    'rush_yds_x_atms': lambda p: p['rushYards'] * p['rushAttempts'],
+                    'pass_yds_x_atms': lambda p: p['NetPassYards'] * p['passAttempts'],
+                    'rush_yds_x_pass_yds': lambda p: p['rushYards'] * p['NetPassYards']
+                },
+                'OffenseAdv': {
+                    'rush_yds_adv_x_pass_yds_adv': lambda p: p['rush_yds_adv'] * p['pass_yds_adv']
+                }
+            }
+        }
     }
 }
 

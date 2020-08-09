@@ -1,6 +1,6 @@
 import pandas as pd
 from scipy.special import expit
-from sports_bettors.dashboard.params import params
+from sports_bettors.dashboard.params import params, utils
 
 from sports_bettors.api import SportsPredictor
 
@@ -14,11 +14,19 @@ def win_probability(predictor, league: str, variable: str, feature_set: str, par
     """
     records = []
     for var in params[Config.version]['variable-ranges'][league][variable]:
+        # Add variable to parameters
+        parameters[variable] = var
+
+        # Add derived features
+        feature_creators = utils['feature_creators'][Config.version][league][feature_set]
+        for created_feature, creator in feature_creators.items():
+            parameters[created_feature] = creator(parameters)
+
         # Configure inputs
         input_set = {
             'random_effect': 'team' if not opponent else 'opponent',
             'feature_set': feature_set,
-            'inputs': {'RandomEffect': team, variable: var}
+            'inputs': {'RandomEffect': team}
         }
         input_set['inputs'].update(parameters)
 
@@ -72,10 +80,17 @@ def populate(league: str, feature_set: str, team: str, opponent: str, variable: 
     #   - Combine Win/Loss margins
 
     assert league in ['college_football', 'nfl']
+    # Load predictor
     predictor = SportsPredictor(league=league)
     predictor.load()
+
+    # Calculate probabilities for the team winning
     team_win = win_probability(predictor, league, variable, feature_set, parameters, team, opponent=False)
+
+    # Calculate probabilities for the opponent winning
     opponent_win = win_probability(predictor, league, variable, feature_set, parameters, opponent, opponent=True)
+
+    # Normalize together
     df_win = normalize_win_prob(team_win, opponent_win, variable)
 
     return df_win

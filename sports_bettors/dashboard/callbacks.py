@@ -66,6 +66,9 @@ class DataCallbacks(object):
         """
         Calculate probabilities
         """
+        if not all([league, feature_set, team, opponent, variable]):
+            return pd.DataFrame().to_json()
+
         # Drop nones
         parameters = [p for p in parameters if p]
 
@@ -75,7 +78,6 @@ class DataCallbacks(object):
             # Convert keys, values
             p = {utils['feature_maps'][Config.version][league][k]: int(v) for k, v in p.items()}
             return p
-
         parameters = _parse_parameters(parameters)
 
         # Get results
