@@ -1,7 +1,9 @@
 import pandas as pd
 import plotly.express as px
 
-from sports_bettors.dashboard.utils.params import params, utils
+from sports_bettors.dashboard.params import params, utils
+from sports_bettors.dashboard.utils.history import populate as history_populate
+from sports_bettors.dashboard.utils.results import populate as results_populate
 
 from config import Config
 
@@ -36,6 +38,31 @@ class ConfigCallbacks(object):
 
 class DataCallbacks(object):
     @staticmethod
+    def history(league, team, opponent):
+        df, x_opts, y_opts = history_populate(league, team, opponent)
+        return df.to_json(), x_opts, y_opts
+
+    @staticmethod
+    def results(league, feature_set, team, opponent, variable, *parameters):
+        # Drop nones
+        parameters = [p for p in parameters if p]
+        # Convert to dictionary
+        parameters = {k: v for k, v in zip(parameters[::2], parameters[1::2])} if len(parameters) > 1 else {}
+
+        # Get results
+        df = results_populate(
+            league=league,
+            feature_set=feature_set,
+            team=team,
+            opponent=opponent,
+            variable=variable,
+            parameters=parameters
+        )
+        return df.to_json()
+
+
+class PlotCallbacks(object):
+    @staticmethod
     def history(df, x, y):
         df = pd.read_json(df, orient='records')
         if df.shape[0] == 0:
@@ -46,9 +73,10 @@ class DataCallbacks(object):
         return fig, utils['show'], utils['show']
 
     @staticmethod
-    def results():
-        pass
+    def results(df):
+        df = pd.read_json(df, orient='records')
+        if df.shape[0] == 0:
+            return utils['empty_figure'], utils['empty_figure']
+        fig = px.line(df, x='total_points', y='Win')
+        return fig, fig
 
-
-class PlotCallbacks(object):
-    pass

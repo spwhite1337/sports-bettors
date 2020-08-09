@@ -2,15 +2,11 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
-
-import plotly.express as px
-
 import pandas as pd
 
-from sports_bettors.dashboard.utils.params import params, utils
-from sports_bettors.dashboard.utils.callbacks import ConfigCallbacks, DataCallbacks, PlotCallbacks
-from sports_bettors.dashboard.history import populate as history_populate
-from sports_bettors.dashboard.results import populate as results_populate
+from sports_bettors.dashboard.params import params, utils
+from sports_bettors.dashboard.callbacks import ConfigCallbacks, DataCallbacks, PlotCallbacks
+
 
 from config import Config
 
@@ -132,8 +128,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         ]
     )
     def history_data(trigger, league, team, opponent):
-        df, x_opts, y_opts = history_populate(league, team, opponent)
-        return df.to_json(), x_opts, y_opts
+        return DataCallbacks.history(league, team, opponent)
 
     # Make the figure
     @dashapp.callback(
@@ -149,13 +144,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         ]
     )
     def history_figures(df, x, y):
-        df = pd.read_json(df, orient='records')
-        if df.shape[0] == 0:
-            return utils['empty_figure'], utils['no_show'], utils['no_show']
-        x = df.columns[0] if not x else x
-        y = df.columns[0] if not y else y
-        fig = px.scatter(df, x=x, y=y, color='Winner')
-        return fig, utils['show'], utils['show']
+        return PlotCallbacks.history(df, x, y)
 
     # Populate with results
     @dashapp.callback(
@@ -180,21 +169,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         ]
     )
     def results_data(trigger, league, feature_set, team, opponent, variable, *parameters):
-        # Drop nones
-        parameters = [p for p in parameters if p]
-        # Convert to dictionary
-        parameters = {k: v for k, v in zip(parameters[::2], parameters[1::2])} if len(parameters) > 1 else {}
-
-        # Get results
-        df = results_populate(
-            league=league,
-            feature_set=feature_set,
-            team=team,
-            opponent=opponent,
-            variable=variable,
-            parameters=parameters
-        )
-        return df.to_json()
+        return DataCallbacks.results(league, feature_set, team, opponent, variable, *parameters)
 
     # Make the figure
     @dashapp.callback(
@@ -207,10 +182,6 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         ]
     )
     def results_figures(df):
-        df = pd.read_json(df, orient='records')
-        if df.shape[0] == 0:
-            return utils['empty_figure'], utils['empty_figure']
-        fig = px.line(df, x='total_points', y='Win')
-        return fig, fig
+        return PlotCallbacks.results(df)
 
     return dashapp.server
