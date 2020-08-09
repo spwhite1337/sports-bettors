@@ -41,7 +41,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         # Results
         html.Div(id='results', children=[
             html.Div(id='results-win-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
-            html.Div(id='results-win-margin-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
+            html.Div(id='results-conditioned-margin-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             dcc.Dropdown(id='feature-sets', style=utils['no_show']),
             dcc.Dropdown(id='variable', style=utils['no_show']),
             dcc.Input(id='parameter-1', style=utils['no_show']),
@@ -50,7 +50,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             dcc.Input(id='parameter-4', style=utils['no_show']),
             html.Button('Update Results', id='update-results-data', n_clicks=0),
             dcc.Graph(id='win-fig', figure=utils['empty_figure']),
-            dcc.Graph(id='win-margin-fig', figure=utils['empty_figure'])
+            dcc.Graph(id='conditioned-margin-fig', figure=utils['empty_figure'])
         ]),
     ])
 
@@ -151,7 +151,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     @dashapp.callback(
         [
             Output('results-win-data', 'children'),
-            Output('results-win-margin-data', 'children'),
+            Output('results-conditioned-margin-data', 'children'),
         ],
         [
             Input('update-results-data', 'n_clicks')
@@ -188,11 +188,11 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     def win_figure(df, variable):
         return PlotCallbacks.win_figure(df, variable)
 
-    # Win-margin figure
+    # conditioned-margin figure
     @dashapp.callback(
-        Output('win-margin-fig', 'figure'),
+        Output('conditioned-margin-fig', 'figure'),
         [
-            Input('results-win-margin-data', 'children'),
+            Input('results-conditioned-margin-data', 'children'),
             Input('win-fig', 'hoverData')
         ]
     )
