@@ -191,6 +191,20 @@ params = {
                 'to_margin': range(-3, 4),
                 'total_points': range(10, 100)
             }
+        },
+        'response-ranges': {
+            'nfl': {
+                'WinMargin': range(1, 28),
+                'LossMargin': range(1, 28),
+                'Margin': range(-28, 28),
+                'TotalPoints': range(10, 100)
+            },
+            'college_football': {
+                'WinMargin': range(1, 28),
+                'LossMargin': range(1, 28),
+                'Margin': range(-28, 28),
+                'TotalPoints': range(10, 100)
+            }
         }
     }
 }

@@ -40,7 +40,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
 
         # Results
         html.Div(id='results', children=[
-            html.Div(id='results-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
+            html.Div(id='results-win-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             dcc.Dropdown(id='feature-sets', style=utils['no_show']),
             dcc.Dropdown(id='variable', style=utils['no_show']),
             dcc.Input(id='parameter-1', style=utils['no_show']),
@@ -148,7 +148,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
 
     # Populate with results
     @dashapp.callback(
-        Output('results-data', 'children'),
+        Output('results-win-data', 'children'),
         [
             Input('update-results-data', 'n_clicks')
         ],
@@ -178,7 +178,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             Output('margin-fig', 'figure')
         ],
         [
-            Input('results-data', 'children')
+            Input('results-win-data', 'children')
         ],
         [
             State('variable', 'value')

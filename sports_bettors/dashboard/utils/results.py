@@ -47,13 +47,36 @@ def win_probability(predictor, league: str, variable: str, feature_set: str, par
 
 
 def normalize_win_prob(team: pd.DataFrame, opp: pd.DataFrame, variable: str) -> pd.DataFrame:
+    """
+    When controlling for opponent, 1 - P(Win) is the probability of the opponent winning. We force the sum of
+    P(Win | team) + (1 - P(Win | Opponent) to be 1.
+    """
     df = team.drop('RandomEffect', axis=1).merge(opp.drop('RandomEffect', axis=1), on=variable, how='inner')
-    # When controlling for opponent, 1 - P(Win) is the probability of the opponent winning. We force the sum of
-    # P(Win | team) + (1 - P(Win | Opponent) to be 1.
+
     df['Win'] = df['Win_team'] / (df['Win_team'] + (1 - df['Win_opp']))
     df['WinUB'] = abs(df['WinUB_team'] / (df['WinUB_team'] + (1 - df['WinUB_opp'])) - df['Win'])
     df['WinLB'] = abs(df['Win'] - df['WinLB_team'] / (df['WinLB_team'] + (1 - df['WinLB_opp'])))
     return df
+
+
+def win_margin():
+    # for var in variables:
+    #   mu, sigma = predictor(input)
+    #   for spread in win_margins:
+    #       p(spread) = normal(mu, sigma).cumpro
+    pass
+
+
+def loss_margin():
+    pass
+
+
+def margin():
+    pass
+
+
+def total_points():
+    pass
 
 
 def populate(league: str, feature_set: str, team: str, opponent: str, variable: str, parameters: dict):
