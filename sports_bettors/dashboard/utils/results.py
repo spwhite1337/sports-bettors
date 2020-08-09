@@ -8,12 +8,35 @@ from sports_bettors.api import SportsPredictor
 from config import Config
 
 
-def clean_inputs(inputs: dict) -> dict:
-    return inputs
+def win_probability(predictor, league: str, variable: str, feature_set: str, parameters: dict, team: str,
+                    opponent: bool):
+    """
+    Return df of win probability with fields []
+    """
+    records = []
+    for var in params[Config.version]['variable-ranges'][league][variable]:
+        # Configure inputs
+        input_set = {
+            'random_effect': 'team' if not opponent else 'opponent',
+            'feature_set': feature_set,
+            'inputs': {'RandomEffect': team, variable: var}
+        }
+        input_set['inputs'].update(parameters)
 
+        # Predict
+        output = predictor.predict(**input_set)[('team' if not opponent else 'opponent', feature_set, 'Win')]
 
-def win_probability(predictor, inputs):
-    pass
+        # Wrangle output
+        record = {
+            'RandomEffect': team,
+            variable: var,
+            'WinLB': expit(output['mu']['lb']),
+            'Win': expit(output['mu']['mean']),
+            'WinUB': expit(output['mu']['ub'])
+        }
+        records.append(record)
+
+    return pd.DataFrame().from_records(records)
 
 
 def populate(league: str, feature_set: str, team: str, opponent: str, variable: str, parameters: dict):
@@ -22,13 +45,6 @@ def populate(league: str, feature_set: str, team: str, opponent: str, variable: 
     """
     if not all([league, feature_set, team, opponent, variable]):
         return pd.DataFrame().from_records([])
-
-    print('League: {}'.format(league))
-    print('feature_set: {}'.format(feature_set))
-    print('team: {}'.format(team))
-    print('opponent: {}'.format(opponent))
-    print('variable: {}'.format(variable))
-    print('parameters: {}'.format(parameters))
 
     # Select a match-up (team_a and team_b)
     # Plot results for team_a as 'team' and team_b as 'opponent' (inverted)
@@ -52,40 +68,8 @@ def populate(league: str, feature_set: str, team: str, opponent: str, variable: 
     assert league in ['college_football', 'nfl']
     predictor = SportsPredictor(league=league)
     predictor.load()
+    team_win = win_probability(predictor, league, variable, feature_set, parameters, team, opponent=False)
+    opponent_win = win_probability(predictor, league, variable, feature_set, parameters, opponent, opponent=True)
 
-    records = []
-    for var in params[Config.version]['variable-ranges'][league][variable]:
-        input_set = {
-            'random_effect': 'team',
-            'feature_set': feature_set,
-            'inputs': {
-                'RandomEffect': team,
-                variable: var,
-            }
-        }
-        input_set['inputs'].update(parameters)
-        output = predictor.predict(**input_set)[('team', feature_set, 'Win')]
-        record = {
-            'RandomEffect': team,
-            variable: var,
-            'WinLB': expit(output['mu']['lb']),
-            'Win': expit(output['mu']['mean']),
-            'WinUB': expit(output['mu']['ub'])
-        }
-        records.append(record)
+    return pd.DataFrame.from_records(team_win)
 
-    return pd.DataFrame.from_records(records)
-
-
-def points_scored(input_set, total_points, feature_set, team, predictor):
-    input_set['inputs']['total_points'] = total_points
-    output = predictor.predict(**input_set)[('team', feature_set, 'Win')]
-    record = {
-        'RandomEffect': team,
-        'total_points': total_points,
-        'WinLB': expit(output['mu']['lb']),
-        'Win': expit(output['mu']['mean']),
-        'WinUB': expit(output['mu']['ub'])
-    }
-
-    return record
