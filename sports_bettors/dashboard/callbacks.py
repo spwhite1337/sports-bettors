@@ -68,8 +68,15 @@ class DataCallbacks(object):
         """
         # Drop nones
         parameters = [p for p in parameters if p]
+
         # Convert to dictionary
-        parameters = {k: v for k, v in zip(parameters[::2], parameters[1::2])} if len(parameters) > 1 else {}
+        def _parse_parameters(p):
+            p = {k: v for k, v in zip(p[::2], p[1::2])} if len(p) > 1 else {}
+            # Convert keys, values
+            p = {utils['feature_maps'][Config.version][league][k]: int(v) for k, v in p.items()}
+            return p
+
+        parameters = _parse_parameters(parameters)
 
         # Get results
         df = results_populate(
@@ -101,13 +108,14 @@ class PlotCallbacks(object):
         return fig, utils['show'], utils['show']
 
     @staticmethod
-    def results(df):
+    def results(df, variable: str):
         """
         Plot results
         """
         df = pd.read_json(df, orient='records')
         if df.shape[0] == 0:
             return utils['empty_figure'], utils['empty_figure']
-        fig = px.line(df, x='total_points', y='Win')
+        df = df.sort_values(variable)
+        fig = px.line(df, x=variable, y='Win')
         return fig, fig
 

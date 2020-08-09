@@ -1,19 +1,28 @@
 import pandas as pd
 import numpy as np
 from scipy.special import expit
-
+from sports_bettors.dashboard.params import params
 
 from sports_bettors.api import SportsPredictor
+
+from config import Config
 
 
 def clean_inputs(inputs: dict) -> dict:
     return inputs
 
 
+def win_probability(predictor, inputs):
+    pass
+
+
 def populate(league: str, feature_set: str, team: str, opponent: str, variable: str, parameters: dict):
     """
     Generate a json friendly dataframe of sports-bettors outputs
     """
+    if not all([league, feature_set, team, opponent, variable]):
+        return pd.DataFrame().from_records([])
+
     print('League: {}'.format(league))
     print('feature_set: {}'.format(feature_set))
     print('team: {}'.format(team))
@@ -45,20 +54,25 @@ def populate(league: str, feature_set: str, team: str, opponent: str, variable: 
     predictor.load()
 
     records = []
-    input_set = {
-        'random_effect': 'team',
-        'feature_set': feature_set,
-        'inputs': {
-            'RandomEffect': team
+    for var in params[Config.version]['variable-ranges'][league][variable]:
+        input_set = {
+            'random_effect': 'team',
+            'feature_set': feature_set,
+            'inputs': {
+                'RandomEffect': team,
+                variable: var,
+            }
         }
-    }
-    if feature_set == 'PointsScored':
-        for total_points in range(10, 100):
-            record = points_scored(input_set, total_points, feature_set, team, predictor)
-            records.append(record)
-
-    elif feature_set == 'RushOnly':
-        pass
+        input_set['inputs'].update(parameters)
+        output = predictor.predict(**input_set)[('team', feature_set, 'Win')]
+        record = {
+            'RandomEffect': team,
+            variable: var,
+            'WinLB': expit(output['mu']['lb']),
+            'Win': expit(output['mu']['mean']),
+            'WinUB': expit(output['mu']['ub'])
+        }
+        records.append(record)
 
     return pd.DataFrame.from_records(records)
 

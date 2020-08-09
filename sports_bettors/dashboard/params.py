@@ -31,7 +31,31 @@ utils = {
         }
     },
     'no_show': {'display': 'none'},
-    'show': {'display': 'block'}
+    'show': {'display': 'block'},
+    'feature_maps': {
+        'v2': {
+            'college_football': {
+                'Rushing Attempts': 'rushingAttempts',
+                'Rushing Yards': 'rushingYards',
+                'Passing Attempts': 'passAttempts',
+                'Passing Yards': 'netPassingYards',
+                'Turnover Margin': 'to_margin',
+                'Rushing Yards Advantage': 'rush_yds_adv',
+                'Passing Yards Advantage': 'pass_yds_adv',
+                'Points Scored': 'total_points',
+            },
+            'nfl': {
+                'Rushing Attempts': 'rushAttempts',
+                'Rushing Yards': 'rushYards',
+                'Passing Attempts': 'passAttempts',
+                'Passing Yards': 'NetPassYards',
+                'Turnover Margin': 'to_margin',
+                'Rushing Yards Advantage': 'rush_yds_adv',
+                'Passing Yards Advantage': 'pass_yds_adv',
+                'Points Scored': 'total_points',
+            }
+        }
+    }
 }
 
 params = {
@@ -108,6 +132,28 @@ params = {
                 'PointsScored': [
                     {'label': 'Points Scored', 'value': 'total_points'},
                 ]
+            }
+        },
+        'variable-ranges': {
+            'nfl': {
+                'rushAttempts': range(5, 30),
+                'passAttempts': range(5, 30),
+                'rushYards': range(50, 300),
+                'NetPassYards': range(50, 500),
+                'rush_yds_adv': range(-200, 200),
+                'pass_yds_adv': range(-300, 300),
+                'to_margin': range(-3, 4),
+                'total_points': range(10, 100)
+            },
+            'college_football': {
+                'rushingAttempts': range(5, 30),
+                'passAttempts': range(5, 30),
+                'rushingYards': range(50, 300),
+                'netPassingYards': range(50, 500),
+                'rush_yds_adv': range(-200, 200),
+                'pass_yds_adv': range(-300, 300),
+                'to_margin': range(-3, 4),
+                'total_points': range(10, 100)
             }
         }
     }

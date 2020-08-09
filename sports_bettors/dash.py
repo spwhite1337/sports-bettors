@@ -179,9 +179,12 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         ],
         [
             Input('results-data', 'children')
+        ],
+        [
+            State('variable', 'value')
         ]
     )
-    def results_figures(df):
-        return PlotCallbacks.results(df)
+    def results_figures(df, variable):
+        return PlotCallbacks.results(df, variable)
 
     return dashapp.server
