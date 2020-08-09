@@ -46,13 +46,17 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             html.Div(id='results-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             dcc.Dropdown(id='feature-sets', style=utils['no_show']),
             dcc.Dropdown(id='variable', style=utils['no_show']),
+            dcc.Input(id='parameter-1', style=utils['no_show']),
+            dcc.Input(id='parameter-2', style=utils['no_show']),
+            dcc.Input(id='parameter-3', style=utils['no_show']),
+            dcc.Input(id='parameter-4', style=utils['no_show']),
             html.Button('Update Results', id='update-results-data', n_clicks=0),
             dcc.Graph(id='win-fig'),
             dcc.Graph(id='margin-fig')
         ]),
     ])
 
-    # Drop down population
+    # Drop down configuration
     @dashapp.callback(
         [
             Output('team', 'options'),
@@ -71,6 +75,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         feature_set_opts = params[Config.version]['feature-sets-opts'][league]
         return team_opts, utils['show'], team_opts, utils['show'], feature_set_opts, utils['show']
 
+    # Variable Selection
     @dashapp.callback(
         [
             Output('variable', 'options'),
@@ -86,6 +91,42 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             return [], utils['no_show']
         variable_opts = params[Config.version]['variable-opts'][league][feature_set]
         return variable_opts, utils['show']
+
+    # Parameter Selection
+    @dashapp.callback(
+        [
+            Output('parameter-1', 'label'),
+            Output('parameter-2', 'label'),
+            Output('parameter-3', 'label'),
+            Output('parameter-4', 'label'),
+            Output('parameter-1', 'placeholder'),
+            Output('parameter-2', 'placeholder'),
+            Output('parameter-3', 'placeholder'),
+            Output('parameter-4', 'placeholder'),
+            Output('parameter-1', 'style'),
+            Output('parameter-2', 'style'),
+            Output('parameter-3', 'style'),
+            Output('parameter-4', 'style')
+        ],
+        [
+            Input('feature-sets', 'value'),
+            Input('variable', 'value')
+        ],
+        [
+            State('league', 'value')
+        ]
+    )
+    def parameter_set(feature_set, variable, league):
+        if (league is None) or (feature_set is None) or (variable is None):
+            return [None] * 4 + [None] * 4 + [utils['no_show']] * 4
+        # Get parameters except for variable and fill with Nones
+        parameters = [p['label'] for p in params[Config.version]['variable-opts'][league][feature_set]
+                      if p['value'] != variable]
+        # Fill displays and Nones
+        displays = [utils['show']] * len(parameters) + [utils['no_show']] * (4 - len(parameters))
+        parameters += [None] * (4 - len(parameters))
+
+        return parameters + parameters + displays
 
     # Populate with history
     @dashapp.callback(
@@ -140,11 +181,32 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             State('feature-sets', 'value'),
             State('team', 'value'),
             State('opponent', 'value'),
-            State('variable', 'value')
+            State('variable', 'value'),
+            State('parameter-1', 'label'),
+            State('parameter-1', 'value'),
+            State('parameter-2', 'label'),
+            State('parameter-2', 'value'),
+            State('parameter-3', 'label'),
+            State('parameter-3', 'value'),
+            State('parameter-4', 'label'),
+            State('parameter-4', 'value')
         ]
     )
-    def results_data(trigger, league, feature_set, team, opponent, variable):
-        df = results_populate(league=league, feature_set=feature_set, team=team, opponent=opponent, variable=variable)
+    def results_data(trigger, league, feature_set, team, opponent, variable, *parameters):
+        # Drop nones
+        parameters = [p for p in parameters if p]
+        # Convert to dictionary
+        parameters = {k: v for k, v in zip(parameters[::2], parameters[1::2])} if len(parameters) > 1 else {}
+
+        # Get results
+        df = results_populate(
+            league=league,
+            feature_set=feature_set,
+            team=team,
+            opponent=opponent,
+            variable=variable,
+            parameters=parameters
+        )
         return df.to_json()
 
     # Make the figure
@@ -163,26 +225,5 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             return utils['empty_figure'], utils['empty_figure']
         fig = px.line(df, x='total_points', y='Win')
         return fig, fig
-
-    # Load historical match-up data (if any)
-
-    # Select a match-up (team_a and team_b)
-    # Plot results for team_a as 'team' and team_b as 'opponent' (inverted)
-
-    # Define a 'variable' for each feature_set, then rest of the conditions are parameters
-    # Calculate WinProbability / UB / LB for a range of "variable" values at the fixed parameters
-    # For each slice of variable, parameters -> calculate probability of winning by various margins,
-    #   loss margins, win-margins
-    # Result will be 4 dfs:
-    #   - Win Probability as variable is changed
-    #       - [variable, parameters, WinProb, WinProbUB, WinProbLB, team]
-    #   - Margin Likelihood as variable is changed
-    #       - [variable, parameters, margin, CumProb, CumProbLB, CumProbUB, team]
-    #   - WinMargin Likelihood
-    #   - LossMargin Likelihood
-
-    # Normalize probabilities across teams
-    #   - Combine margins for an expected margin
-    #   - Combine Win/Loss margins
 
     return dashapp.server
