@@ -1,26 +1,144 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+from dash.dependencies import Input, Output, State
+
 import plotly.express as px
 
-from sports_bettors.dashboard.project_params import params
-from sports_bettors.dashboard.populate import populate
+import pandas as pd
+
+from sports_bettors.dashboard.params import params, utils
+from sports_bettors.dashboard.history import populate as history_populate
+from sports_bettors.dashboard.results import populate as results_populate
+
+from config import Config
 
 
 def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'):
+    """
+    Add a sports-bettors dashboard over a flask app at the provided endpoint
+    """
     dashapp = dash.Dash(
         __name__,
         routes_pathname_prefix=routes_pathname_prefix,
         server=server
     )
 
-    df = populate(league='nfl', feature_set='PointsScored', team='CHI', opponent='GNB', output_type='probability')
-    fig = px.scatter(df, x='total_points', y='Win')
-
     dashapp.layout = html.Div(children=[
         html.H1('Hi From Dash (sports bettors)'),
-        dcc.Graph(id='example-fig', figure=fig)
+        dcc.Dropdown(id='league', options=params[Config.version]['league-opts'], value='college_football'),
+        dcc.Dropdown(id='team', style=utils['no_show']),
+        dcc.Dropdown(id='opponent', style=utils['no_show']),
+
+        # History
+        html.Div(id='history-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
+        dcc.Dropdown(id='history-x', style=utils['no_show']),
+        dcc.Dropdown(id='history-y', style=utils['no_show']),
+        html.Button('Update History', id='update-history-data', n_clicks=0),
+        dcc.Graph(id='history-fig'),
+
+        # Results
+        html.Div(id='results-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
+        dcc.Dropdown(id='feature-sets', style=utils['no_show']),
+        html.Button('Update Results', id='update-results-data', n_clicks=0),
+        dcc.Graph(id='win-fig'),
+        dcc.Graph(id='margin-fig')
     ])
+
+    # Drop down population
+    @dashapp.callback(
+        [
+            Output('team', 'options'),
+            Output('team', 'style'),
+            Output('opponent', 'options'),
+            Output('opponent', 'style'),
+            Output('feature-sets', 'options'),
+            Output('feature-sets', 'style')
+        ],
+        [
+            Input('league', 'value')
+        ]
+    )
+    def config_dropdowns(league):
+        team_opts = params[Config.version]['team-opts'][league]
+        feature_set_opts = params[Config.version]['feature-sets-opts'][league]
+        return team_opts, utils['show'], team_opts, utils['show'], feature_set_opts, utils['show']
+
+    # Populate with history
+    @dashapp.callback(
+        [
+            Output('history-data', 'children'),
+            Output('history-x', 'options'),
+            Output('history-y', 'options')
+        ],
+        [
+            Input('update-history-data', 'n_clicks'),
+            Input('league', 'value'),
+        ],
+        [
+            State('team', 'value'),
+            State('opponent', 'value')
+        ]
+    )
+    def history_data(trigger, league, team, opponent):
+        df, x_opts, y_opts = history_populate(league, team, opponent)
+        return df.to_json(), x_opts, y_opts
+
+    # Make the figure
+    @dashapp.callback(
+        [
+            Output('history-fig', 'figure'),
+            Output('history-x', 'style'),
+            Output('history-y', 'style')
+         ],
+        [
+            Input('history-data', 'children'),
+            Input('history-x', 'value'),
+            Input('history-y', 'value')
+        ]
+    )
+    def history_figures(df, x, y):
+        df = pd.read_json(df, orient='records')
+        if df.shape[0] == 0:
+            return utils['empty_figure'], utils['no_show'], utils['no_show']
+        x = df.columns[0] if not x else x
+        y = df.columns[0] if not y else y
+        fig = px.scatter(df, x=x, y=y, color='Winner')
+        return fig, utils['show'], utils['show']
+
+    # Populate with results
+    @dashapp.callback(
+        Output('results-data', 'children'),
+        [
+            Input('update-results-data', 'n_clicks')
+        ],
+        [
+            State('league', 'value'),
+            State('feature-sets', 'value'),
+            State('team', 'value'),
+            State('opponent', 'value')
+        ]
+    )
+    def results_data(trigger, league, feature_set, team, opponent):
+        df = results_populate(league=league, feature_set=feature_set, team=team, opponent=opponent)
+        return df.to_json()
+
+    # Make the figure
+    @dashapp.callback(
+        [
+            Output('win-fig', 'figure'),
+            Output('margin-fig', 'figure')
+        ],
+        [
+            Input('results-data', 'children')
+        ]
+    )
+    def results_figures(df):
+        df = pd.read_json(df, orient='records')
+        if df.shape[0] == 0:
+            return utils['empty_figure'], utils['empty_figure']
+        fig = px.line(df, x='total_points', y='Win')
+        return fig, fig
 
     # Load historical match-up data (if any)
 

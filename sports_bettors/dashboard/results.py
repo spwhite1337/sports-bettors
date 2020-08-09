@@ -1,6 +1,3 @@
-import os
-import pickle
-
 import pandas as pd
 import numpy as np
 from scipy.special import expit
@@ -13,12 +10,11 @@ def clean_inputs(inputs: dict) -> dict:
     return inputs
 
 
-def populate(league: str, feature_set: str, team: str, opponent: str, output_type: str, **kwargs):
+def populate(league: str, feature_set: str, team: str, opponent: str, **kwargs):
     """
     Generate a json friendly dataframe of sports-bettors outputs
     """
     assert league in ['college_football', 'nfl']
-
     predictor = SportsPredictor(league=league)
     predictor.load()
 
@@ -47,3 +43,7 @@ def populate(league: str, feature_set: str, team: str, opponent: str, output_typ
         pass
 
     return pd.DataFrame.from_records(records)
+
+
+def points_scored():
+    pass
