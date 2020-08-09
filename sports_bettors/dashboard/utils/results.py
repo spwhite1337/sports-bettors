@@ -50,7 +50,7 @@ class ResultsPopulator(object):
 
     def _win_probabilities(self, is_opponent: bool) -> pd.DataFrame:
         """
-        Calculate win probabilities
+        Calculate win probabilities for a team or an opponent
         """
         records = []
         for var in params[Config.sb_version]['variable-ranges'][self.league][self.variable]:
