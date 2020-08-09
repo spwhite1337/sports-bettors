@@ -115,7 +115,7 @@ class PlotCallbacks(object):
         return fig, utils['show'], utils['show']
 
     @staticmethod
-    def results(df_win, variable: str, variable_val: int = 10):
+    def win_figure(df_win, variable: str):
         """
         Plot results
         """
@@ -128,7 +128,5 @@ class PlotCallbacks(object):
             fig_win = px.line(df_win, x=variable, y='Win', error_y='WinUB', error_y_minus='WinLB')
 
         # Win Margin Figure
-
-
-        return fig_win, utils['empty_figure']
+        return fig_win
 
