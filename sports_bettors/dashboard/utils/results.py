@@ -134,11 +134,10 @@ class ResultsPopulator(object):
             output = self.predictor.predict(**input_set)[('team', self.feature_set, 'WinMargin')]
             mu, sigma = output['mu']['mean'], output['sigma']['mean']
             for win_margin in params[Config.sb_version]['response-ranges'][self.league]['WinMargin']:
-                prob = norm.cdf(win_margin, mu, sigma)
                 record = {
                     'variable_val': var,
                     'WinMargin': win_margin,
-                    'Probability': prob
+                    'Probability': 1 - norm.cdf(win_margin, mu, sigma)
                 }
                 records.append(record)
 

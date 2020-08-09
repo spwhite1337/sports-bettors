@@ -126,8 +126,6 @@ class PlotCallbacks(object):
             # Win Probability Figure
             df = df.sort_values(variable)
             fig = px.line(df, x=variable, y='Win', error_y='WinUB', error_y_minus='WinLB')
-
-        # Win Margin Figure
         return fig
 
     @staticmethod
@@ -141,8 +139,8 @@ class PlotCallbacks(object):
         else:
             if variable_val is None:
                 return utils['empty_figure']
-            variable_val = variable_val['points'][0]['x']
             # Win margin figure
-            df = df[df['variable_val'] == variable_val]
+            variable_val = variable_val['points'][0]['x']
+            df = df[df['variable_val'] == variable_val].sort_values('WinMargin')
             fig = px.line(df, x='WinMargin', y='Probability')
         return fig
