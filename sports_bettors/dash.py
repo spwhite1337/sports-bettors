@@ -45,6 +45,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         html.Div(id='results', children=[
             html.Div(id='results-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             dcc.Dropdown(id='feature-sets', style=utils['no_show']),
+            dcc.Dropdown(id='variable', style=utils['no_show']),
             html.Button('Update Results', id='update-results-data', n_clicks=0),
             dcc.Graph(id='win-fig'),
             dcc.Graph(id='margin-fig')
@@ -59,7 +60,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             Output('opponent', 'options'),
             Output('opponent', 'style'),
             Output('feature-sets', 'options'),
-            Output('feature-sets', 'style')
+            Output('feature-sets', 'style'),
         ],
         [
             Input('league', 'value')
@@ -69,6 +70,22 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         team_opts = params[Config.version]['team-opts'][league]
         feature_set_opts = params[Config.version]['feature-sets-opts'][league]
         return team_opts, utils['show'], team_opts, utils['show'], feature_set_opts, utils['show']
+
+    @dashapp.callback(
+        [
+            Output('variable', 'options'),
+            Output('variable', 'style')
+        ],
+        [
+            Input('league', 'value'),
+            Input('feature-sets', 'value'),
+        ]
+    )
+    def config_variables(league, feature_set):
+        if (league is None) or (feature_set is None):
+            return [], utils['no_show']
+        variable_opts = params[Config.version]['variable-opts'][league][feature_set]
+        return variable_opts, utils['show']
 
     # Populate with history
     @dashapp.callback(
@@ -122,11 +139,12 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             State('league', 'value'),
             State('feature-sets', 'value'),
             State('team', 'value'),
-            State('opponent', 'value')
+            State('opponent', 'value'),
+            State('variable', 'value')
         ]
     )
-    def results_data(trigger, league, feature_set, team, opponent):
-        df = results_populate(league=league, feature_set=feature_set, team=team, opponent=opponent)
+    def results_data(trigger, league, feature_set, team, opponent, variable):
+        df = results_populate(league=league, feature_set=feature_set, team=team, opponent=opponent, variable=variable)
         return df.to_json()
 
     # Make the figure

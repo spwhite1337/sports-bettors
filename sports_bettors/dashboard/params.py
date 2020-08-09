@@ -59,6 +59,56 @@ params = {
                 {'label': 'Offense (Advantage)', 'value': 'OffenseAdv'},
                 {'label': 'Points Scored', 'value': 'PointsScored'}
             ]
+        },
+        'variable-opts': {
+            'nfl': {
+                'RushOnly': [
+                    {'label': 'Rushing Attempts', 'value': 'rushAttempts'},
+                    {'label': 'Rushing Yards', 'value': 'rushYards'}
+                ],
+                'PassOnly': [
+                    {'label': 'Passing Attempts', 'value': 'passAttempts'},
+                    {'label': 'Passing Yards', 'value': 'NetPassYards'}
+                ],
+                'Offense': [
+                    {'label': 'Rushing Yards', 'value': 'rushYards'},
+                    {'label': 'Rushing Attempts', 'value': 'rushAttempts'},
+                    {'label': 'Passing Yards', 'value': 'NetPassYards'},
+                    {'label': 'Passing Attempts', 'value': 'passAttempts'}
+                ],
+                'OffenseAdv': [
+                    {'label': 'Rushing Yards Advantage', 'value': 'rush_yds_adv'},
+                    {'label': 'Passing Yards Advantage', 'value': 'pass_yds_adv'},
+                    {'label': 'Turnover Margin', 'value': 'to_margin'}
+                ],
+                'PointsScored': [
+                    {'label': 'Points Scored', 'value': 'total_points'},
+                ]
+            },
+            'college_football': {
+                'RushOnly': [
+                    {'label': 'Rushing Attempts', 'value': 'rushingAttempts'},
+                    {'label': 'Rushing Yards', 'value': 'rushingYards'},
+                ],
+                'PassOnly': [
+                    {'label': 'Passing Attempts', 'value': 'passAttempts'},
+                    {'label': 'Passing Yards', 'value': 'netPassingYards'}
+                ],
+                'Offense': [
+                    {'label': 'Rushing Attempts', 'value': 'rushingAttempts'},
+                    {'label': 'Rushing Yards', 'value': 'rushingYards'},
+                    {'label': 'Passing Attempts', 'value': 'passAttempts'},
+                    {'label': 'Passing Yards', 'value': 'netPassingYards'}
+                ],
+                'OffenseAdv': [
+                    {'label': 'Rushing Yards Advantage', 'value': 'rush_yds_adv'},
+                    {'label': 'Passing Yards Advantage', 'value': 'pass_yds_adv'},
+                    {'label': 'Turnover Margin', 'value': 'to_margin'}
+                ],
+                'PointsScored': [
+                    {'label': 'Points Scored', 'value': 'total_points'},
+                ]
+            }
         }
     }
 }

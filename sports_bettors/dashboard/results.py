@@ -10,7 +10,7 @@ def clean_inputs(inputs: dict) -> dict:
     return inputs
 
 
-def populate(league: str, feature_set: str, team: str, opponent: str, **kwargs):
+def populate(league: str, feature_set: str, team: str, opponent: str, variable: str):
     """
     Generate a json friendly dataframe of sports-bettors outputs
     """
@@ -28,15 +28,7 @@ def populate(league: str, feature_set: str, team: str, opponent: str, **kwargs):
     }
     if feature_set == 'PointsScored':
         for total_points in range(10, 100):
-            input_set['inputs']['total_points'] = total_points
-            output = predictor.predict(**input_set)[('team', feature_set, 'Win')]
-            record = {
-                'RandomEffect': team,
-                'total_points': total_points,
-                'WinLB': expit(output['mu']['lb']),
-                'Win': expit(output['mu']['mean']),
-                'WinUB': expit(output['mu']['ub'])
-            }
+            record = points_scored(input_set, total_points, feature_set, team, predictor)
             records.append(record)
 
     elif feature_set == 'RushOnly':
@@ -45,5 +37,15 @@ def populate(league: str, feature_set: str, team: str, opponent: str, **kwargs):
     return pd.DataFrame.from_records(records)
 
 
-def points_scored():
-    pass
+def points_scored(input_set, total_points, feature_set, team, predictor):
+    input_set['inputs']['total_points'] = total_points
+    output = predictor.predict(**input_set)[('team', feature_set, 'Win')]
+    record = {
+        'RandomEffect': team,
+        'total_points': total_points,
+        'WinLB': expit(output['mu']['lb']),
+        'Win': expit(output['mu']['mean']),
+        'WinUB': expit(output['mu']['ub'])
+    }
+
+    return record
