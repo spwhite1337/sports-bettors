@@ -129,7 +129,7 @@ class PlotCallbacks(object):
         return fig
 
     @staticmethod
-    def win_margin_figure(df, variable_val):
+    def conditioned_margin_figure(df, variable_val):
         """
         Plot results
         """
@@ -141,6 +141,6 @@ class PlotCallbacks(object):
                 return utils['empty_figure']
             # Win margin figure
             variable_val = variable_val['points'][0]['x']
-            df = df[df['variable_val'] == variable_val].sort_values('WinMargin')
-            fig = px.line(df, x='WinMargin', y='Probability')
+            df = df[df['variable_val'] == variable_val].sort_values('Margin')
+            fig = px.line(df, x='Margin', y='Probability', color='Result')
         return fig

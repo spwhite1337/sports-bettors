@@ -130,14 +130,28 @@ class ResultsPopulator(object):
                 'inputs': {'RandomEffect': self.team}
             }
             input_set['inputs'].update(self.parameters)
-            # Predict
+
+            # Predict conditioned on Win
             output = self.predictor.predict(**input_set)[('team', self.feature_set, 'WinMargin')]
             mu, sigma = output['mu']['mean'], output['sigma']['mean']
             for win_margin in params[Config.sb_version]['response-ranges'][self.league]['WinMargin']:
                 record = {
                     'variable_val': var,
-                    'WinMargin': win_margin,
-                    'Probability': 1 - norm.cdf(win_margin, mu, sigma)
+                    'Margin': win_margin,
+                    'Probability': 1 - norm.cdf(win_margin, mu, sigma),
+                    'Result': 'Win'
+                }
+                records.append(record)
+
+            # Predict conditioned on Loss
+            output = self.predictor.predict(**input_set)[('team', self.feature_set, 'LossMargin')]
+            mu, sigma = output['mu']['mean'], output['sigma']['mean']
+            for win_margin in params[Config.sb_version]['response-ranges'][self.league]['LossMargin']:
+                record = {
+                    'variable_val': var,
+                    'Margin': win_margin,
+                    'Probability': 1 - norm.cdf(win_margin, mu, sigma),
+                    'Result': 'Loss'
                 }
                 records.append(record)
 

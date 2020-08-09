@@ -196,7 +196,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             Input('win-fig', 'hoverData')
         ]
     )
-    def win_margin_figure(df, variable_val):
-        return PlotCallbacks.win_margin_figure(df, variable_val)
+    def conditioned_margin_figure(df, variable_val):
+        return PlotCallbacks.conditioned_margin_figure(df, variable_val)
 
     return dashapp.server
