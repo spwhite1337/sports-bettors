@@ -13,12 +13,12 @@ def win_probability(predictor, league: str, variable: str, feature_set: str, par
     Return df of win probability with fields []
     """
     records = []
-    for var in params[Config.version]['variable-ranges'][league][variable]:
+    for var in params[Config.sb_version]['variable-ranges'][league][variable]:
         # Add variable to parameters
         parameters[variable] = var
 
         # Add derived features
-        feature_creators = utils['feature_creators'][Config.version][league][feature_set]
+        feature_creators = utils['feature_creators'][Config.sb_version][league][feature_set]
         for created_feature, creator in feature_creators.items():
             parameters[created_feature] = creator(parameters)
 

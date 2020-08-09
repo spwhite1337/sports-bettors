@@ -123,7 +123,7 @@ class BaseBettingAid(object):
 
     def __init__(self,
                  # I/O
-                 version: str = Config.version,
+                 version: str = Config.sb_version,
 
                  # Transformation
                  random_effect: str = 'Team',

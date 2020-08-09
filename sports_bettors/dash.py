@@ -24,7 +24,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     dashapp.layout = html.Div(children=[
         html.H1('Hi From Dash (sports bettors)'),
         html.Div(id='selectors', children=[
-            dcc.Dropdown(id='league', options=params[Config.version]['league-opts'], value='college_football'),
+            dcc.Dropdown(id='league', options=params[Config.sb_version]['league-opts'], value='college_football'),
             dcc.Dropdown(id='team', style=utils['no_show']),
             dcc.Dropdown(id='opponent', style=utils['no_show']),
         ]),

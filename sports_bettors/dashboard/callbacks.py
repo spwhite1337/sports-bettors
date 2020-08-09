@@ -17,8 +17,8 @@ class ConfigCallbacks(object):
         """
         Populate dropdowns
         """
-        team_opts = params[Config.version]['team-opts'][league]
-        feature_set_opts = params[Config.version]['feature-sets-opts'][league]
+        team_opts = params[Config.sb_version]['team-opts'][league]
+        feature_set_opts = params[Config.sb_version]['feature-sets-opts'][league]
         return team_opts, utils['show'], team_opts, utils['show'], feature_set_opts, utils['show']
 
     @staticmethod
@@ -28,7 +28,7 @@ class ConfigCallbacks(object):
         """
         if (league is None) or (feature_set is None):
             return [], utils['no_show']
-        variable_opts = params[Config.version]['variable-opts'][league][feature_set]
+        variable_opts = params[Config.sb_version]['variable-opts'][league][feature_set]
         return variable_opts, utils['show']
 
     @staticmethod
@@ -40,7 +40,7 @@ class ConfigCallbacks(object):
             return [None] * 4 + [None] * 4 + [utils['no_show']] * 4
         # Get parameters except for variable
         parameters = [
-            p['label'] for p in params[Config.version]['variable-opts'][league][feature_set] if p['value'] != variable
+            p['label'] for p in params[Config.sb_version]['variable-opts'][league][feature_set] if p['value'] != variable
         ]
         # Fill displays and Nones
         displays = [utils['show']] * len(parameters) + [utils['no_show']] * (4 - len(parameters))
@@ -76,7 +76,7 @@ class DataCallbacks(object):
         def _parse_parameters(p):
             p = {k: v for k, v in zip(p[::2], p[1::2])} if len(p) > 1 else {}
             # Convert keys, values
-            p = {utils['feature_maps'][Config.version][league][k]: int(v) for k, v in p.items()}
+            p = {utils['feature_maps'][Config.sb_version][league][k]: int(v) for k, v in p.items()}
             return p
         parameters = _parse_parameters(parameters)
 
