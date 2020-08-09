@@ -14,7 +14,7 @@ def populate(league, team, opponent) -> Tuple[pd.DataFrame, list, list]:
         return df, options, options
     elif league == 'nfl':
         df = pd.read_csv(os.path.join(Config.DATA_DIR, 'sports_bettors', 'curated', league, 'df_curated.csv'))
-        df['Winner'] = df['team'].where(df['pts'] > df['opp_pts'], df['opponent'])
+        df['Winner'] = df['team'].where(df['points'] > df['opp_points'], df['opponent'])
         df = df[(df['team'] == team) & (df['opponent'] == opponent)]
         options = [{'label': col, 'value': col} for col in df.columns]
         return df, options, options
