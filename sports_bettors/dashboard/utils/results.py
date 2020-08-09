@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from scipy.special import expit
 from sports_bettors.dashboard.params import params
 
@@ -30,13 +29,19 @@ def win_probability(predictor, league: str, variable: str, feature_set: str, par
         record = {
             'RandomEffect': team,
             variable: var,
-            'WinLB': expit(output['mu']['lb']),
-            'Win': expit(output['mu']['mean']),
-            'WinUB': expit(output['mu']['ub'])
+            'WinLB_opp' if opponent else 'WinLB_team': expit(output['mu']['lb']),
+            'Win_opp' if opponent else 'Win_team': expit(output['mu']['mean']),
+            'WinUB_opp' if opponent else 'WinUB_team': expit(output['mu']['ub'])
         }
         records.append(record)
 
     return pd.DataFrame().from_records(records)
+
+
+def normalize_win_prob(team: pd.DataFrame, opp: pd.DataFrame, variable: str) -> pd.DataFrame:
+    df = team.drop('RandomEffect', axis=1).merge(opp.drop('RandomEffect', axis=1), on=variable, how='inner')
+    df['Win'] = df['Win_team'] / (df['Win_team'] + df['Win_opp'])
+    return df
 
 
 def populate(league: str, feature_set: str, team: str, opponent: str, variable: str, parameters: dict):
@@ -70,6 +75,7 @@ def populate(league: str, feature_set: str, team: str, opponent: str, variable: 
     predictor.load()
     team_win = win_probability(predictor, league, variable, feature_set, parameters, team, opponent=False)
     opponent_win = win_probability(predictor, league, variable, feature_set, parameters, opponent, opponent=True)
+    df_win = normalize_win_prob(team_win, opponent_win, variable)
 
-    return pd.DataFrame.from_records(team_win)
+    return df_win
 
