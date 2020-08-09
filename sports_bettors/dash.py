@@ -26,7 +26,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
 
     dashapp.layout = html.Div(children=[
         html.H1('Hi From Dash (sports bettors)'),
-        dcc.Dropdown(id='league', options=params[Config.version]['league-opts'], value='college_football'),
+        dcc.Dropdown(id='league', options=params[Config.dashboard_version]['league-opts'], value='college_football'),
         dcc.Dropdown(id='team', style=utils['no_show']),
         dcc.Dropdown(id='opponent', style=utils['no_show']),
 
@@ -60,8 +60,8 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         ]
     )
     def config_dropdowns(league):
-        team_opts = params[Config.version]['team-opts'][league]
-        feature_set_opts = params[Config.version]['feature-sets-opts'][league]
+        team_opts = params[Config.dashboard_version]['team-opts'][league]
+        feature_set_opts = params[Config.dashboard_version]['feature-sets-opts'][league]
         return team_opts, utils['show'], team_opts, utils['show'], feature_set_opts, utils['show']
 
     # Populate with history

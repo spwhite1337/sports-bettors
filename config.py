@@ -19,5 +19,6 @@ class Config(object):
     RESULTS_DIR = os.path.join(ROOT_DIR, 'results')
     TEST_RESULTS_DIR = os.path.join(ROOT_DIR, 'tests', 'results')
     version = 'v2'
+    dashboard_version = 'v2'
     CLOUD_DATA = 's3://scott-p-white/website/data'
     CLOUD_RESULTS = 's3://scott-p-white/website/results'
