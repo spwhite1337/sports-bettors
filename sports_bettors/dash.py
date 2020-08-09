@@ -190,7 +190,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
 
     # Win-margin figure
     @dashapp.callback(
-        Output('win-margin-figure', 'figure'),
+        Output('win-margin-fig', 'figure'),
         [
             Input('results-win-margin-data', 'children'),
             Input('win-fig', 'hoverData')
