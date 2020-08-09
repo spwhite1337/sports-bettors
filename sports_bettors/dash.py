@@ -7,7 +7,8 @@ import plotly.express as px
 
 import pandas as pd
 
-from sports_bettors.dashboard.params import params, utils
+from sports_bettors.dashboard.utils.params import params, utils
+from sports_bettors.dashboard.utils.callbacks import ConfigCallbacks, DataCallbacks, PlotCallbacks
 from sports_bettors.dashboard.history import populate as history_populate
 from sports_bettors.dashboard.results import populate as results_populate
 
@@ -71,9 +72,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         ]
     )
     def config_dropdowns(league):
-        team_opts = params[Config.version]['team-opts'][league]
-        feature_set_opts = params[Config.version]['feature-sets-opts'][league]
-        return team_opts, utils['show'], team_opts, utils['show'], feature_set_opts, utils['show']
+        return ConfigCallbacks.dropdowns(league)
 
     # Variable Selection
     @dashapp.callback(
@@ -87,10 +86,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         ]
     )
     def config_variables(league, feature_set):
-        if (league is None) or (feature_set is None):
-            return [], utils['no_show']
-        variable_opts = params[Config.version]['variable-opts'][league][feature_set]
-        return variable_opts, utils['show']
+        return ConfigCallbacks.variables(league, feature_set)
 
     # Parameter Selection
     @dashapp.callback(
@@ -116,17 +112,8 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             State('league', 'value')
         ]
     )
-    def parameter_set(feature_set, variable, league):
-        if (league is None) or (feature_set is None) or (variable is None):
-            return [None] * 4 + [None] * 4 + [utils['no_show']] * 4
-        # Get parameters except for variable and fill with Nones
-        parameters = [p['label'] for p in params[Config.version]['variable-opts'][league][feature_set]
-                      if p['value'] != variable]
-        # Fill displays and Nones
-        displays = [utils['show']] * len(parameters) + [utils['no_show']] * (4 - len(parameters))
-        parameters += [None] * (4 - len(parameters))
-
-        return parameters + parameters + displays
+    def config_parameters(feature_set, variable, league):
+        return ConfigCallbacks.parameters(feature_set, variable, league)
 
     # Populate with history
     @dashapp.callback(
