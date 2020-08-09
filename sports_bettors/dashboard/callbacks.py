@@ -118,6 +118,6 @@ class PlotCallbacks(object):
         if df.shape[0] == 0:
             return utils['empty_figure'], utils['empty_figure']
         df = df.sort_values(variable)
-        fig = px.line(df, x=variable, y='Win')
+        fig = px.line(df, x=variable, y='Win', error_y='WinUB', error_y_minus='WinLB')
         return fig, fig
 
