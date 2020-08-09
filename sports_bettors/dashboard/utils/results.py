@@ -1,5 +1,6 @@
 import pandas as pd
 from scipy.special import expit
+from scipy.stats import norm
 from sports_bettors.dashboard.params import params, utils
 
 from sports_bettors.api import SportsPredictor
@@ -23,7 +24,7 @@ from config import Config
 #   - LossMargin Likelihood
 
 # Normalize probabilities across teams
-#   - Combine margins for an expected margian
+#   - Combine margins for an expected margin
 #   - Combine Win/Loss margins
 
 
@@ -41,27 +42,32 @@ class ResultsPopulator(object):
         assert league in ['nfl', 'college_football']
         self.league = league
         self.feature_set = feature_set
+        self.feature_creators = utils['feature_creators'][Config.sb_version][self.league][self.feature_set]
         self.team = team
         self.opponent = opponent
         self.variable = variable
+        self.variable_vals = params[Config.sb_version]['variable-ranges'][self.league][self.variable]
         self.parameters = parameters
-        self.predictor = SportsPredictor(league=league)
+        self.predictor = SportsPredictor(league=league, version=Config.sb_version)
         self.predictor.load()
+
+    def _derived_features(self):
+        """
+        Add derived features to parameters
+        """
+        for created_feature, creator in self.feature_creators.items():
+            self.parameters[created_feature] = creator(self.parameters)
 
     def _win_probabilities(self, is_opponent: bool) -> pd.DataFrame:
         """
         Calculate win probabilities for a team or an opponent
         """
         records = []
-        for var in params[Config.sb_version]['variable-ranges'][self.league][self.variable]:
+        for var in self.variable_vals:
             # Add variable to parameters
             self.parameters[self.variable] = var
-
             # Add derived features
-            feature_creators = utils['feature_creators'][Config.sb_version][self.league][self.feature_set]
-            for created_feature, creator in feature_creators.items():
-                self.parameters[created_feature] = creator(self.parameters)
-
+            self._derived_features()
             # Configure inputs
             input_set = {
                 'random_effect': 'team' if not is_opponent else 'opponent',
@@ -69,12 +75,10 @@ class ResultsPopulator(object):
                 'inputs': {'RandomEffect': self.team if not is_opponent else self.opponent}
             }
             input_set['inputs'].update(self.parameters)
-
             # Predict
             output = self.predictor.predict(**input_set)[
                 ('team' if not is_opponent else 'opponent', self.feature_set, 'Win')
             ]
-
             # Wrangle output
             record = {
                 'RandomEffect': self.team if is_opponent else self.opponent,
@@ -104,7 +108,38 @@ class ResultsPopulator(object):
 
         # Normalize so that P(Win) + P(Lose) = 1.0 calculated from each perspective
         df['Win'] = df['Win_team'] / (df['Win_team'] + (1 - df['Win_opp']))
-        df['WinUB'] = abs(df['WinUB_team'] / (df['WinUB_team'] + (1 - df['WinUB_opp'])) - df['Win'])
-        df['WinLB'] = abs(df['Win'] - df['WinLB_team'] / (df['WinLB_team'] + (1 - df['WinLB_opp'])))
+        df['WinUB'] = abs(df['WinUB_team'] / (df['WinUB_team'] + (1 - df['WinLB_opp'])) - df['Win'])
+        df['WinLB'] = abs(df['Win'] - df['WinLB_team'] / (df['WinLB_team'] + (1 - df['WinUB_opp'])))
 
         return df
+
+    def _win_margin(self):
+        """
+        Probability of win margins
+        """
+        records = []
+        for var in self.variable_vals:
+            # Add variable to parameters
+            self.parameters[self.variable] = var
+            # Add derived features
+            self._derived_features()
+            # Configure inputs
+            input_set = {
+                'random_effect': 'team',
+                'feature_set': self.feature_set,
+                'inputs': {'RandomEffect': self.team}
+            }
+            input_set['inputs'].update(self.parameters)
+            # Predict
+            output = self.predictor.predict(**input_set)[('team', self.feature_set, 'WinMargin')]
+            mu, sigma = output['mu']['mean'], output['sigma']['mean']
+            for win_margin in params[Config.sb_version]['response-ranges'][self.league]['WinMargin']:
+                prob = norm.cdf(win_margin, mu, sigma)
+                record = {
+                    self.variable: var,
+                    'WinMargin': win_margin,
+                    'Probability': prob
+                }
+                records.append(record)
+
+        return pd.DataFrame().from_records(records)

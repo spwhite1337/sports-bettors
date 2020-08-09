@@ -67,7 +67,7 @@ class DataCallbacks(object):
         Calculate probabilities
         """
         if not all([league, feature_set, team, opponent, variable]):
-            return pd.DataFrame().to_json()
+            return pd.DataFrame().to_json(), pd.DataFrame().to_json()
 
         # Drop nones in parameters
         parameters = [p for p in parameters if p]
@@ -93,7 +93,7 @@ class DataCallbacks(object):
         # Win probabilities
         df = populator.win_probabilities()
 
-        return df.to_json()
+        return df.to_json(), df.to_json()
 
 
 class PlotCallbacks(object):
@@ -114,14 +114,20 @@ class PlotCallbacks(object):
         return fig, utils['show'], utils['show']
 
     @staticmethod
-    def results(df, variable: str):
+    def results(df_win, variable: str, variable_val: int = 10):
         """
         Plot results
         """
-        df = pd.read_json(df, orient='records')
-        if df.shape[0] == 0:
-            return utils['empty_figure'], utils['empty_figure']
-        df = df.sort_values(variable)
-        fig = px.line(df, x=variable, y='Win', error_y='WinUB', error_y_minus='WinLB')
-        return fig, fig
+        df_win = pd.read_json(df_win, orient='records')
+        if df_win.shape[0] == 0:
+            fig_win = utils['empty_figure']
+        else:
+            # Win Probability Figure
+            df_win = df_win.sort_values(variable)
+            fig_win = px.line(df_win, x=variable, y='Win', error_y='WinUB', error_y_minus='WinLB')
+
+        # Win Margin Figure
+
+
+        return fig_win, utils['empty_figure']
 
