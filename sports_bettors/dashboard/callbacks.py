@@ -92,9 +92,9 @@ class DataCallbacks(object):
 
         # Win probabilities
         df_win = populator.win()
-        df_win_margin = populator.win_margin()
+        df_margins = populator.margins()
 
-        return df_win.to_json(), df_win_margin.to_json()
+        return df_win.to_json(), df_margins.to_json()
 
 
 class PlotCallbacks(object):
@@ -131,7 +131,7 @@ class PlotCallbacks(object):
     @staticmethod
     def conditioned_margin_figure(df, variable_val):
         """
-        Plot results
+        Plot conditioned results for margins
         """
         df = pd.read_json(df)
         if df.shape[0] == 0:
@@ -145,3 +145,10 @@ class PlotCallbacks(object):
             fig = px.line(df, x='Margin', y='Probability', error_y='Probability_UB', error_y_minus='Probability_LB',
                           color='Result')
         return fig
+
+    @staticmethod
+    def total_points_figure(df, variable_val):
+        """
+        Total points figure
+        """
+        return utils['empty_figure']

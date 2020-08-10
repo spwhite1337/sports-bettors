@@ -42,6 +42,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         html.Div(id='results', children=[
             html.Div(id='results-win-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             html.Div(id='results-conditioned-margin-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
+            html.Div(id='results-total-points-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             dcc.Dropdown(id='feature-sets', style=utils['no_show']),
             dcc.Dropdown(id='variable', style=utils['no_show']),
             dcc.Input(id='parameter-1', style=utils['no_show']),
@@ -50,7 +51,8 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             dcc.Input(id='parameter-4', style=utils['no_show']),
             html.Button('Update Results', id='update-results-data', n_clicks=0),
             dcc.Graph(id='win-fig', figure=utils['empty_figure']),
-            dcc.Graph(id='conditioned-margin-fig', figure=utils['empty_figure'])
+            dcc.Graph(id='conditioned-margin-fig', figure=utils['empty_figure']),
+            dcc.Graph(id='total-points-fig', figure=utils['empty_figure'])
         ]),
     ])
 
@@ -64,9 +66,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             Output('feature-sets', 'options'),
             Output('feature-sets', 'style'),
         ],
-        [
-            Input('league', 'value')
-        ]
+        [Input('league', 'value')]
     )
     def config_dropdowns(league):
         return ConfigCallbacks.dropdowns(league)
@@ -105,9 +105,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             Input('feature-sets', 'value'),
             Input('variable', 'value')
         ],
-        [
-            State('league', 'value')
-        ]
+        [State('league', 'value')]
     )
     def config_parameters(feature_set, variable, league):
         return ConfigCallbacks.parameters(feature_set, variable, league)
@@ -153,9 +151,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             Output('results-win-data', 'children'),
             Output('results-conditioned-margin-data', 'children'),
         ],
-        [
-            Input('update-results-data', 'n_clicks')
-        ],
+        [Input('update-results-data', 'n_clicks')],
         [
             State('league', 'value'),
             State('feature-sets', 'value'),
@@ -178,12 +174,8 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     # Win figure
     @dashapp.callback(
         Output('win-fig', 'figure'),
-        [
-            Input('results-win-data', 'children')
-        ],
-        [
-            State('variable', 'value')
-        ]
+        [Input('results-win-data', 'children')],
+        [State('variable', 'value')]
     )
     def win_figure(df, variable):
         return PlotCallbacks.win_figure(df, variable)
@@ -199,4 +191,16 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     def conditioned_margin_figure(df, variable_val):
         return PlotCallbacks.conditioned_margin_figure(df, variable_val)
 
+    # Total Points figure
+    @dashapp.callback(
+        Output('total-points-fig', 'figure'),
+        [
+            Input('results-total-points-data', 'children'),
+            Input('win-fig', 'hoverData')
+        ]
+    )
+    def total_points_figure(df, variable_val):
+        return PlotCallbacks.total_points_figure(df, variable_val)
+
     return dashapp.server
+

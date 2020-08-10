@@ -113,7 +113,7 @@ class ResultsPopulator(object):
 
         return df
 
-    def win_margin(self):
+    def margins(self):
         """
         Probability of win margins
         """
@@ -153,15 +153,32 @@ class ResultsPopulator(object):
             mu, sigma = output['mu']['mean'], output['sigma']['mean']
             mu_lb = output['mu']['lb']
             mu_ub, sigma_ub = output['mu']['ub'], output['sigma']['ub']
-            for win_margin in params[Config.sb_version]['response-ranges'][self.league]['LossMargin']:
-                prob = 1 - norm.cdf(win_margin, mu, sigma)
+            for loss_margin in params[Config.sb_version]['response-ranges'][self.league]['LossMargin']:
+                prob = 1 - norm.cdf(loss_margin, mu, sigma)
                 record = {
                     'variable_val': var,
-                    'Margin': win_margin,
+                    'Margin': -loss_margin,
                     'Probability': prob,
-                    'Probability_LB': prob - (1. - norm.cdf(win_margin, mu_lb, sigma_ub)),
-                    'Probability_UB': (1. - norm.cdf(win_margin, mu_ub, sigma_ub)) - prob,
+                    'Probability_LB': prob - (1. - norm.cdf(loss_margin, mu_lb, sigma_ub)),
+                    'Probability_UB': (1. - norm.cdf(loss_margin, mu_ub, sigma_ub)) - prob,
                     'Result': 'Loss'
+                }
+                records.append(record)
+
+            # Predict conditioned on Loss
+            output = self.predictor.predict(**input_set)[('team', self.feature_set, 'Margin')]
+            mu, sigma = output['mu']['mean'], output['sigma']['mean']
+            mu_lb = output['mu']['lb']
+            mu_ub, sigma_ub = output['mu']['ub'], output['sigma']['ub']
+            for margin in params[Config.sb_version]['response-ranges'][self.league]['Margin']:
+                prob = 1 - norm.cdf(margin, mu, sigma)
+                record = {
+                    'variable_val': var,
+                    'Margin': margin,
+                    'Probability': prob,
+                    'Probability_LB': prob - (1. - norm.cdf(margin, mu_lb, sigma_ub)),
+                    'Probability_UB': (1. - norm.cdf(margin, mu_ub, sigma_ub)) - prob,
+                    'Result': 'Any'
                 }
                 records.append(record)
 
