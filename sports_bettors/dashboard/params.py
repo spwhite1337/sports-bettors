@@ -174,20 +174,20 @@ params = {
             'nfl': {
                 'rushAttempts': range(5, 30),
                 'passAttempts': range(5, 30),
-                'rushYards': range(50, 300),
-                'NetPassYards': range(50, 500),
-                'rush_yds_adv': range(-200, 200),
-                'pass_yds_adv': range(-300, 300),
+                'rushYards': range(50, 300, 5),
+                'NetPassYards': range(50, 500, 5),
+                'rush_yds_adv': range(-200, 200, 5),
+                'pass_yds_adv': range(-300, 300, 5),
                 'to_margin': range(-3, 4),
                 'total_points': range(10, 100)
             },
             'college_football': {
                 'rushingAttempts': range(5, 30),
                 'passAttempts': range(5, 30),
-                'rushingYards': range(50, 300),
-                'netPassingYards': range(50, 500),
-                'rush_yds_adv': range(-200, 200),
-                'pass_yds_adv': range(-300, 300),
+                'rushingYards': range(50, 300, 5),
+                'netPassingYards': range(50, 500, 5),
+                'rush_yds_adv': range(-200, 200, 5),
+                'pass_yds_adv': range(-300, 300, 5),
                 'to_margin': range(-3, 4),
                 'total_points': range(10, 100)
             }

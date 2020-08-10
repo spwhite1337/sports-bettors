@@ -142,5 +142,6 @@ class PlotCallbacks(object):
             # Win margin figure
             variable_val = variable_val['points'][0]['x']
             df = df[df['variable_val'] == variable_val].sort_values('Margin')
-            fig = px.line(df, x='Margin', y='Probability', color='Result')
+            fig = px.line(df, x='Margin', y='Probability', error_y='Probability_UB', error_y_minus='Probability_LB',
+                          color='Result')
         return fig

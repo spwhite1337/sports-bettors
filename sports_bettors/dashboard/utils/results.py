@@ -134,11 +134,16 @@ class ResultsPopulator(object):
             # Predict conditioned on Win
             output = self.predictor.predict(**input_set)[('team', self.feature_set, 'WinMargin')]
             mu, sigma = output['mu']['mean'], output['sigma']['mean']
+            mu_lb = output['mu']['lb']
+            mu_ub, sigma_ub = output['mu']['ub'], output['sigma']['ub']
             for win_margin in params[Config.sb_version]['response-ranges'][self.league]['WinMargin']:
+                prob = 1 - norm.cdf(win_margin, mu, sigma)
                 record = {
                     'variable_val': var,
                     'Margin': win_margin,
-                    'Probability': 1 - norm.cdf(win_margin, mu, sigma),
+                    'Probability': prob,
+                    'Probability_LB': prob - (1. - norm.cdf(win_margin, mu_lb, sigma_ub)),
+                    'Probability_UB': (1. - norm.cdf(win_margin, mu_ub, sigma_ub)) - prob,
                     'Result': 'Win'
                 }
                 records.append(record)
@@ -146,11 +151,16 @@ class ResultsPopulator(object):
             # Predict conditioned on Loss
             output = self.predictor.predict(**input_set)[('team', self.feature_set, 'LossMargin')]
             mu, sigma = output['mu']['mean'], output['sigma']['mean']
+            mu_lb = output['mu']['lb']
+            mu_ub, sigma_ub = output['mu']['ub'], output['sigma']['ub']
             for win_margin in params[Config.sb_version]['response-ranges'][self.league]['LossMargin']:
+                prob = 1 - norm.cdf(win_margin, mu, sigma)
                 record = {
                     'variable_val': var,
                     'Margin': win_margin,
-                    'Probability': 1 - norm.cdf(win_margin, mu, sigma),
+                    'Probability': prob,
+                    'Probability_LB': prob - (1. - norm.cdf(win_margin, mu_lb, sigma_ub)),
+                    'Probability_UB': (1. - norm.cdf(win_margin, mu_ub, sigma_ub)) - prob,
                     'Result': 'Loss'
                 }
                 records.append(record)
