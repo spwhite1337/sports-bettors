@@ -72,7 +72,8 @@ utils = {
                 },
                 'OffenseAdv': {
                     'rush_yds_adv_x_pass_yds_adv': lambda p: p['rush_yds_adv'] * p['pass_yds_adv']
-                }
+                },
+                'PointsScored': {}
             },
             'nfl': {
                 'RushOnly': {
@@ -88,7 +89,8 @@ utils = {
                 },
                 'OffenseAdv': {
                     'rush_yds_adv_x_pass_yds_adv': lambda p: p['rush_yds_adv'] * p['pass_yds_adv']
-                }
+                },
+                'PointsScored': {}
             }
         }
     }
