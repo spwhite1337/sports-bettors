@@ -67,7 +67,7 @@ class DataCallbacks(object):
         Calculate probabilities
         """
         if not all([league, feature_set, team, opponent, variable]):
-            return pd.DataFrame().to_json(), pd.DataFrame().to_json()
+            return pd.DataFrame().to_json(), pd.DataFrame().to_json(), pd.DataFrame().to_json()
 
         # Drop nones in parameters
         parameters = [p for p in parameters if p]
@@ -94,7 +94,7 @@ class DataCallbacks(object):
         df_win = populator.win()
         df_margins = populator.margins()
 
-        return df_win.to_json(), df_margins.to_json()
+        return df_win.to_json(), df_margins.to_json(), pd.DataFrame().to_json()
 
 
 class PlotCallbacks(object):

@@ -150,6 +150,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         [
             Output('results-win-data', 'children'),
             Output('results-margin-data', 'children'),
+            Output('results-total-points-data', 'children')
         ],
         [Input('update-results-data', 'n_clicks')],
         [
