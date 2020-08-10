@@ -155,4 +155,33 @@ class ResultsPopulator(object):
         """
         Total points
         """
-        return pd.DataFrame().from_records([])
+        records = []
+        for var in self.variable_vals:
+            # Add variable to parameters
+            self.parameters[self.variable] = var
+            # Add derived features
+            self._derived_features()
+            # Configure inputs
+            input_set = {
+                'random_effect': 'team',
+                'feature_set': self.feature_set,
+                'inputs': {'RandomEffect': self.team}
+            }
+            input_set['inputs'].update(self.parameters)
+            # Results
+            output = self.predictor.predict(**input_set)[('team', self.feature_set, 'TotalPoints')]
+            mu, sigma = output['mu']['mean'], output['sigma']['mean']
+            mu_lb = output['mu']['lb']
+            mu_ub, sigma_ub = output['mu']['ub'], output['sigma']['ub']
+            for total_points in params[Config.sb_version]['response-ranges'][self.league]['TotalPoints']:
+                prob = 1 - norm.cdf(total_points, mu, sigma)
+                record = {
+                    'variable_val': var,
+                    'TotalPoints': total_points,
+                    'Probability': prob,
+                    'Probability_LB': prob - (1. - norm.cdf(total_points, mu_lb, sigma_ub)),
+                    'Probability_UB': (1. - norm.cdf(total_points, mu_ub, sigma_ub)) - prob,
+                }
+                records.append(record)
+
+        return pd.DataFrame().from_records(records)

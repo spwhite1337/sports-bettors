@@ -152,4 +152,15 @@ class PlotCallbacks(object):
         """
         Total points figure
         """
-        return utils['empty_figure']
+        df = pd.read_json(df)
+        if df.shape[0] == 0:
+            fig = utils['empty_figure']
+        else:
+            if variable_val is None:
+                return utils['empty_figure']
+            # Win margin figure
+            variable_val = variable_val['points'][0]['x']
+            df = df[df['variable_val'] == variable_val].sort_values('TotalPoints')
+            fig = px.line(df, x='TotalPoints', y='Probability', error_y='Probability_UB',
+                          error_y_minus='Probability_LB')
+        return fig
