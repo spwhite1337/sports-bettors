@@ -183,3 +183,9 @@ class ResultsPopulator(object):
                 records.append(record)
 
         return pd.DataFrame().from_records(records)
+
+    def total_points(self):
+        """
+        Total points
+        """
+        return pd.DataFrame().from_records([])

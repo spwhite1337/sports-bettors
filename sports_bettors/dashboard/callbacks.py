@@ -93,8 +93,9 @@ class DataCallbacks(object):
         # Win probabilities
         df_win = populator.win()
         df_margins = populator.margins()
+        df_points = populator.total_points()
 
-        return df_win.to_json(), df_margins.to_json(), pd.DataFrame().to_json()
+        return df_win.to_json(), df_margins.to_json(), df_points.to_json()
 
 
 class PlotCallbacks(object):
