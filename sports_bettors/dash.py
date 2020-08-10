@@ -73,14 +73,8 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
 
     # Variable Selection
     @dashapp.callback(
-        [
-            Output('variable', 'options'),
-            Output('variable', 'style')
-        ],
-        [
-            Input('league', 'value'),
-            Input('feature-sets', 'value'),
-        ]
+        [Output('variable', 'options'), Output('variable', 'style')],
+        [Input('league', 'value'), Input('feature-sets', 'value')]
     )
     def config_variables(league, feature_set):
         return ConfigCallbacks.variables(league, feature_set)
@@ -101,10 +95,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             Output('parameter-3', 'style'),
             Output('parameter-4', 'style')
         ],
-        [
-            Input('feature-sets', 'value'),
-            Input('variable', 'value')
-        ],
+        [Input('feature-sets', 'value'), Input('variable', 'value')],
         [State('league', 'value')]
     )
     def config_parameters(feature_set, variable, league):
@@ -117,14 +108,8 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             Output('history-x', 'options'),
             Output('history-y', 'options')
         ],
-        [
-            Input('update-history-data', 'n_clicks'),
-            Input('league', 'value'),
-        ],
-        [
-            State('team', 'value'),
-            State('opponent', 'value')
-        ]
+        [Input('update-history-data', 'n_clicks'), Input('league', 'value')],
+        [State('team', 'value'), State('opponent', 'value')]
     )
     def history_data(trigger, league, team, opponent):
         return DataCallbacks.history(league, team, opponent)
@@ -184,10 +169,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     # margin figure
     @dashapp.callback(
         Output('margin-fig', 'figure'),
-        [
-            Input('results-margin-data', 'children'),
-            Input('win-fig', 'hoverData')
-        ]
+        [Input('results-margin-data', 'children'), Input('win-fig', 'hoverData')]
     )
     def conditioned_margin_figure(df, variable_val):
         return PlotCallbacks.conditioned_margin_figure(df, variable_val)
@@ -195,10 +177,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     # Total Points figure
     @dashapp.callback(
         Output('total-points-fig', 'figure'),
-        [
-            Input('results-total-points-data', 'children'),
-            Input('win-fig', 'hoverData')
-        ]
+        [Input('results-total-points-data', 'children'), Input('win-fig', 'hoverData')]
     )
     def total_points_figure(df, variable_val):
         return PlotCallbacks.total_points_figure(df, variable_val)
