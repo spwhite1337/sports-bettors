@@ -29,7 +29,7 @@ def execute_experiments(league: str, overwrite: bool = False, debug: bool = Fals
                 # Check if model already fit
                 if not overwrite:
                     if os.path.exists(os.path.join(Config.RESULTS_DIR, 'sports_bettors', league, response, feature_set,
-                                                   random_effect, 'model_{}.pkl'.format(Config.version))):
+                                                   random_effect, 'model_{}.pkl'.format(Config.sb_version))):
                         logger.info('{} ~ {} | {} already exists, skipping'.format(feature_set, response,
                                                                                    random_effect))
                         continue

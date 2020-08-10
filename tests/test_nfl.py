@@ -17,7 +17,7 @@ class TestPredictors(TestCase):
     def test_nfl_predictors(self):
         logger.info('Working on NFL.')
         with open(os.path.join(Config.RESULTS_DIR, 'sports_bettors', 'nfl',
-                               'predictor_set_{}.pkl'.format(Config.version)), 'rb') as fp:
+                               'predictor_set_{}.pkl'.format(Config.sb_version)), 'rb') as fp:
             predictors = pickle.load(fp)
 
         # Loop experiments
@@ -26,7 +26,7 @@ class TestPredictors(TestCase):
                 for response in NFLBettingAid.responses:
                     # Check if it exists
                     model_path = os.path.join(Config.RESULTS_DIR, 'sports_bettors', 'nfl', response, feature_set,
-                                              random_effect, 'aid_{}.pkl'.format(Config.version))
+                                              random_effect, 'aid_{}.pkl'.format(Config.sb_version))
                     if not os.path.exists(model_path):
                         logger.info('WARNING: No model for {}, {}, {}'.format(random_effect, feature_set, response))
                         continue
@@ -67,7 +67,7 @@ class TestPredictors(TestCase):
                         os.makedirs(save_dir)
 
                     # Diagnostics
-                    with PdfPages(os.path.join(save_dir, 'nfl_test_{}.pdf'.format(Config.version))) as pdf:
+                    with PdfPages(os.path.join(save_dir, 'nfl_test_{}.pdf'.format(Config.sb_version))) as pdf:
                         # Scatter plot from each source
                         df_sample = df.sample(min(df.shape[0], 1000))
                         lb = min([df_sample['y_fit'].min(), df_sample['y_preds'].min()])
@@ -125,7 +125,7 @@ class TestPredictors(TestCase):
 
     def test_custom_nfl(self):
         with open(os.path.join(Config.RESULTS_DIR, 'sports_bettors', 'nfl',
-                               'predictor_set_{}.pkl'.format(Config.version)), 'rb') \
+                               'predictor_set_{}.pkl'.format(Config.sb_version)), 'rb') \
                 as fp:
             predictors = pickle.load(fp)
 

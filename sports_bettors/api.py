@@ -18,7 +18,7 @@ class SportsPredictor(object):
     load_dir = os.path.join(Config.RESULTS_DIR, 'sports_bettors')
     aids = {'nfl': NFLBettingAid, 'college_football': CollegeFootballBettingAid}
 
-    def __init__(self, league: str, version: str = Config.version):
+    def __init__(self, league: str, version: str = Config.sb_version):
         self.league = league
         self.predictors = None
         self.version = version
@@ -103,7 +103,7 @@ class SportsPredictor(object):
                 for random_effect in os.listdir(os.path.join(base_dir, response, feature_set)):
                     # Load predictor
                     aid_path = os.path.join(base_dir, response, feature_set, random_effect,
-                                            'aid_{}.pkl'.format(Config.version))
+                                            'aid_{}.pkl'.format(Config.sb_version))
                     if not os.path.exists(aid_path):
                         continue
                     with open(aid_path, 'rb') as fp:
@@ -113,7 +113,7 @@ class SportsPredictor(object):
                     predictors[(random_effect, feature_set, response)] = predictor
 
         logger.info('Saving Predictor Set for {}'.format(self.league))
-        with open(os.path.join(base_dir, 'predictor_set_{}.pkl'.format(Config.version)),
+        with open(os.path.join(base_dir, 'predictor_set_{}.pkl'.format(Config.sb_version)),
                   'wb') as fp:
             pickle.dump(predictors, fp)
         self.predictors = predictors
