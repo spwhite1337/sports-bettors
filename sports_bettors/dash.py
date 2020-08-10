@@ -36,7 +36,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             html.Div(id='history-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             dcc.Dropdown(id='history-x', style=utils['no_show']),
             dcc.Dropdown(id='history-y', style=utils['no_show']),
-            html.Button('Update History', id='update-history-data', n_clicks=0),
+            dbc.Button('Update History', id='update-history-data', n_clicks=0, color='primary'),
             dcc.Graph(id='history-fig'),
         ]),
 
@@ -51,7 +51,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             dbc.Input(id='parameter-2', style=utils['no_show']),
             dbc.Input(id='parameter-3', style=utils['no_show']),
             dbc.Input(id='parameter-4', style=utils['no_show']),
-            html.Button('Update Results', id='update-results-data', n_clicks=0),
+            dbc.Button('Update Results', id='update-results-data', n_clicks=0, color="primary"),
             dcc.Graph(id='win-fig', figure=utils['empty_figure']),
             dcc.Graph(id='margin-fig', figure=utils['empty_figure']),
             dcc.Graph(id='total-points-fig', figure=utils['empty_figure'])
