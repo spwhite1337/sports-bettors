@@ -29,6 +29,7 @@ setup(
         'flask',
         'plotly',
         'dash',
+        'dash-bootstrap-components',
         'awscli'
     ]
 )

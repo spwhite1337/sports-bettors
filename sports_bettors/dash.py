@@ -1,4 +1,5 @@
 import dash
+import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
@@ -18,6 +19,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     dashapp = dash.Dash(
         __name__,
         routes_pathname_prefix=routes_pathname_prefix,
+        external_stylesheets=[dbc.themes.BOOTSTRAP],
         server=server
     )
 
