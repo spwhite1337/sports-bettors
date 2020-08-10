@@ -158,7 +158,7 @@ class PlotCallbacks(object):
         else:
             if variable_val is None:
                 return utils['empty_figure']
-            # Win margin figure
+            # Total Points figure
             variable_val = variable_val['points'][0]['x']
             df = df[df['variable_val'] == variable_val].sort_values('TotalPoints')
             fig = px.line(df, x='TotalPoints', y='Probability', error_y='Probability_UB',
