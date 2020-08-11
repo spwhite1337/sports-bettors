@@ -84,10 +84,6 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     # Parameter Selection
     @dashapp.callback(
         [
-            Output('parameter-1', 'label'),
-            Output('parameter-2', 'label'),
-            Output('parameter-3', 'label'),
-            Output('parameter-4', 'label'),
             Output('parameter-1', 'placeholder'),
             Output('parameter-2', 'placeholder'),
             Output('parameter-3', 'placeholder'),
@@ -146,13 +142,13 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             State('team', 'value'),
             State('opponent', 'value'),
             State('variable', 'value'),
-            State('parameter-1', 'label'),
+            State('parameter-1', 'placeholder'),
             State('parameter-1', 'value'),
-            State('parameter-2', 'label'),
+            State('parameter-2', 'placeholder'),
             State('parameter-2', 'value'),
-            State('parameter-3', 'label'),
+            State('parameter-3', 'placeholder'),
             State('parameter-3', 'value'),
-            State('parameter-4', 'label'),
+            State('parameter-4', 'placeholder'),
             State('parameter-4', 'value')
         ]
     )

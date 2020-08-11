@@ -37,7 +37,7 @@ class ConfigCallbacks(object):
         Populate and show inputs for defining parameters of the input model
         """
         if (league is None) or (feature_set is None) or (variable is None):
-            return [None] * 4 + [None] * 4 + [utils['no_show']] * 4
+            return [None] * 4 + [utils['no_show']] * 4
         # Get parameters except for variable
         parameters = [
             p['label'] for p in params[Config.sb_version]['variable-opts'][league][feature_set] if p['value'] != variable
@@ -46,7 +46,7 @@ class ConfigCallbacks(object):
         displays = [utils['show']] * len(parameters) + [utils['no_show']] * (4 - len(parameters))
         parameters += [None] * (4 - len(parameters))
 
-        return parameters + parameters + displays
+        return parameters + displays
 
 
 class DataCallbacks(object):
