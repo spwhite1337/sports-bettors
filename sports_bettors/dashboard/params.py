@@ -73,7 +73,7 @@ utils = {
                 'OffenseAdv': {
                     'rush_yds_adv_x_pass_yds_adv': lambda p: p['rush_yds_adv'] * p['pass_yds_adv']
                 },
-                'TotalPoints': {}
+                'PointsScored': {}
             },
             'nfl': {
                 'RushOnly': {
@@ -90,7 +90,7 @@ utils = {
                 'OffenseAdv': {
                     'rush_yds_adv_x_pass_yds_adv': lambda p: p['rush_yds_adv'] * p['pass_yds_adv']
                 },
-                'TotalPoints': {}
+                'PointsScored': {}
             }
         }
     }
@@ -112,14 +112,14 @@ params = {
                 {'label': 'Passing', 'value': 'PassOnly'},
                 {'label': 'Offense', 'value': 'Offense'},
                 {'label': 'Offense (Advantage)', 'value': 'OffenseAdv'},
-                # {'label': 'Points Scored', 'value': 'TotalPoints'},
+                {'label': 'Points Scored', 'value': 'PointsScored'},
             ],
             'college_football': [
                 {'label': 'Rushing', 'value': 'RushOnly'},
                 {'label': 'Passing', 'value': 'PassOnly'},
                 {'label': 'Offense', 'value': 'Offense'},
                 {'label': 'Offense (Advantage)', 'value': 'OffenseAdv'},
-                {'label': 'Points Scored', 'value': 'TotalPoints'}
+                {'label': 'Points Scored', 'value': 'PointsScored'}
             ]
         },
         'variable-opts': {
@@ -143,7 +143,7 @@ params = {
                     {'label': 'Passing Yards Advantage', 'value': 'pass_yds_adv'},
                     {'label': 'Turnover Margin', 'value': 'to_margin'}
                 ],
-                'TotalPoints': [
+                'PointsScored': [
                     {'label': 'Points Scored', 'value': 'total_points'},
                 ]
             },
@@ -167,7 +167,7 @@ params = {
                     {'label': 'Passing Yards Advantage', 'value': 'pass_yds_adv'},
                     {'label': 'Turnover Margin', 'value': 'to_margin'}
                 ],
-                'TotalPoints': [
+                'PointsScored': [
                     {'label': 'Points Scored', 'value': 'total_points'},
                 ]
             }

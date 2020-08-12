@@ -155,6 +155,9 @@ class ResultsPopulator(object):
         """
         Total points
         """
+        if self.feature_set == 'PointsScored':
+            return pd.DataFrame().from_records([])
+
         records = []
         for var in self.variable_vals:
             # Add variable to parameters
