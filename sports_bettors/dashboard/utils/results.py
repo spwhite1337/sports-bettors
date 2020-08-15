@@ -58,7 +58,7 @@ class ResultsPopulator(object):
         for created_feature, creator in self.feature_creators.items():
             self.parameters[created_feature] = creator(self.parameters)
 
-    def _win_probabilities(self, is_opponent: bool) -> pd.DataFrame:
+    def _win(self, is_opponent: bool) -> pd.DataFrame:
         """
         Calculate win probabilities for a team or an opponent
         """
@@ -99,8 +99,8 @@ class ResultsPopulator(object):
             return pd.DataFrame().from_records([])
 
         # Get win probability from the team and opponent's perspectives
-        df_team = self._win_probabilities(is_opponent=False)
-        df_opp = self._win_probabilities(is_opponent=True)
+        df_team = self._win(is_opponent=False)
+        df_opp = self._win(is_opponent=True)
 
         # Merge
         df = df_team.drop('RandomEffect', axis=1).merge(df_opp.drop('RandomEffect', axis=1),
@@ -113,7 +113,7 @@ class ResultsPopulator(object):
 
         return df
 
-    def margins(self):
+    def _margins(self, is_opponent: bool) -> pd.DataFrame:
         """
         Probability of win margins
         """
@@ -125,15 +125,19 @@ class ResultsPopulator(object):
             self._derived_features()
             # Configure inputs
             input_set = {
-                'random_effect': 'team',
+                'random_effect': 'team' if not is_opponent else 'opponent',
                 'feature_set': self.feature_set,
-                'inputs': {'RandomEffect': self.team}
+                'inputs': {'RandomEffect': self.team if not is_opponent else self.opponent}
             }
             input_set['inputs'].update(self.parameters)
 
             # Probabilities for each margin-type
             for margin_type in ['WinMargin', 'LossMargin', 'Margin']:
-                output = self.predictor.predict(**input_set)[('team', self.feature_set, margin_type)]
+                output = self.predictor.predict(**input_set)[(
+                    'team' if not is_opponent else 'opponent',
+                    self.feature_set,
+                    margin_type
+                )]
                 mu, sigma = output['mu']['mean'], output['sigma']['mean']
                 mu_lb = output['mu']['lb']
                 mu_ub, sigma_ub = output['mu']['ub'], output['sigma']['ub']
@@ -151,7 +155,22 @@ class ResultsPopulator(object):
 
         return pd.DataFrame().from_records(records)
 
-    def total_points(self):
+    def margins(self) -> pd.DataFrame:
+        """
+        Calculate probability of certain margins conditioned and not-conditioned on winners.
+        """
+        df_team = self._margins(is_opponent=False)
+        df_opp = self._margins(is_opponent=True)
+        df = pd.concat([df_team, df_opp])
+        df = df.groupby(['variable_val', 'Margin', 'Result']).agg(
+            Probability=('Probability', 'mean'),
+            Probability_LB=('Probability_LB', 'mean'),
+            Probability_UB=('Probability_UB', 'mean')
+        ).reset_index()
+
+        return df
+
+    def _total_points(self, is_opponent: bool) -> pd.DataFrame:
         """
         Total points
         """
@@ -166,13 +185,17 @@ class ResultsPopulator(object):
             self._derived_features()
             # Configure inputs
             input_set = {
-                'random_effect': 'team',
+                'random_effect': 'team' if not is_opponent else 'opponent',
                 'feature_set': self.feature_set,
-                'inputs': {'RandomEffect': self.team}
+                'inputs': {'RandomEffect': self.team if not is_opponent else self.opponent}
             }
             input_set['inputs'].update(self.parameters)
             # Results
-            output = self.predictor.predict(**input_set)[('team', self.feature_set, 'TotalPoints')]
+            output = self.predictor.predict(**input_set)[(
+                'team' if not is_opponent else 'opponent',
+                self.feature_set,
+                'TotalPoints'
+            )]
             mu, sigma = output['mu']['mean'], output['sigma']['mean']
             mu_lb = output['mu']['lb']
             mu_ub, sigma_ub = output['mu']['ub'], output['sigma']['ub']
@@ -188,3 +211,18 @@ class ResultsPopulator(object):
                 records.append(record)
 
         return pd.DataFrame().from_records(records)
+
+    def total_points(self) -> pd.DataFrame:
+        """
+        Total Points
+        """
+        df_team = self._total_points(is_opponent=False)
+        df_opp = self._total_points(is_opponent=True)
+        df = pd.concat([df_team, df_opp])
+        df = df.groupby(['variable_val', 'TotalPoints']).agg(
+            Probability=('Probability', 'mean'),
+            Probability_LB=('Probability_LB', 'mean'),
+            Probability_UB=('Probability_UB', 'mean')
+        ).reset_index()
+
+        return df
