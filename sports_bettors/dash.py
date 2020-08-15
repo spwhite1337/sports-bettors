@@ -24,8 +24,9 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     )
 
     dashapp.layout = html.Div(children=[
-        html.H1('Hi From Dash (sports bettors)'),
+        html.H1('Sports Betting Dashboard'),
         html.Div(id='selectors', children=[
+            html.H3('Select League, Team, and Opponent'),
             dcc.Dropdown(id='league', options=params[Config.sb_version]['league-opts'], value='college_football'),
             dcc.Dropdown(id='team', style=utils['no_show']),
             dcc.Dropdown(id='opponent', style=utils['no_show']),
@@ -34,6 +35,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         # History
         html.Div(id='history', children=[
             html.Div(id='history-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
+            html.H3('Display Historical Match-up Data (if applicable)'),
             dcc.Dropdown(id='history-x', style=utils['no_show']),
             dcc.Dropdown(id='history-y', style=utils['no_show']),
             dbc.Button('Update History', id='update-history-data', n_clicks=0, color='primary'),
@@ -45,6 +47,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             html.Div(id='results-win-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             html.Div(id='results-margin-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             html.Div(id='results-total-points-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
+            html.H3('Configure Results'),
             dcc.Dropdown(id='feature-sets', style=utils['no_show']),
             dcc.Dropdown(id='variable', style=utils['no_show']),
             dbc.Input(id='parameter-1', style=utils['no_show']),
