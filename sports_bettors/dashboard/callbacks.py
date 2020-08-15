@@ -112,7 +112,7 @@ class PlotCallbacks(object):
             return utils['empty_figure'], utils['no_show'], utils['no_show']
         x = df.columns[0] if not x else x
         y = df.columns[0] if not y else y
-        fig = px.scatter(df, x=x, y=y, color='Winner')
+        fig = px.scatter(df, x=x, y=y, color='Winner', template='simple_white')
         return fig, utils['show'], utils['show']
 
     @staticmethod
@@ -126,7 +126,7 @@ class PlotCallbacks(object):
         else:
             # Win Probability Figure
             df = df.sort_values(variable)
-            fig = px.line(df, x=variable, y='Win', error_y='WinUB', error_y_minus='WinLB')
+            fig = px.line(df, x=variable, y='Win', error_y='WinUB', error_y_minus='WinLB', template='simple_white')
         return fig
 
     @staticmethod
@@ -144,7 +144,7 @@ class PlotCallbacks(object):
             variable_val = variable_val['points'][0]['x']
             df = df[df['variable_val'] == variable_val].sort_values('Margin')
             fig = px.line(df, x='Margin', y='Probability', error_y='Probability_UB', error_y_minus='Probability_LB',
-                          color='Result')
+                          color='Result', template='simple_white')
         return fig
 
     @staticmethod
@@ -162,5 +162,5 @@ class PlotCallbacks(object):
             variable_val = variable_val['points'][0]['x']
             df = df[df['variable_val'] == variable_val].sort_values('TotalPoints')
             fig = px.line(df, x='TotalPoints', y='Probability', error_y='Probability_UB',
-                          error_y_minus='Probability_LB')
+                          error_y_minus='Probability_LB', template='simple_white')
         return fig
