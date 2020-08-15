@@ -8,26 +8,6 @@ from sports_bettors.api import SportsPredictor
 from config import Config
 
 
-# Select a match-up (team_a and team_b)
-# Plot results for team_a as 'team' and team_b as 'opponent' (inverted)
-
-# Define a 'variable' for each feature_set, then rest of the conditions are parameters
-# Calculate WinProbability / UB / LB for a range of "variable" values at the fixed parameters
-# For each slice of variable, parameters -> calculate probability of winning by various margins,
-#   loss margins, win-margins
-# Result will be 4 dfs:
-#   - Win Probability as variable is changed
-#       - [variable, parameters, WinProb, WinProbUB, WinProbLB, team]
-#   - Margin Likelihood as variable is changed
-#       - [variable, parameters, margin, CumProb, CumProbLB, CumProbUB, team]
-#   - WinMargin Likelihood
-#   - LossMargin Likelihood
-
-# Normalize probabilities across teams
-#   - Combine margins for an expected margin
-#   - Combine Win/Loss margins
-
-
 class ResultsPopulator(object):
     response_ranges = params[Config.sb_version]['response-ranges']
 
