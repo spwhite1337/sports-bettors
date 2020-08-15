@@ -51,6 +51,22 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             html.Div(id='results-total-points-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             html.Br(), html.Br(),
             html.H3('Configure Results'),
+            html.P(
+                """
+                First select the model of interest (i.e. RushOnly only controls for Rushing stats. Then select the 
+                feature of that selected model you want to treat as a variable for the dashboard (e.g. Display results
+                for various values of Rushing Yards). Finally, set the value of the parameters in the model. 
+                """
+            ),
+            html.Br(),
+            html.P(
+                """
+                For example: Select RushOnly for a model that controls for rushing attempts and rushing yards, then
+                set your variable as Rushing Yards and fix rushing attempts at 20 to see the results for a model that
+                controls for rushing statistics with various values of rushing yards but a fixed value for rushing
+                attempts.
+                """
+            ),
             dcc.Dropdown(id='feature-sets', style=utils['no_show']),
             dcc.Dropdown(id='variable', style=utils['no_show']),
             dbc.Input(id='parameter-1', style=utils['no_show']),
