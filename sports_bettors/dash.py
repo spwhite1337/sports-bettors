@@ -25,6 +25,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
 
     dashapp.layout = html.Div(children=[
         html.H1('Sports Betting Dashboard'),
+        html.Br(), html.Br(),
         html.Div(id='selectors', children=[
             html.H3('Select League, Team, and Opponent'),
             dcc.Dropdown(id='league', options=params[Config.sb_version]['league-opts'], value='college_football'),
@@ -35,11 +36,12 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         # History
         html.Div(id='history', children=[
             html.Div(id='history-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
+            html.Br(),
             html.H3('Display Historical Match-up Data (if applicable)'),
             dcc.Dropdown(id='history-x', style=utils['no_show']),
             dcc.Dropdown(id='history-y', style=utils['no_show']),
             dbc.Button('Update History', id='update-history-data', n_clicks=0, color='primary'),
-            dcc.Graph(id='history-fig'),
+            dcc.Graph(id='history-fig', style=utils['no_show']),
         ]),
 
         # Results
@@ -47,6 +49,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             html.Div(id='results-win-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             html.Div(id='results-margin-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
             html.Div(id='results-total-points-data', style=utils['no_show'], children=pd.DataFrame().to_json()),
+            html.Br(), html.Br(),
             html.H3('Configure Results'),
             dcc.Dropdown(id='feature-sets', style=utils['no_show']),
             dcc.Dropdown(id='variable', style=utils['no_show']),
@@ -55,9 +58,9 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             dbc.Input(id='parameter-3', style=utils['no_show']),
             dbc.Input(id='parameter-4', style=utils['no_show']),
             dbc.Button('Update Results', id='update-results-data', n_clicks=0, color="primary"),
-            dcc.Graph(id='win-fig', figure=utils['empty_figure']),
-            dcc.Graph(id='margin-fig', figure=utils['empty_figure']),
-            dcc.Graph(id='total-points-fig', figure=utils['empty_figure'])
+            dcc.Graph(id='win-fig', figure=utils['empty_figure'], style=utils['no_show']),
+            dcc.Graph(id='margin-fig', figure=utils['empty_figure'], style=utils['no_show']),
+            dcc.Graph(id='total-points-fig', figure=utils['empty_figure'], style=utils['no_show'])
         ]),
     ])
 
@@ -119,6 +122,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
     @dashapp.callback(
         [
             Output('history-fig', 'figure'),
+            Output('history-fig', 'style'),
             Output('history-x', 'style'),
             Output('history-y', 'style')
          ],
@@ -160,7 +164,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
 
     # Win figure
     @dashapp.callback(
-        Output('win-fig', 'figure'),
+        [Output('win-fig', 'figure'), Output('win-fig', 'style')],
         [Input('results-win-data', 'children')],
         [State('variable', 'value')]
     )
@@ -169,7 +173,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
 
     # margin figure
     @dashapp.callback(
-        Output('margin-fig', 'figure'),
+        [Output('margin-fig', 'figure'), Output('margin-fig', 'style')],
         [Input('results-margin-data', 'children'), Input('win-fig', 'hoverData')]
     )
     def conditioned_margin_figure(df, variable_val):
@@ -177,7 +181,7 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
 
     # Total Points figure
     @dashapp.callback(
-        Output('total-points-fig', 'figure'),
+        [Output('total-points-fig', 'figure'), Output('total-points-fig', 'style')],
         [Input('results-total-points-data', 'children'), Input('win-fig', 'hoverData')]
     )
     def total_points_figure(df, variable_val):
