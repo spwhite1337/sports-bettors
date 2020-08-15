@@ -21,7 +21,8 @@ often used in ML production).
 
 ---
 <p>
-    <img src="docs/pystan_logo.jpg", alt="Pystan Logo" with="256">
+    <img src="docs/pystan_logo.jpg" alt="Pystan Logo" width="256">
+    <img src="docs/dash_logo.JPG" alt="Pystan Logo" width="256">
 </p>
 
 ---
