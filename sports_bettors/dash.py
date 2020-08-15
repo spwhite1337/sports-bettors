@@ -28,9 +28,10 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
         html.Br(), html.Br(),
         html.Div(id='selectors', children=[
             html.H3('Select League, Team, and Opponent'),
-            dcc.Dropdown(id='league', options=params[Config.sb_version]['league-opts'], value='college_football'),
-            dcc.Dropdown(id='team', style=utils['no_show']),
-            dcc.Dropdown(id='opponent', style=utils['no_show']),
+            dcc.Dropdown(id='league', options=params[Config.sb_version]['league-opts'], value='college_football',
+                         placeholder='Select League'),
+            dcc.Dropdown(id='team', style=utils['no_show'], placeholder='Select Team'),
+            dcc.Dropdown(id='opponent', style=utils['no_show'], placeholder='Select Opponent'),
         ]),
 
         # History
