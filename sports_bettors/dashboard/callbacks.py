@@ -112,7 +112,7 @@ class PlotCallbacks(object):
             return utils['empty_figure'], utils['show'], utils['show'], utils['show']
         x = df.columns[0] if not x else x
         y = df.columns[0] if not y else y
-        fig = px.scatter(df, x=x, y=y, color='Winner', template='simple_white', title='Matchup Data')
+        fig = px.scatter(df, x=x, y=y, color='Winner', template='plotly_dark', title='Matchup Data')
         fig.update_layout(xaxis_showgrid=True, yaxis_showgrid=True)
         return fig, utils['show'], utils['show'], utils['show']
 
@@ -127,7 +127,7 @@ class PlotCallbacks(object):
         else:
             # Win Probability Figure
             df = df.sort_values(variable)
-            fig = px.line(df, x=variable, y='Win', error_y='WinUB', error_y_minus='WinLB', template='simple_white',
+            fig = px.line(df, x=variable, y='Win', error_y='WinUB', error_y_minus='WinLB', template='plotly_dark',
                           title='Win Probability')
             fig.update_layout(xaxis_showgrid=True, yaxis_showgrid=True)
             return fig, utils['show']
@@ -147,7 +147,7 @@ class PlotCallbacks(object):
             variable_val = variable_val['points'][0]['x']
             df = df[df['variable_val'] == variable_val].sort_values('Margin')
             fig = px.line(df, x='Margin', y='Probability', error_y='Probability_UB', error_y_minus='Probability_LB',
-                          color='Result', template='simple_white', title='Margins / Spreads')
+                          color='Result', template='plotly_dark', title='Margins / Spreads')
             fig.update_layout(xaxis_showgrid=True, yaxis_showgrid=True)
             return fig, utils['show']
 
@@ -166,6 +166,6 @@ class PlotCallbacks(object):
             variable_val = variable_val['points'][0]['x']
             df = df[df['variable_val'] == variable_val].sort_values('TotalPoints')
             fig = px.line(df, x='TotalPoints', y='Probability', error_y='Probability_UB',
-                          error_y_minus='Probability_LB', template='simple_white', title='Total Points in Matchup')
+                          error_y_minus='Probability_LB', template='plotly_dark', title='Total Points in Matchup')
             fig.update_layout(xaxis_showgrid=True, yaxis_showgrid=True)
             return fig, utils['show']
