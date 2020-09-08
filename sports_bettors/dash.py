@@ -84,9 +84,11 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
                         children=[dcc.Graph(id='win-fig', figure=utils['empty_figure'], style=utils['no_show'])]),
             dcc.Loading(id='margin-loading',
                         type='default',
+                        style={'background-color': 'black'},
                         children=[dcc.Graph(id='margin-fig', figure=utils['empty_figure'], style=utils['no_show'])]),
             dcc.Loading(id='total-points-loading',
                         type='default',
+                        style={'background-color': 'black'},
                         children=[
                             dcc.Graph(id='total-points-fig', figure=utils['empty_figure'], style=utils['no_show'])
                         ]),
