@@ -42,7 +42,9 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             dcc.Dropdown(id='history-x', style=utils['no_show']),
             dcc.Dropdown(id='history-y', style=utils['no_show']),
             dbc.Button('Update History', id='update-history-data', n_clicks=0, color='primary'),
-            dcc.Graph(id='history-fig', style=utils['no_show']),
+            dcc.Loading(id='history-loading',
+                        type='default',
+                        children=[dcc.Graph(id='history-fig', style=utils['no_show'])]),
         ]),
 
         # Results
@@ -76,9 +78,20 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             dbc.Input(id='parameter-3', style=utils['no_show']),
             dbc.Input(id='parameter-4', style=utils['no_show']),
             dbc.Button('Update Results', id='update-results-data', n_clicks=0, color="primary"),
-            dcc.Graph(id='win-fig', figure=utils['empty_figure'], style=utils['no_show']),
-            dcc.Graph(id='margin-fig', figure=utils['empty_figure'], style=utils['no_show']),
-            dcc.Graph(id='total-points-fig', figure=utils['empty_figure'], style=utils['no_show'])
+            dcc.Loading(id='win-loading',
+                        type='graph',
+                        fullscreen=True,
+                        children=[dcc.Graph(id='win-fig', figure=utils['empty_figure'], style=utils['no_show'])]),
+            dcc.Loading(id='margin-loading',
+                        type='default',
+                        children=[dcc.Graph(id='margin-fig', figure=utils['empty_figure'], style=utils['no_show'])]),
+            dcc.Loading(id='total-points-loading',
+                        type='default',
+                        children=[
+                            dcc.Graph(id='total-points-fig', figure=utils['empty_figure'], style=utils['no_show'])
+                        ]),
+            html.Br(),
+            html.Br()
         ]),
     ])
 
