@@ -80,7 +80,6 @@ def add_sb_dash(server, routes_pathname_prefix: str = '/api/dash/sportsbettors/'
             dbc.Button('Update Results', id='update-results-data', n_clicks=0, color="primary"),
             dcc.Loading(id='win-loading',
                         type='graph',
-                        fullscreen=True,
                         children=[dcc.Graph(id='win-fig', figure=utils['empty_figure'], style=utils['no_show'])]),
             dcc.Loading(id='margin-loading',
                         type='default',
