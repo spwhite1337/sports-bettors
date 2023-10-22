@@ -46,7 +46,7 @@ def download_cli():
     else:
         if args.league is None:
             ValueError('league argument required if not syncing with AWS')
-        download(league=args.league, retry=args.retry)
+        download(league=args.league, retry=args.retry, overwrite=args.overwrite)
 
 
 def download(league: str, retry: bool, overwrite: bool = False):
