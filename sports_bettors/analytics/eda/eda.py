@@ -16,6 +16,13 @@ class Eda(object):
             os.makedirs(self.save_dir)
 
     @staticmethod
+    def _calc_payout(odds: float) -> float:
+        if odds < 0:
+            return 100 / abs(odds)
+        else:
+            return abs(odds) / 100
+
+    @staticmethod
     def moneyline_to_prob(ml: float) -> float:
         odds = 100 / abs(ml) if ml < 0 else abs(ml) / 100
         return 1 - odds / (1 + odds)
