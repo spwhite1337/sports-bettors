@@ -31,6 +31,7 @@ setup(
         'plotly',
         'dash',
         'dash-bootstrap-components',
-        'awscli'
+        'awscli',
+        'shap',
     ]
 )
