@@ -2,12 +2,18 @@ from typing import Optional
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 from scipy.stats import binomtest
 from datetime import datetime
 
 
-class Eda(object):
+class Bets(object):
     TODAY = datetime.strftime(datetime.today(), '%Y-%m-%d')
+
+    def __init__(self):
+        self.save_dir = os.path.join(os.getcwd(), 'docs', 'bets')
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
 
     @staticmethod
     def _calc_payout(odds: float) -> float:
@@ -29,10 +35,8 @@ class Eda(object):
 
     def etl(self) -> pd.DataFrame:
         df = pd.read_csv(
-            os.path.join(
-                os.path.dirname(os.path.dirname(os.getcwd())),
-                'data', 'sports_bettors', 'raw_archive', 'betting', 'bets.csv'
-            ), parse_dates=['Date']
+            os.path.join(os.getcwd(), 'data', 'sports_bettors', 'raw_archive', 'betting', 'bets.csv'),
+            parse_dates=['Date']
         )
         df = df[[
             'Date', 'Money', 'Bet Type', 'Number', 'Odds', 'Supporting Team',
@@ -47,54 +51,65 @@ class Eda(object):
         if df is None:
             df = self.etl()
 
-        # Binomial test
-        p_value = binomtest(
-            df[df['Result'] == 'Won'].shape[0],
-            df[df['Result'].isin(['Won', 'Lost'])].shape[0],
-            p=0.5,  # Assume probability of 0.5 on spreads without vigorish
-            alternative='greater'
-        ).pvalue
-        win_rate = (df['Result'] == 'Won').sum() / (df['Result'].isin(['Won', 'Lost']).sum())
-        bets_per_week = (df.shape[0] / (df['Date'].max() - df['Date'].min()).days) * 7
-        payout = df['payout'].mean()
-        gain_per_week = (payout * win_rate - (1 - win_rate)) * bets_per_week
-
-        print(f'Overall:\nWin Rate: {win_rate:.3f} at {bets_per_week:0.2f} bets/week '
-              f'for {gain_per_week:0.2f} units/week.'
-              f'\np_value:{p_value:0.2f}')
-        print('')
-
-        for league, df_ in df.groupby('League'):
-            df_ = df[df['League'] == league]
-            win_rate = (df_['Result'] == 'Won').sum() / (df_['Result'].isin(['Won', 'Lost']).sum())
-            bets_per_week = (df_.shape[0] / (df['Date'].max() - df['Date'].min()).days) * 7
-            payout = df_['payout'].mean()
-            gain_per_week = (payout * win_rate - (1 - win_rate)) * bets_per_week
+        with PdfPages(os.path.join(self.save_dir, 'bets.pdf')) as pdf:
+            # Binomial test
             p_value = binomtest(
-                df_[df_['Result'] == 'Won'].shape[0],
-                df_[df_['Result'].isin(['Won', 'Lost'])].shape[0],
-                p=0.5,
+                df[df['Result'] == 'Won'].shape[0],
+                df[df['Result'].isin(['Won', 'Lost'])].shape[0],
+                p=0.5,  # Assume probability of 0.5 on spreads without vigorish
                 alternative='greater'
             ).pvalue
-            print(f'{league}:\nWin Rate: {win_rate:.3f} at {bets_per_week:0.2f} bets/week '
-                  f'for {gain_per_week:0.2f} units/week.'
-                  f'\np_value:{p_value:0.2f}')
-            print(df_['Result'].value_counts())
-            print('')
+            win_rate = (df['Result'] == 'Won').sum() / (df['Result'].isin(['Won', 'Lost']).sum())
+            bets_per_week = (df.shape[0] / (df['Date'].max() - df['Date'].min()).days) * 7
+            payout = df['payout'].mean()
+            gain_per_week = (payout * win_rate - (1 - win_rate)) * bets_per_week
 
-        df['cumsum'] = df.groupby('League')['Net_Gain'].cumsum()
-        df_plot = pd.concat([
-            df[df['League'] == 'College'][['Date', 'cumsum', 'League']].reset_index(drop=True),
-            df[df['League'] == 'NFL'][['Date', 'cumsum', 'League']].reset_index(drop=True),
-        ])
-        df_plot['Bet_no'] = df_plot.index
+            plt.figure()
+            plt.text(0.04, 0.9,
+                     f'Overall:\nWin Rate: {win_rate:.3f} at {bets_per_week:0.2f} bets/week '
+                     f'for {gain_per_week:0.2f} units/week.'
+                     f'\np_value:{p_value:0.2f}')
+            plt.tick_params(axis='both', which='both', labelbottom=False, labelleft=False, bottom=False, left=False)
+            pdf.savefig()
+            plt.close()
 
-        plt.figure()
-        for league, df_plot_ in df_plot.groupby('League'):
-            plt.plot(df_plot_['Bet_no'], df_plot_['cumsum'], label=league)
-        plt.legend()
-        plt.grid(True)
-        plt.xlabel('Bet No.')
-        plt.ylabel('Cumulative Gain')
-        plt.title('Cumulative Gain on Bets by League')
-        plt.show()
+            for league, df_ in df.groupby('League'):
+                df_ = df[df['League'] == league]
+                win_rate = (df_['Result'] == 'Won').sum() / (df_['Result'].isin(['Won', 'Lost']).sum())
+                bets_per_week = (df_.shape[0] / (df['Date'].max() - df['Date'].min()).days) * 7
+                payout = df_['payout'].mean()
+                gain_per_week = (payout * win_rate - (1 - win_rate)) * bets_per_week
+                p_value = binomtest(
+                    df_[df_['Result'] == 'Won'].shape[0],
+                    df_[df_['Result'].isin(['Won', 'Lost'])].shape[0],
+                    p=0.5,
+                    alternative='greater'
+                ).pvalue
+
+                plt.figure()
+                plt.text(0.04, 0.9, f'{league}:\nWin Rate: {win_rate:.3f} at {bets_per_week:0.2f} bets/week '
+                      f'for {gain_per_week:0.2f} units/week.'
+                      f'\np_value:{p_value:0.2f}')
+                plt.text(0.04, 0.5, (df_['Result'].value_counts()))
+                plt.tick_params(axis='both', which='both', labelbottom=False, labelleft=False, bottom=False, left=False)
+                pdf.savefig()
+                plt.close()
+
+            # Cumulative gains of bets
+            df['cumsum'] = df.groupby('League')['Net_Gain'].cumsum()
+            df_plot = pd.concat([
+                df[df['League'] == 'College'][['Date', 'cumsum', 'League']].reset_index(drop=True),
+                df[df['League'] == 'NFL'][['Date', 'cumsum', 'League']].reset_index(drop=True),
+            ])
+            df_plot['Bet_no'] = df_plot.index
+
+            plt.figure()
+            for league, df_plot_ in df_plot.groupby('League'):
+                plt.plot(df_plot_['Bet_no'], df_plot_['cumsum'], label=league)
+            plt.legend()
+            plt.grid(True)
+            plt.xlabel('Bet No.')
+            plt.ylabel('Cumulative Gain')
+            plt.title('Cumulative Gain on Bets by League')
+            pdf.savefig()
+            plt.close()

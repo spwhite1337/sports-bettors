@@ -1,12 +1,19 @@
+import os
 from typing import Optional, Dict
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 
 
 class Eda(object):
     link_to_data = 'https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv'
     min_date = '2017-06-01'
+
+    def __init__(self):
+        self.save_dir = os.path.join(os.getcwd(), 'docs', 'EDA')
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
 
     @staticmethod
     def moneyline_to_prob(ml: float) -> float:
@@ -54,7 +61,7 @@ class Eda(object):
             &
             # Only regular season
             (df['game_type'] == 'REG')
-        ]
+        ].copy()
         return df
 
     def spread_accuracy(self, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
@@ -95,63 +102,70 @@ class Eda(object):
 
         # Moneyline accuracy
         df_ml = self.moneyline_accuracy(df)
-        plt.figure()
-        df_ml['win_prob_bucket'] = df_ml['win_prob_bucket'].astype(str)
-        plt.bar(df_ml['win_prob_bucket'], df_ml['win_actual'])
-        plt.xlabel('Predict Win Probability')
-        plt.ylabel('Actual Win Probability')
-        plt.grid(True)
-        plt.show()
 
-        df__ = df_ml[df_ml['win_prob_bucket'] != '0.0']
-        plt.bar(df__['win_prob_bucket'], df__['net_gain_per_bet'])
-        plt.xlabel('Predict Win Probability')
-        plt.ylabel('Net Gain per Bet')
-        plt.grid(True)
-        plt.show()
+        with PdfPages(os.path.join(self.save_dir, 'eda.pdf')) as pdf:
+            plt.figure()
+            df_ml['win_prob_bucket'] = df_ml['win_prob_bucket'].astype(str)
+            plt.bar(df_ml['win_prob_bucket'], df_ml['win_actual'])
+            plt.xlabel('Predict Win Probability')
+            plt.ylabel('Actual Win Probability')
+            plt.grid(True)
+            pdf.savefig()
+            plt.close()
 
-        # Spread / Total Accuracy
-        df_s = self.spread_accuracy(df)
-        bins = np.linspace(-50, 50, 21)
+            df__ = df_ml[df_ml['win_prob_bucket'] != '0.0']
+            plt.bar(df__['win_prob_bucket'], df__['net_gain_per_bet'])
+            plt.xlabel('Predict Win Probability')
+            plt.ylabel('Net Gain per Bet')
+            plt.grid(True)
+            pdf.savefig()
+            plt.close()
 
-        plt.figure()
-        plt.hist(df_s['spread_actual'], alpha=0.5, label='Actual', bins=bins)
-        plt.hist(df_s['spread_diff'], label='spread_corrected', alpha=0.5, bins=bins)
-        plt.text(-20, 80, '{} +/- {}'.format(
-            round(df_s['spread_actual'].mean(), 2),
-            round(df_s['spread_actual'].std(), 2)
-        ))
-        plt.text(20, 80, '{} +/- {}'.format(
-            round(df_s['spread_diff'].mean(), 2),
-            round(df_s['spread_diff'].std(), 2)
-        ))
-        plt.grid(True)
-        plt.vlines(df_s['spread_diff'].mean(), 0, 100)
-        plt.vlines(df_s['spread_diff'].median(), 0, 100)
-        plt.title('Margin of Victory for away team')
-        plt.legend()
-        plt.show()
+            # Spread / Total Accuracy
+            df_s = self.spread_accuracy(df)
+            bins = np.linspace(-50, 50, 21)
 
-        plt.figure()
-        plt.hist(df_s['off_total'], alpha=0.5)
-        plt.text(-20, 80, '{} +/- {}, Median: {}'.format(
-            round(df_s['off_total'].mean(), 2),
-            round(df_s['off_total'].std(), 2),
-            round(df_s['off_total'].median(), 2)
-        ))
-        plt.vlines(df_s['off_total'].mean(), 0, 100)
-        plt.vlines(df_s['off_total'].median(), 0, 100)
-        plt.title('Points Total Against Line')
-        plt.grid(True)
-        plt.show()
+            plt.figure()
+            plt.hist(df_s['spread_actual'], alpha=0.5, label='Actual', bins=bins)
+            plt.hist(df_s['spread_diff'], label='spread_corrected', alpha=0.5, bins=bins)
+            plt.text(-20, 80, '{} +/- {}'.format(
+                round(df_s['spread_actual'].mean(), 2),
+                round(df_s['spread_actual'].std(), 2)
+            ))
+            plt.text(20, 80, '{} +/- {}'.format(
+                round(df_s['spread_diff'].mean(), 2),
+                round(df_s['spread_diff'].std(), 2)
+            ))
+            plt.grid(True)
+            plt.vlines(df_s['spread_diff'].mean(), 0, 100)
+            plt.vlines(df_s['spread_diff'].median(), 0, 100)
+            plt.title('Margin of Victory for away team')
+            plt.legend()
+            pdf.savefig()
+            plt.close()
 
-        plt.figure()
-        print('{}% of Games are <= 3 points ATS'.format(
-            round((df_s['spread_diff'].abs() <= 3).sum() / df_s.shape[0] * 100, 2)))
-        print('{}% of Games are <= 7 points ATS'.format(
-            round((df_s['spread_diff'].abs() <= 7).sum() / df_s.shape[0] * 100, 2)))
-        plt.hist(df_s['spread_diff'].abs(), cumulative=True, density=True, bins=np.linspace(0, 28, 29))
-        plt.xlabel('Margin of Victory Against the Spread')
-        plt.ylabel('Fraction of Games')
-        plt.grid(True)
-        plt.show()
+            plt.figure()
+            plt.hist(df_s['off_total'], alpha=0.5)
+            plt.text(-20, 80, '{} +/- {}, Median: {}'.format(
+                round(df_s['off_total'].mean(), 2),
+                round(df_s['off_total'].std(), 2),
+                round(df_s['off_total'].median(), 2)
+            ))
+            plt.vlines(df_s['off_total'].mean(), 0, 100)
+            plt.vlines(df_s['off_total'].median(), 0, 100)
+            plt.title('Points Total Against Line')
+            plt.grid(True)
+            pdf.savefig()
+            plt.close()
+
+            plt.figure()
+            print('{}% of Games are <= 3 points ATS'.format(
+                round((df_s['spread_diff'].abs() <= 3).sum() / df_s.shape[0] * 100, 2)))
+            print('{}% of Games are <= 7 points ATS'.format(
+                round((df_s['spread_diff'].abs() <= 7).sum() / df_s.shape[0] * 100, 2)))
+            plt.hist(df_s['spread_diff'].abs(), cumulative=True, density=True, bins=np.linspace(0, 28, 29))
+            plt.xlabel('Margin of Victory Against the Spread')
+            plt.ylabel('Fraction of Games')
+            plt.grid(True)
+            pdf.savefig()
+            plt.close()
