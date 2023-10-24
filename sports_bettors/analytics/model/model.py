@@ -16,10 +16,12 @@ class Model(Data):
     TODAY = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
 
     features = [
-        'away_team_wins_ats_past_month',
-        'away_team_losses_ats_past_month',
-        'home_team_wins_ats_past_month',
-        'home_team_losses_ats_past_month',
+        # 'away_team_wins_ats_past_month',
+        # 'away_team_losses_ats_past_month',
+        # 'home_team_wins_ats_past_month',
+        # 'home_team_losses_ats_past_month',
+        'away_team_win_rate_ats_past_month',
+        'home_team_win_rate_ats_past_month',
         'money_line',
         'spread_line',
         'away_team_points_for_past_month',

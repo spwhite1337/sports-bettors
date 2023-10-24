@@ -82,6 +82,8 @@ class Data(Eda):
                 'away_team_wins_ats_past_month': away_wins_ats + home_wins_ats,
                 'away_team_losses_ats_past_month': away_losses_ats + home_losses_ats,
                 'away_team_losses_past_month': home_losses + away_losses,
+                'away_team_win_rate_past_month': (home_wins + away_wins) / (home_wins + away_wins + home_losses + away_losses),
+                'away_team_win_rate_ats_past_month': (home_wins_ats + away_wins_ats) / (home_wins_ats + away_wins_ats + home_losses_ats + away_losses_ats),
                 'away_team_points_for_past_month': away_pf + home_pf,
                 'away_team_points_against_past_month': home_pf + away_pa,
                 'away_team_total_points': away_total + home_total,
@@ -117,12 +119,23 @@ class Data(Eda):
             record['home_team_losses_past_month'] = home_losses + away_losses
             record['home_team_wins_ats_past_month'] = home_wins_ats + away_wins_ats
             record['home_team_losses_ats_past_month'] = home_losses_ats + away_losses_ats
+            record['home_team_win_rate_past_month'] = (home_wins + away_wins) / (home_wins + away_wins + home_losses + away_losses)
+            record['home_team_win_rate_ats_past_month'] = (home_wins_ats + away_wins_ats) / (home_wins_ats + away_wins_ats + home_losses_ats + away_losses_ats)
             record['home_team_points_for_past_month'] = away_pf + home_pf
             record['home_team_points_against_past_month'] = home_pf + home_pa
             record['home_team_total_points'] = away_total + home_total
             records.append(record)
 
         df_out = pd.DataFrame.from_records(records)
+        # Fill na for win-rate
+        for col in [
+            'away_team_win_rate_past_month',
+            'away_team_win_rate_ats_past_month',
+            'home_team_win_rate_past_month',
+            'home_team_win_rate_ats_past_month',
+        ]:
+            if col in df_out.columns:
+                df_out[col] = df_out[col].fillna(0.)
         df_out = df_out[df_out['gameday'] > self.training_start]
         for col in ['spread_actual', 'spread_diff']:
             if col not in df.columns:
