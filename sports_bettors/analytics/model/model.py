@@ -7,6 +7,7 @@ from sklearn.svm import SVR
 from sklearn.metrics import accuracy_score, roc_curve, roc_auc_score, precision_recall_curve
 
 from sports_bettors.analytics.model.data import Data
+from config import logger
 
 
 class Model(Data):
@@ -36,24 +37,27 @@ class Model(Data):
         if df is None:
             df = self.engineer_features()
 
+        # Train test split
         df_ = df[df['gameday'] < (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
         df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
 
+        # Scale features
         X, y = df_[self.features].values, df_[self.response].values
-        X_val = df_val[self.features].values
         self.scaler = StandardScaler()
         self.scaler.fit(X)
-        X = self.scaler.transform(X)
-        X_val = self.scaler.transform(X_val)
-        X_all = self.scaler.transform(df[self.features].values)
-        return X, X_val, X_all
+        return df_, df_val, df
 
-    def train(self, X: pd.DataFrame, y: np.ndarray):
+    def train(self, df: pd.DataFrame):
         self.model = SVR(kernel='rbf', C=3, gamma=0.1, epsilon=0.1)
+        X, y = self.scaler.transform(df[self.features]), df[self.response]
         self.model.fit(X, y)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
         return self.scaler.transform(df[self.features])
 
     def predict_spread(self, df: pd.DataFrame) -> pd.Series:
+        if self.model is None or self.scaler is None:
+            logger.error('No Model and / or scaler')
+            raise ValueError()
+
         return self.model.predict(self.transform(df))
