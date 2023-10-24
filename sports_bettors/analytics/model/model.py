@@ -49,6 +49,7 @@ class Model(Data):
         return df_, df_val, df
 
     def train(self, df: pd.DataFrame):
+        logger.info('Train a Model')
         self.model = SVR(kernel='rbf', C=3, gamma=0.1, epsilon=0.1)
         X, y = pd.DataFrame(self.scaler.transform(df[self.features]), columns=self.features), df[self.response]
         self.model.fit(X, y)

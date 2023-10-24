@@ -10,14 +10,12 @@ def run():
     df, df_val, df_all = api.fit_transform()
     api.train(df)
     api.validate(df, df_val, df_all)
+    api.save_results()
 
 
-def test():
-    api = Validate()
-    df, df_val, df_all = api.fit_transform()
-    api.train(df)
-    df_ = api.predict_next_week()
-    # api.shap_explain(df_)
+def predict():
+    api = Validate().load_results()
+    api.predict_next_week()
 
 
 if __name__ == '__main__':

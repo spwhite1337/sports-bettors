@@ -1,4 +1,5 @@
 import os
+import pickle
 from typing import Optional
 import numpy as np
 import pandas as pd
@@ -16,12 +17,18 @@ from config import logger
 
 class Validate(Model):
 
+    def __init__(self):
+        super().__init__()
+        self.model_dir = os.path.join(os.getcwd(), 'data', 'sports_bettors', 'models')
+        if not os.path.exists(self.model_dir):
+            os.makedirs(self.model_dir)
+
     @staticmethod
     def _baseline_prob():
         return 0.541
 
     def validate(self, df_: Optional[pd.DataFrame] = None, df_val: Optional[pd.DataFrame] = None,
-                 df: Optional[pd.DataFrame] = None):
+                 df: Optional[pd.DataFrame] = None, run_shap: bool = False):
         if any([df_ is None, df_val is None, df is None]):
             df_, df_val, df = self.fit_transform()
 
@@ -76,27 +83,28 @@ class Validate(Model):
             plt.close()
 
             # Shap-values
-            logger.info('Shap')
-            df_plot = df_val[self.features].sample(100) if df_val.shape[0] > 100 else df_val[self.features]
-            explainer = shap.KernelExplainer(self.model.predict, self.transform(df_val), nsamples=100, link='identity')
-            shap_values = explainer.shap_values(self.transform(df_plot))
-            plt.figure()
-            shap.summary_plot(shap_values, features=self.features, plot_type='bar', show=False)
-            plt.tight_layout()
-            pdf.savefig()
-            plt.close()
-            # Shap by features
-            for feature in self.features:
+            if run_shap:
+                logger.info('Shap')
+                df_plot = df_val[self.features].sample(100) if df_val.shape[0] > 100 else df_val[self.features]
+                explainer = shap.KernelExplainer(self.model.predict, self.transform(df_val), nsamples=100, link='identity')
+                shap_values = explainer.shap_values(self.transform(df_plot))
                 plt.figure()
-                shap.dependence_plot(
-                    ind=feature,
-                    shap_values=shap_values[1] if isinstance(shap_values, list) else shap_values,
-                    features=self.transform(df_plot[self.features]),
-                )
+                shap.summary_plot(shap_values, features=self.features, plot_type='bar', show=False)
                 plt.tight_layout()
-                plt.title(feature)
                 pdf.savefig()
                 plt.close()
+                # Shap by features
+                for feature in self.features:
+                    plt.figure()
+                    shap.dependence_plot(
+                        ind=feature,
+                        shap_values=shap_values[1] if isinstance(shap_values, list) else shap_values,
+                        features=self.transform(df_plot[self.features]),
+                    )
+                    plt.tight_layout()
+                    plt.title(feature)
+                    pdf.savefig()
+                    plt.close()
             # As classifier
             # Logic:
             # If preds (predicted number of points to add to away team to get a tie)
@@ -222,10 +230,19 @@ class Validate(Model):
             plt.close()
 
     def save_results(self):
-        import pickle
+        filepath = os.path.join(self.model_dir, 'model.pkl')
+        with open(filepath, 'wb') as fp:
+            pickle.dump(self, fp)
+
+    def load_results(self):
+        filepath = os.path.join(self.model_dir, 'model.pkl')
+        with open(filepath, 'rb') as fp:
+            obj = pickle.load(fp)
+        return obj
 
     def predict_next_week(self) -> pd.DataFrame:
         df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
+        df = df[df['gameday'] > (pd.Timestamp(self.TODAY) - datetime.timedelta(days=self.window))]
         df = self.engineer_features(df)
         df_ = df[
             # Next week of NFL

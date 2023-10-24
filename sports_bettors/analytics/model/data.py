@@ -4,6 +4,7 @@ from tqdm import tqdm
 import datetime
 
 from sports_bettors.analytics.eda.eda import Eda
+from config import logger
 
 
 class Data(Eda):
@@ -20,6 +21,7 @@ class Data(Eda):
 
     def etl(self) -> pd.DataFrame:
         # Model training
+        logger.info('Downloading Data from Github')
         df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
         df = df[
             # Regular season only
@@ -46,10 +48,9 @@ class Data(Eda):
             df = self.calcs()
 
         records = []
-        for rdx, row in tqdm(
-                # Subset for window past training start
-                df[df['gameday'] > (pd.Timestamp(self.training_start) - pd.Timedelta(days=self.window))].iterrows()
-        ):
+        # Subset for window past training start
+        df__ = df[df['gameday'] > (pd.Timestamp(self.training_start) - pd.Timedelta(days=self.window))]
+        for rdx, row in tqdm(df__.iterrows(), total=df__.shape[0]):
             # Away team of row
             df_ = df[
                 (df['away_team'] == row['away_team']) &
