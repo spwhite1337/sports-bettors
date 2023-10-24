@@ -159,7 +159,9 @@ class Validate(Model):
             plt.ylabel('win-rate')
             plt.xlabel('Predicted Spread - Initial Spread')
             plt.hlines(0.525, -5, 5, color='black')
+            plt.hlines(1-0.525, -5, 5, color='black')
             plt.hlines(baseline_prob, -5, 5, 'gray')
+            plt.hlines(1-baseline_prob, -5, 5, 'gray')
             plt.ylim([0.4, 0.75])
             plt.grid(True)
             pdf.savefig()
@@ -174,6 +176,7 @@ class Validate(Model):
         df_ = df[
             df['gameday'].between(pd.Timestamp(self.TODAY), pd.Timestamp(self.TODAY) + datetime.timedelta(days=10))
             |
+            # Keep this SF game as a test case
             (df['game_id'] == '2023_07_SF_MIN')
         ].copy()
         df_ = df_[(~df_['money_line'].isna() & ~df_['spread_line'].isna()) | (df_['game_id'] == '2023_07_SF_MIN')]
