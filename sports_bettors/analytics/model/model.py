@@ -40,15 +40,12 @@ class Model(Data):
     def fit_transform(self, df: Optional[pd.DataFrame] = None) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         if df is None:
             df = self.engineer_features()
-
         # Train test split
         df_ = df[df['gameday'] < (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
         df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
-
         # Scale features
-        X, y = df_[self.features], df_[self.response].values
         self.scaler = StandardScaler()
-        self.scaler.fit(X)
+        self.scaler.fit(df_[self.features])
         return df_, df_val, df
 
     def train(self, df: pd.DataFrame):
