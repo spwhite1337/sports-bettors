@@ -68,5 +68,4 @@ class Model(Data):
         explainer = shap.KernelExplainer(self.model.predict, self.transform(df_), nsamples=100, link='identity')
         logger.info('Deriving Shap-Values')
         shap_values = explainer.shap_values(df[self.features].head(2))
-        print(type(shap_values))
         shap.force_plot(explainer.expected_value, shap_values[0, :], df.iloc[0, :], link='logit')

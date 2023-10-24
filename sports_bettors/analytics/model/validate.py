@@ -239,6 +239,14 @@ class Validate(Model):
         # margin of victory for home-team is like a spread for away team
         df_['predicted_margin_of_victory_for_home_team'] = self.predict_spread(df_)
         df_['spread_against_spread'] = df_['predicted_margin_of_victory_for_home_team'] - df_['spread_line']
-        print(df_)
+        print(df_[[
+            'game_id',
+            'gameday',
+            'spread_actual',
+            'spread_line',
+            'money_line',
+            'predicted_margin_of_victory_for_home_team',
+            'spread_against_spread'
+        ]])
         df_.to_csv(os.path.join(os.getcwd(), 'data', 'df_test.csv'), index=False)
         return df_
