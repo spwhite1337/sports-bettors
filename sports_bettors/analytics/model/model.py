@@ -65,6 +65,8 @@ class Model(Data):
 
     def shap_explain(self, df: pd.DataFrame):
         df_, _, _ = self.fit_transform()
+        logger.info('Deriving Explainer')
         explainer = shap.KernelExplainer(self.model.predict, self.transform(df_), nsamples=100, link='logit')
+        logger.info('Deriving Shap-Values')
         shap_values = explainer.shap_values(df[self.features])
         print(type(shap_values))
