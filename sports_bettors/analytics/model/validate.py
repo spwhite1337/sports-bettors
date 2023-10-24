@@ -78,24 +78,28 @@ class Validate(Model):
             # If preds (predicted number of points to add to away team to get a tie)
             # is less than spread-line, then we would predict the away team to cover
             # e.g. spread is -7 but we predict -9, or spread is 5 and we predict -3
+            # If it is more than the spread-line, then we would predict the home team to cover
+            # e.g. spread is -5 but we predict +1, or spread is +7 and we predict +10
+            # In this case, the away team is favored but we see them as underdogs relative to the spread
 
-            # Therefore a "spread against the spread" would be negative for the away team if they are favored to
-            # beat the spread
+            # Therefore a "spread against the spread" is the away team's expected margin of victory against the
+            # spread.
+            # Our advantage is that we just need to get a moneyline bet off this new spread-spread
+            # preds_c is the amount you need to add to the spread to get it "right"
             df['preds_c'] = df['preds'] - df['spread_line']
 
-            # If the actual number of points to add for the away team to get a tie is more than the spread
-            # then they lost against the spread
-            # e.g. -5 vs -7
-            # If the listed spread was greater than observed, then the away team won
-            # e.g. -5 vs. -7 or +5 vs +2
+            # The away team wins against the spread if the spread line was larger than the margin of victory
+            # E.g. spread is -7, but actual spread was -12
+            # e.g. spread is +3 but actual spread was +1
             classifier_response = 'away_team_wins_ats'
             df[classifier_response] = (df['spread_line'] > df['spread_actual']).astype(int)
             df_ = df[df['gameday'] < (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
             df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
 
             # ROC
-            fpr, tpr, thresholds = roc_curve(df_[classifier_response], df_['preds_c'])
-            auc = roc_auc_score(df_[classifier_response], df_['preds_c'])
+            # 1- response so polarity is "normal"
+            fpr, tpr, thresholds = roc_curve(1-df_[classifier_response], df_['preds_c'])
+            auc = roc_auc_score(1-df_[classifier_response], df_['preds_c'])
             plt.figure()
             plt.plot(fpr, tpr)
             plt.text(0.2, 0.9, f'AUC: {auc:.3f}\nn={df_val.shape[0]}')
@@ -105,8 +109,8 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            fpr, tpr, thresholds = roc_curve(df_val[classifier_response], df_val['preds_c'])
-            auc = roc_auc_score(df_val[classifier_response], df_val['preds_c'])
+            fpr, tpr, thresholds = roc_curve(1-df_val[classifier_response], df_val['preds_c'])
+            auc = roc_auc_score(1-df_val[classifier_response], df_val['preds_c'])
             plt.figure()
             plt.plot(fpr, tpr)
             plt.text(0.2, 0.9, f'AUC: {auc:.3f}\nn={df_val.shape[0]}')
@@ -116,11 +120,11 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            precision, recall, thresholds = precision_recall_curve(df_[classifier_response], df_['preds_c'])
+            precision, recall, thresholds = precision_recall_curve(1-df_[classifier_response], df_['preds_c'])
             plt.figure()
             plt.plot(thresholds, precision[1:], label='precision')
             plt.plot(thresholds, recall[1:], label='recall')
-            plt.hlines(df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='black')
+            plt.hlines(1-df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='black')
             plt.hlines(0.525, min(thresholds), max(thresholds), color='gray')
             plt.legend()
             plt.grid(True)
@@ -128,12 +132,12 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            precision, recall, thresholds = precision_recall_curve(df_val[classifier_response], df_val['preds_c'])
+            precision, recall, thresholds = precision_recall_curve(1-df_val[classifier_response], df_val['preds_c'])
             plt.figure()
             plt.plot(thresholds, precision[1:], label='precision')
             plt.plot(thresholds, recall[1:], label='recall')
             plt.legend()
-            plt.hlines(df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='black')
+            plt.hlines(1-df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='black')
             plt.hlines(0.525, min(thresholds), max(thresholds), color='gray')
             plt.grid(True)
             plt.title('Test')
@@ -145,6 +149,8 @@ class Validate(Model):
             for threshold in np.linspace(-10, 10, 41):
                 record = {
                     'threshold': threshold,
+                    # preds_c is "the amount we need to add to the spread-line to get it "right"
+                    # If preds_c is negative, then we are expecting the away team to do better
                     'fraction_games': df_val[df_val['preds_c'] < threshold].shape[0] / n_total,
                     'win_rate': df_val[(df_val['preds_c']) < threshold][classifier_response].mean(),
                     'team': 'Away'
@@ -198,6 +204,7 @@ class Validate(Model):
         df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
         df = self.engineer_features(df)
         df_ = df[
+            # Next week of NFL
             df['gameday'].between(pd.Timestamp(self.TODAY), pd.Timestamp(self.TODAY) + datetime.timedelta(days=10))
             |
             # Keep this SF game as a test case
@@ -205,8 +212,9 @@ class Validate(Model):
         ].copy()
         df_ = df_[(~df_['money_line'].isna() & ~df_['spread_line'].isna()) | (df_['game_id'] == '2023_07_SF_MIN')]
 
-        df_['preds'] = self.predict_spread(df_)
-        df_['preds_c'] = df_['spread_line'] - df_['preds']
+        # margin of victory for home-team is like a spread for away team
+        df_['predicted_margin_of_victory_for_home_team'] = self.predict_spread(df_)
+        df_['spread_against_spread'] = df_['predicted_margin_of_victory_for_home_team'] - df_['spread_line']
         print(df_)
         df_.to_csv(os.path.join(os.getcwd(), 'data', 'df_test.csv'), index=False)
         return df_
