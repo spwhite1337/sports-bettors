@@ -139,22 +139,32 @@ class Validate(Model):
                 fraction = df_val[df_val['preds_c'] >= threshold].shape[0] / df_val.shape[0]
                 wins = df_val[(df_val['preds_c'] >= threshold)].shape[0] * \
                        df_val[(df_val['preds_c']) >= threshold][classifer_response].mean()
-                total = df_val[(df_val['preds_c']) >= threshold].shape[0]
+                total = df_val[df_val['preds_c'] >= threshold].shape[0]
+                alt_wins = df_val[(df_val['preds_c'] <= threshold)].shape[0] * \
+                           (1-df_val[(df_val['preds_c']) <= threshold][classifer_response].mean())
+                alt_total = df_val[df_val['preds_c'] <= threshold].shape[0]
                 record = {
                     'threshold': threshold,
                     'fraction': fraction,
                     'wins': wins,
                     'total': total,
-                    'win_rate': wins / total if total > 0 else None
+                    'alt_wins': alt_wins,
+                    'alt_total': alt_total,
+                    'win_rate': wins / total if total > 0 else None,
+                    'alt_win_rate': alt_wins / alt_total if alt_total > 0 else None
                 }
                 records.append(record)
             df_plot = pd.DataFrame.from_records(records)
             baseline_prob = self._baseline_prob()
             df_plot['win_rate_total'] = baseline_prob * (1 - df_plot['fraction']) + \
                                         df_plot['win_rate'] * df_plot['fraction']
+            df_plot['alt_win_rate_total'] = baseline_prob * (1 - df_plot['fraction']) + \
+                                            df_plot['alt_win_rate'] * df_plot['fraction']
             plt.figure()
             plt.plot(df_plot['threshold'], df_plot['win_rate'], label='win-rate')
             plt.plot(df_plot['threshold'], df_plot['win_rate_total'], label='win_rate_total')
+            plt.plot(df_plot['threshold'], df_plot['alt_win_rate'], label='alt-win-rate')
+            plt.plot(df_plot['threshold'], df_plot['alt_win_rate_total'], label='alt-win_rate_total')
             plt.legend()
             plt.ylabel('win-rate')
             plt.xlabel('Predicted Spread - Initial Spread')
@@ -162,10 +172,11 @@ class Validate(Model):
             plt.hlines(1-0.525, -5, 5, color='black')
             plt.hlines(baseline_prob, -5, 5, 'gray')
             plt.hlines(1-baseline_prob, -5, 5, 'gray')
-            plt.ylim([0.4, 0.75])
+            # plt.ylim([0.4, 0.75])
             plt.grid(True)
             pdf.savefig()
             plt.close()
+
 
     def save_results(self):
         import pickle
