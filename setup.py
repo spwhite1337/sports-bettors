@@ -13,7 +13,8 @@ setup(
         'sb_run_experiments = sports_bettors.experiments:run_experiments',
         'sb_predict = sports_bettors.api:api_cli',
         'sb_generate_predictors = sports_bettors.api:create_predictor_sets',
-        'sb_upload = sports_bettors.upload:upload'
+        'sb_upload = sports_bettors.upload:upload',
+        'sb_predict_spreads = sports_bettors.predict:predict_cli'
     ]},
     install_requires=[
         'pandas',
