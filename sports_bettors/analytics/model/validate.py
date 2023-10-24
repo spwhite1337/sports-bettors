@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 import numpy as np
 import pandas as pd
 import datetime
@@ -73,8 +72,17 @@ class Validate(Model):
 
             # As classifier
             classifer_response = 'away_team_wins_ats'
-            df['preds_c'] = df['preds'] - df['spread_line']
-            df[classifer_response] = ((df['spread_actual'] - df['spread_line']) > 0).astype(int)
+            # Logic:
+            # If preds (predicted number of points to add to away team to get a tie)
+            # is less than spread-line, then we would predict the away team to cover
+            # e.g. spread is -7 but we predict -9, or spread is 5 and we predict -3
+            # Therefore, spread-line minus preds is positively correlated with away team covering
+            df['preds_c'] = df['spread_line'] - df['preds']
+            # If the actual number of points to add for the away team to get a tie is more than the spread
+            # e.g. -5 vs -7 then they lost
+            # If the listed spread was greater than observed, then the away team won
+            # e.g. -5 vs. -7 or +5 vs +2
+            df[classifer_response] = (df['spread_line'] > df['spread_actual']).astype(int)
             df_ = df[df['gameday'] < (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
             df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
 
@@ -165,11 +173,13 @@ class Validate(Model):
         df = self.engineer_features(df)
         df_ = df[
             df['gameday'].between(pd.Timestamp(self.TODAY), pd.Timestamp(self.TODAY) + datetime.timedelta(days=10))
+            |
+            (df['game_id'] == '2023_07_SF_MIN')
         ].copy()
-        df_ = df_[~df_['money_line'].isna() & ~df_['spread_line'].isna()]
+        df_ = df_[(~df_['money_line'].isna() & ~df_['spread_line'].isna()) | (df_['game_id'] == '2023_07_SF_MIN')]
 
         df_['preds'] = self.predict_spread(df_)
-        df_['preds_c'] = df_['preds'] - df_['spread_line']
+        df_['preds_c'] = df_['spread_line'] - df_['preds']
         print(df_)
         df_.to_csv(os.path.join(os.getcwd(), 'data', 'df_test.csv'), index=False)
         return df_
