@@ -162,8 +162,12 @@ class Validate(Model):
     def predict_by_game_id(self):
         df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
         df = self.engineer_features(df)
-        df_ = df[df['gameday'].between(self.TODAY, self.TODAY + datetime.timedelta(days=10))].copy()
+        df_ = df[
+            df['gameday'].between(pd.Timestamp(self.TODAY), pd.Timestamp(self.TODAY) + datetime.timedelta(days=10))
+        ].copy()
+        df_ = df_[~df_['money_line'].isna() & ~df_['spread_line'].isna()]
 
         df_['preds'] = self.predict_spread(df_)
         df_['preds_c'] = df_['preds'] - df_['spread_line']
         print(df_)
+        df_.to_csv(os.path.join(os.getcwd(), 'data', 'df_test.csv'), index=False)
