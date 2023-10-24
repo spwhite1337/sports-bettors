@@ -7,14 +7,14 @@ def run():
     Eda().analyze()
     Bets().analyze()
     api = Validate()
-    df, df_val, _ = api.fit_transform()
+    df, df_val, df_all = api.fit_transform()
     api.train(df)
-    api.validate()
+    api.validate(df, df_val, df_all)
 
 
 def test():
     api = Validate()
-    df, df_val, _ = api.fit_transform()
+    df, df_val, df_all = api.fit_transform()
     api.train(df)
     df_ = api.predict_next_week()
     api.shap_explain(df_)

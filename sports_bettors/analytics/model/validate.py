@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 import numpy as np
 import pandas as pd
 import datetime
@@ -17,8 +18,10 @@ class Validate(Model):
     def _baseline_prob():
         return 0.541
 
-    def validate(self):
-        df_, df_val, df = self.fit_transform()
+    def validate(self, df_: Optional[pd.DataFrame] = None, df_val: Optional[pd.DataFrame] = None,
+                 df: Optional[pd.DataFrame] = None):
+        if any([df_ is None, df_val is None, df is None]):
+            df_, df_val, df = self.fit_transform()
 
         df_['preds'] = self.predict_spread(df_)
         df_val['preds'] = self.predict_spread(df_val)
@@ -71,24 +74,28 @@ class Validate(Model):
             plt.close()
 
             # As classifier
-            classifer_response = 'away_team_wins_ats'
             # Logic:
             # If preds (predicted number of points to add to away team to get a tie)
             # is less than spread-line, then we would predict the away team to cover
             # e.g. spread is -7 but we predict -9, or spread is 5 and we predict -3
-            # Therefore, spread-line minus preds is positively correlated with away team covering
-            df['preds_c'] = df['spread_line'] - df['preds']
+
+            # Therefore a "spread against the spread" would be negative for the away team if they are favored to
+            # beat the spread
+            df['preds_c'] = df['preds'] - df['spread_line']
+
             # If the actual number of points to add for the away team to get a tie is more than the spread
-            # e.g. -5 vs -7 then they lost
+            # then they lost against the spread
+            # e.g. -5 vs -7
             # If the listed spread was greater than observed, then the away team won
             # e.g. -5 vs. -7 or +5 vs +2
-            df[classifer_response] = (df['spread_line'] > df['spread_actual']).astype(int)
+            classifier_response = 'away_team_wins_ats'
+            df[classifier_response] = (df['spread_line'] > df['spread_actual']).astype(int)
             df_ = df[df['gameday'] < (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
             df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
 
             # ROC
-            fpr, tpr, thresholds = roc_curve(df_[classifer_response], df_['preds_c'])
-            auc = roc_auc_score(df_[classifer_response], df_['preds_c'])
+            fpr, tpr, thresholds = roc_curve(df_[classifier_response], df_['preds_c'])
+            auc = roc_auc_score(df_[classifier_response], df_['preds_c'])
             plt.figure()
             plt.plot(fpr, tpr)
             plt.text(0.2, 0.9, f'AUC: {auc:.3f}\nn={df_val.shape[0]}')
@@ -98,8 +105,8 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            fpr, tpr, thresholds = roc_curve(df_val[classifer_response], df_val['preds_c'])
-            auc = roc_auc_score(df_val[classifer_response], df_val['preds_c'])
+            fpr, tpr, thresholds = roc_curve(df_val[classifier_response], df_val['preds_c'])
+            auc = roc_auc_score(df_val[classifier_response], df_val['preds_c'])
             plt.figure()
             plt.plot(fpr, tpr)
             plt.text(0.2, 0.9, f'AUC: {auc:.3f}\nn={df_val.shape[0]}')
@@ -109,11 +116,11 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            precision, recall, thresholds = precision_recall_curve(df_[classifer_response], df_['preds_c'])
+            precision, recall, thresholds = precision_recall_curve(df_[classifier_response], df_['preds_c'])
             plt.figure()
             plt.plot(thresholds, precision[1:], label='precision')
             plt.plot(thresholds, recall[1:], label='recall')
-            plt.hlines(df_val[classifer_response].mean(), min(thresholds), max(thresholds), color='black')
+            plt.hlines(df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='black')
             plt.hlines(0.525, min(thresholds), max(thresholds), color='gray')
             plt.legend()
             plt.grid(True)
@@ -121,12 +128,12 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            precision, recall, thresholds = precision_recall_curve(df_val[classifer_response], df_val['preds_c'])
+            precision, recall, thresholds = precision_recall_curve(df_val[classifier_response], df_val['preds_c'])
             plt.figure()
             plt.plot(thresholds, precision[1:], label='precision')
             plt.plot(thresholds, recall[1:], label='recall')
             plt.legend()
-            plt.hlines(df_val[classifer_response].mean(), min(thresholds), max(thresholds), color='black')
+            plt.hlines(df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='black')
             plt.hlines(0.525, min(thresholds), max(thresholds), color='gray')
             plt.grid(True)
             plt.title('Test')
@@ -134,49 +141,55 @@ class Validate(Model):
             plt.close()
 
             # Win-rate
-            records = []
+            records, n_total = [], df_val.shape[0]
             for threshold in np.linspace(-10, 10, 41):
-                fraction = df_val[df_val['preds_c'] >= threshold].shape[0] / df_val.shape[0]
-                wins = df_val[(df_val['preds_c'] >= threshold)].shape[0] * \
-                       df_val[(df_val['preds_c']) >= threshold][classifer_response].mean()
-                total = df_val[df_val['preds_c'] >= threshold].shape[0]
-                alt_wins = df_val[(df_val['preds_c'] <= threshold)].shape[0] * \
-                           (1-df_val[(df_val['preds_c']) <= threshold][classifer_response].mean())
-                alt_total = df_val[df_val['preds_c'] <= threshold].shape[0]
                 record = {
                     'threshold': threshold,
-                    'fraction': fraction,
-                    'wins': wins,
-                    'total': total,
-                    'alt_wins': alt_wins,
-                    'alt_total': alt_total,
-                    'win_rate': wins / total if total > 0 else None,
-                    'alt_win_rate': alt_wins / alt_total if alt_total > 0 else None
+                    'fraction_games': df_val[df_val['preds_c'] < threshold].shape[0] / n_total,
+                    'win_rate': df_val[(df_val['preds_c']) < threshold][classifier_response].mean(),
+                    'team': 'Away'
+                }
+                records.append(record)
+                record = {
+                    'threshold': threshold,
+                    'fraction_games': df_val[df_val['preds_c'] > threshold].shape[0] / n_total,
+                    'win_rate': (1 - df_val[(df_val['preds_c']) > threshold][classifier_response]).mean(),
+                    'team': 'Home'
                 }
                 records.append(record)
             df_plot = pd.DataFrame.from_records(records)
             baseline_prob = self._baseline_prob()
-            df_plot['win_rate_total'] = baseline_prob * (1 - df_plot['fraction']) + \
-                                        df_plot['win_rate'] * df_plot['fraction']
-            df_plot['alt_win_rate_total'] = baseline_prob * (1 - df_plot['fraction']) + \
-                                            df_plot['alt_win_rate'] * df_plot['fraction']
             plt.figure()
-            plt.plot(df_plot['threshold'], df_plot['win_rate'], label='win-rate')
-            plt.plot(df_plot['threshold'], df_plot['win_rate_total'], label='win_rate_total')
-            plt.plot(df_plot['threshold'], df_plot['alt_win_rate'], label='alt-win-rate')
-            plt.plot(df_plot['threshold'], df_plot['alt_win_rate_total'], label='alt-win_rate_total')
+            for team, df_ in df_plot.groupby('team'):
+                df_ = df_[df_['fraction_games'] > 0.01]
+                plt.plot(df_['threshold'], df_['win_rate'], label=team)
+            plt.gca().invert_xaxis()
+            plt.text(10, 0.92, 'Home Wins Against Spread')
+            plt.text(-3, 0.88, 'Away Wins Against Spread')
             plt.legend()
-            plt.ylabel('win-rate')
-            plt.xlabel('Predicted Spread - Initial Spread')
+            plt.ylabel('Win Rate')
+            plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.hlines(0.525, -5, 5, color='black')
             plt.hlines(1-0.525, -5, 5, color='black')
-            plt.hlines(baseline_prob, -5, 5, 'gray')
-            plt.hlines(1-baseline_prob, -5, 5, 'gray')
-            # plt.ylim([0.4, 0.75])
+            plt.title('Betting Guide')
             plt.grid(True)
             pdf.savefig()
             plt.close()
 
+            plt.figure()
+            for team, df_ in df_plot.groupby('team'):
+                df_ = df_[df_['win_rate'] > 0.525]
+                plt.plot(df_['threshold'], df_['fraction_games'], label=team)
+            plt.gca().invert_xaxis()
+            plt.text(10, 0.92, 'Home Wins Against Spread')
+            plt.text(-3, 0.88, 'Away Wins Against Spread')
+            plt.legend()
+            plt.ylabel('Fraction of Games with Good Odds')
+            plt.xlabel('Predicted Spread on the Vegas-Spread')
+            plt.title('Betting Guide: Number of Games')
+            plt.grid(True)
+            pdf.savefig()
+            plt.close()
 
     def save_results(self):
         import pickle
