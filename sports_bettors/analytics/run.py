@@ -17,7 +17,7 @@ def test():
     df, df_val, df_all = api.fit_transform()
     api.train(df)
     df_ = api.predict_next_week()
-    api.shap_explain(df_)
+    # api.shap_explain(df_)
 
 
 if __name__ == '__main__':
