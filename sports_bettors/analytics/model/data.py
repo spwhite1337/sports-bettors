@@ -1,3 +1,5 @@
+import os
+import pickle
 from typing import Optional
 import pandas as pd
 from tqdm import tqdm
@@ -18,6 +20,9 @@ class Data(Eda):
             datetime.datetime.today() - datetime.timedelta(days=self.training_years * 365),
             '%Y-%m-%d',
         )
+        self.model_dir = os.path.join(os.getcwd(), 'data', 'sports_bettors', 'models')
+        if not os.path.exists(self.model_dir):
+            os.makedirs(self.model_dir)
 
     def etl(self) -> pd.DataFrame:
         # Model training
@@ -149,3 +154,18 @@ class Data(Eda):
                 on=['game_id', 'gameday']
             )
         return df_out
+
+    def save_results(self):
+        filepath = os.path.join(self.model_dir, 'model.pkl')
+        with open(filepath, 'wb') as fp:
+            pickle.dump(self, fp)
+
+    def load_results(self, model_dir: Optional[str] = None):
+        model_dir = self.model_dir if model_dir is None else model_dir
+        filepath = os.path.join(model_dir, 'model.pkl')
+        if not os.path.exists(filepath):
+            print('No Model')
+            return None
+        with open(filepath, 'rb') as fp:
+            obj = pickle.load(fp)
+        return obj

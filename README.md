@@ -151,3 +151,9 @@ A dashboard is available to explore results.
 - `cd api`
 - `set FLASK_APP=run.py` (`export` in bash)
 - `flask run`
+
+
+## Spread Preds
+
+- `pip install -e .`
+- `sb_predict_next_week --retrain`

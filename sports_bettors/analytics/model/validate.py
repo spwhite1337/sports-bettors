@@ -17,12 +17,6 @@ from config import logger
 
 class Validate(Model):
 
-    def __init__(self):
-        super().__init__()
-        self.model_dir = os.path.join(os.getcwd(), 'data', 'sports_bettors', 'models')
-        if not os.path.exists(self.model_dir):
-            os.makedirs(self.model_dir)
-
     @staticmethod
     def _baseline_prob():
         return 0.541
@@ -228,18 +222,6 @@ class Validate(Model):
             plt.grid(True)
             pdf.savefig()
             plt.close()
-
-    def save_results(self):
-        filepath = os.path.join(self.model_dir, 'model.pkl')
-        with open(filepath, 'wb') as fp:
-            pickle.dump(self, fp)
-
-    def load_results(self, model_dir: Optional[str] = None):
-        model_dir = self.model_dir if model_dir is None else model_dir
-        filepath = os.path.join(model_dir, 'model.pkl')
-        with open(filepath, 'rb') as fp:
-            obj = pickle.load(fp)
-        return obj
 
     def predict_next_week(self) -> pd.DataFrame:
         df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])

@@ -48,7 +48,9 @@ class Model(Data):
         self.scaler.fit(df_[self.features])
         return df_, df_val, df
 
-    def train(self, df: pd.DataFrame):
+    def train(self, df: Optional[pd.DataFrame] = None):
+        if df is None:
+            df, _, _ = self.fit_transform()
         logger.info('Train a Model')
         self.model = SVR(kernel='rbf', C=3, gamma=0.1, epsilon=0.1)
         X, y = pd.DataFrame(self.scaler.transform(df[self.features]), columns=self.features), df[self.response]

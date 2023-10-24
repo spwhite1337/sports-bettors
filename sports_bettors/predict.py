@@ -3,7 +3,11 @@ from sports_bettors.analytics.model.validate import Validate
 
 def predict(retrain: bool = False):
     api = Validate().load_results()
-    if retrain:
+    if api is None:
+        api = Validate()
+        api.train()
+        api.validate()
+    elif retrain:
         api.train()
         api.validate()
     api.predict_next_week()
