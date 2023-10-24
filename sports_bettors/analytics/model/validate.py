@@ -149,6 +149,7 @@ class Validate(Model):
             plt.plot(df_plot['threshold'], df_plot['win_rate_total'], label='win_rate_total')
             plt.legend()
             plt.ylabel('win-rate')
+            plt.xlabel('Predicted Spread - Initial Spread')
             plt.hlines(0.525, -5, 5, color='black')
             plt.hlines(baseline_prob, -5, 5, 'gray')
             plt.ylim([0.4, 0.75])
