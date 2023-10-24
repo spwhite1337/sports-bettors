@@ -60,7 +60,6 @@ class Model(Data):
         if self.model is None or self.scaler is None:
             logger.error('No Model and / or scaler')
             raise ValueError()
-
         return self.model.predict(self.transform(df))
 
     def shap_explain(self, df: pd.DataFrame):
