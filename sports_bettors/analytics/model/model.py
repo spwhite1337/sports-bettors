@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
+import shap
 from sklearn.metrics import accuracy_score, roc_curve, roc_auc_score, precision_recall_curve
 
 from sports_bettors.analytics.model.data import Data
@@ -61,3 +62,9 @@ class Model(Data):
             raise ValueError()
 
         return self.model.predict(self.transform(df))
+
+    def shap_explain(self, df: pd.DataFrame):
+        df_, _, _ = self.fit_transform()
+        explainer = shap.KernelExplainer(self.model.predict, self.transform(df_), sample=100, link='logit').\
+        shap_values = explainer.shap_values(df[self.features])
+        print(type(shap_values))

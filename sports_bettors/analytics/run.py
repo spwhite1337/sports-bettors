@@ -16,7 +16,8 @@ def test():
     api = Validate()
     df, df_val, _ = api.fit_transform()
     api.train(df)
-    api.predict_by_game_id()
+    df_ = api.predict_next_week()
+    api.shap_explain(df_)
 
 
 if __name__ == '__main__':

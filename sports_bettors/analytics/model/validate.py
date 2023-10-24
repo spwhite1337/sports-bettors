@@ -159,7 +159,7 @@ class Validate(Model):
     def save_results(self):
         import pickle
 
-    def predict_by_game_id(self):
+    def predict_next_week(self) -> pd.DataFrame:
         df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
         df = self.engineer_features(df)
         df_ = df[
@@ -171,3 +171,4 @@ class Validate(Model):
         df_['preds_c'] = df_['preds'] - df_['spread_line']
         print(df_)
         df_.to_csv(os.path.join(os.getcwd(), 'data', 'df_test.csv'), index=False)
+        return df_
