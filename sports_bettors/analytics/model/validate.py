@@ -3,6 +3,7 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 import datetime
+import shap
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -10,6 +11,7 @@ from matplotlib.backends.backend_pdf import PdfPages
 from sklearn.metrics import roc_curve, roc_auc_score, precision_recall_curve
 
 from sports_bettors.analytics.model.model import Model
+from config import logger
 
 
 class Validate(Model):
@@ -73,6 +75,28 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
+            # # Shap-values
+            # logger.info('Shap')
+            # df_plot = df_val[self.features].sample(100) if df_val.shape[0] > 100 else df_val[self.features]
+            # explainer = shap.KernelExplainer(self.model.predict, self.transform(df_val), nsamples=100, link='identity')
+            # shap_values = explainer.shap_values(self.transform(df_plot))
+            # plt.figure()
+            # shap.summary_plot(shap_values, features=self.features, plot_type='bar', show=False)
+            # plt.tight_layout()
+            # pdf.savefig()
+            # plt.close()
+            # # Shap by features
+            # for feature in self.features:
+            #     plt.figure()
+            #     shap.dependence_plot(
+            #         ind=feature,
+            #         shap_values=shap_values[1] if isinstance(shap_values, list) else shap_values,
+            #         features=self.transform(df_plot[self.features]),
+            #     )
+            #     plt.tight_layout()
+            #     plt.title(feature)
+            #     pdf.savefig()
+            #     plt.close()
             # As classifier
             # Logic:
             # If preds (predicted number of points to add to away team to get a tie)

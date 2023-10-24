@@ -78,15 +78,16 @@ class Data(Eda):
             record = {
                 'game_id': row['game_id'],
                 'gameday': row['gameday'],
-                'away_team_wins_past_month': home_wins + away_wins,
-                'away_team_wins_ats_past_month': away_wins_ats + home_wins_ats,
-                'away_team_losses_ats_past_month': away_losses_ats + home_losses_ats,
-                'away_team_losses_past_month': home_losses + away_losses,
-                'away_team_win_rate_past_month': (home_wins + away_wins) / (home_wins + away_wins + home_losses + away_losses),
-                'away_team_win_rate_ats_past_month': (home_wins_ats + away_wins_ats) / (home_wins_ats + away_wins_ats + home_losses_ats + away_losses_ats),
-                'away_team_points_for_past_month': away_pf + home_pf,
-                'away_team_points_against_past_month': home_pf + away_pa,
+                'away_team_wins': home_wins + away_wins,
+                'away_team_wins_ats': away_wins_ats + home_wins_ats,
+                'away_team_losses_ats': away_losses_ats + home_losses_ats,
+                'away_team_losses': home_losses + away_losses,
+                'away_team_win_rate': (home_wins + away_wins) / (home_wins + away_wins + home_losses + away_losses),
+                'away_team_win_rate_ats': (home_wins_ats + away_wins_ats) / (home_wins_ats + away_wins_ats + home_losses_ats + away_losses_ats),
+                'away_team_points_for': away_pf + home_pf,
+                'away_team_points_against': home_pa + away_pa,
                 'away_team_total_points': away_total + home_total,
+                'away_team_point_differential': away_pf + home_pf - home_pa - away_pa,
                 'money_line': self._calc_payout(row['away_moneyline'])
             }
 
@@ -115,24 +116,25 @@ class Data(Eda):
             home_pa = df_['away_score'].sum()
             home_total = home_pf + home_pa
 
-            record['home_team_wins_past_month'] = home_wins + away_wins
-            record['home_team_losses_past_month'] = home_losses + away_losses
-            record['home_team_wins_ats_past_month'] = home_wins_ats + away_wins_ats
-            record['home_team_losses_ats_past_month'] = home_losses_ats + away_losses_ats
-            record['home_team_win_rate_past_month'] = (home_wins + away_wins) / (home_wins + away_wins + home_losses + away_losses)
-            record['home_team_win_rate_ats_past_month'] = (home_wins_ats + away_wins_ats) / (home_wins_ats + away_wins_ats + home_losses_ats + away_losses_ats)
-            record['home_team_points_for_past_month'] = away_pf + home_pf
-            record['home_team_points_against_past_month'] = home_pf + home_pa
+            record['home_team_wins'] = home_wins + away_wins
+            record['home_team_losses'] = home_losses + away_losses
+            record['home_team_wins_ats'] = home_wins_ats + away_wins_ats
+            record['home_team_losses_ats'] = home_losses_ats + away_losses_ats
+            record['home_team_win_rate'] = (home_wins + away_wins) / (home_wins + away_wins + home_losses + away_losses)
+            record['home_team_win_rate_ats'] = (home_wins_ats + away_wins_ats) / (home_wins_ats + away_wins_ats + home_losses_ats + away_losses_ats)
+            record['home_team_points_for'] = away_pf + home_pf
+            record['home_team_points_against'] = home_pa + home_pa
+            record['home_team_point_differential'] = home_pf + away_pf - home_pa - away_pa
             record['home_team_total_points'] = away_total + home_total
             records.append(record)
 
         df_out = pd.DataFrame.from_records(records)
         # Fill na for win-rate
         for col in [
-            'away_team_win_rate_past_month',
-            'away_team_win_rate_ats_past_month',
-            'home_team_win_rate_past_month',
-            'home_team_win_rate_ats_past_month',
+            'away_team_win_rate',
+            'away_team_win_rate_ats',
+            'home_team_win_rate',
+            'home_team_win_rate_ats',
         ]:
             if col in df_out.columns:
                 df_out[col] = df_out[col].fillna(0.)

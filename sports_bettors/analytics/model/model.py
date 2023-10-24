@@ -5,7 +5,6 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
 import shap
-from sklearn.metrics import accuracy_score, roc_curve, roc_auc_score, precision_recall_curve
 
 from sports_bettors.analytics.model.data import Data
 from config import logger
@@ -16,18 +15,20 @@ class Model(Data):
     TODAY = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
 
     features = [
-        # 'away_team_wins_ats_past_month',
-        # 'away_team_losses_ats_past_month',
-        # 'home_team_wins_ats_past_month',
-        # 'home_team_losses_ats_past_month',
-        'away_team_win_rate_ats_past_month',
-        'home_team_win_rate_ats_past_month',
+        # 'away_team_wins_ats',
+        # 'away_team_losses_ats',
+        # 'home_team_wins_ats',
+        # 'home_team_losses_ats',
+        'away_team_win_rate_ats',
+        'home_team_win_rate_ats',
         'money_line',
         'spread_line',
-        'away_team_points_for_past_month',
-        'home_team_points_for_past_month',
-        'away_team_points_against_past_month',
-        'home_team_points_against_past_month',
+        'away_team_points_for',
+        'home_team_points_for',
+        'away_team_points_against',
+        'home_team_points_against',
+        # 'away_team_point_differential',
+        # 'home_team_point_differential'
     ]
     response = 'spread_actual'
 
@@ -45,18 +46,18 @@ class Model(Data):
         df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
 
         # Scale features
-        X, y = df_[self.features].values, df_[self.response].values
+        X, y = df_[self.features], df_[self.response].values
         self.scaler = StandardScaler()
         self.scaler.fit(X)
         return df_, df_val, df
 
     def train(self, df: pd.DataFrame):
         self.model = SVR(kernel='rbf', C=3, gamma=0.1, epsilon=0.1)
-        X, y = self.scaler.transform(df[self.features]), df[self.response]
+        X, y = pd.DataFrame(self.scaler.transform(df[self.features]), columns=self.features), df[self.response]
         self.model.fit(X, y)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        return self.scaler.transform(df[self.features])
+        return pd.DataFrame(self.scaler.transform(df[self.features]), columns=self.features)
 
     def predict_spread(self, df: pd.DataFrame) -> pd.Series:
         if self.model is None or self.scaler is None:
@@ -66,7 +67,7 @@ class Model(Data):
         return self.model.predict(self.transform(df))
 
     def shap_explain(self, df: pd.DataFrame):
-        df_, _, _ = self.fit_transform()
+        _, df_, _ = self.fit_transform()
         logger.info('Deriving Explainer')
         explainer = shap.KernelExplainer(self.model.predict, self.transform(df_), nsamples=100, link='identity')
         logger.info('Deriving Shap-Values')
