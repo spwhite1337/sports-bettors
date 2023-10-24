@@ -106,10 +106,9 @@ class Eda(object):
 
     def analyze(self):
         df = self.etl()
-
         # Moneyline accuracy
         df_ml = self.moneyline_accuracy(df)
-
+        # Validate
         with PdfPages(os.path.join(self.save_dir, 'eda.pdf')) as pdf:
             plt.figure()
             df_ml['win_prob_bucket'] = df_ml['win_prob_bucket'].astype(str)

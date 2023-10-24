@@ -150,7 +150,20 @@ class Validate(Model):
             plt.ylabel('win-rate')
             plt.hlines(0.525, -5, 5, color='black')
             plt.hlines(baseline_prob, -5, 5, 'gray')
+            plt.ylim([0.4, 0.75])
             plt.grid(True)
             pdf.savefig()
             plt.close()
+
+    def save_results(self):
+        import pickle
+
+    def predict_by_game_id(self):
+        df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
+        df = self.engineer_features(df)
+        df_ = df[df['game_id'] == '2023_07_SF_MIN']
+
+        df_['preds'] = self.predict_spread(df_)
+        df_['preds_c'] = df_['preds'] - df_['spread_line']
+        print(df_)
 
