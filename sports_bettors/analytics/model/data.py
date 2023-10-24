@@ -27,7 +27,7 @@ class Data(Eda):
             &
             # Not planned
             (~df['away_score'].isna())
-            ]
+        ]
         return df
 
     def calcs(self, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
@@ -124,6 +124,9 @@ class Data(Eda):
 
         df_out = pd.DataFrame.from_records(records)
         df_out = df_out[df_out['gameday'] > self.training_start]
+        for col in ['spread_actual', 'spread_diff']:
+            if col not in df.columns:
+                df[col] = None
         df_out = df_out.\
             merge(
                 df[['game_id', 'gameday', 'spread_actual', 'spread_line', 'spread_diff']],

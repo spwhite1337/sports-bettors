@@ -12,5 +12,12 @@ def run():
     api.validate()
 
 
+def test():
+    api = Validate()
+    df, df_val, _ = api.fit_transform()
+    api.train(df)
+    api.predict_by_game_id()
+
+
 if __name__ == '__main__':
     run()

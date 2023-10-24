@@ -2,6 +2,7 @@ import os
 from typing import Optional
 import numpy as np
 import pandas as pd
+import datetime
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -161,9 +162,8 @@ class Validate(Model):
     def predict_by_game_id(self):
         df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
         df = self.engineer_features(df)
-        df_ = df[df['game_id'] == '2023_07_SF_MIN']
+        df_ = df[df['gameday'].between(self.TODAY, self.TODAY + datetime.timedelta(days=10))].copy()
 
         df_['preds'] = self.predict_spread(df_)
         df_['preds_c'] = df_['preds'] - df_['spread_line']
         print(df_)
-
