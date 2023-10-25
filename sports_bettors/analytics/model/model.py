@@ -131,7 +131,7 @@ class Model(Data):
     def train(self, df: Optional[pd.DataFrame] = None):
         if df is None:
             df, _, _ = self.fit_transform()
-        logger.info('Train a Model')
+        logger.info(f'Training a Model for {self.league} on {self.response}')
         self.model = SVR(
             kernel='rbf',
             gamma=0.1,
