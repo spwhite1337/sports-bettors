@@ -219,7 +219,7 @@ class Validate(Model):
             records, n_total = [], df_val.shape[0]
             if self.response == 'spread':
                 thresholds = np.linspace(-10, 10, 41)
-                labels = 'Away', 'Home'
+                labels = 'Favorite', 'Underdog'
                 round_interval = 0.5
             elif self.response == 'over':
                 thresholds = np.linspace(-20, 20, 41)
@@ -259,8 +259,8 @@ class Validate(Model):
                 plt.plot(df_['threshold'], df_['win_rate'], label=team)
             if self.response == 'spread':
                 plt.gca().invert_xaxis()
-                plt.text(10, 0.6, 'Home Wins Against Spread')
-                plt.text(-3, 0.6, 'Away Wins Against Spread')
+                plt.text(10, 0.6, 'Underdog Wins Against Spread')
+                plt.text(-3, 0.6, 'Favorite Wins Against Spread')
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
             plt.ylabel('Win Rate - Cumulative')
@@ -277,8 +277,8 @@ class Validate(Model):
                 plt.plot(df_['threshold'], df_['win_rate_interval'], label=team)
             if self.response == 'spread':
                 plt.gca().invert_xaxis()
-                plt.text(10, 0.6, 'Home Wins Against Spread')
-                plt.text(-3, 0.6, 'Away Wins Against Spread')
+                plt.text(10, 0.6, 'Underdog Wins Against Spread')
+                plt.text(-3, 0.6, 'Favorite Wins Against Spread')
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
             plt.ylabel('Win Rate')
@@ -295,8 +295,8 @@ class Validate(Model):
                 plt.plot(df_['threshold'], df_['fraction_games'], label=team)
             if self.response == 'spread':
                 plt.gca().invert_xaxis()
-                plt.text(10, 0.6, 'Home Wins Against Spread')
-                plt.text(-3, 0.6, 'Away Wins Against Spread')
+                plt.text(10, 0.6, 'Underdog Wins Against Spread')
+                plt.text(-3, 0.6, 'Favorite Wins Against Spread')
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
             plt.ylabel('Cumulative Fraction of Games with Good Odds (>52.5%)')
@@ -310,8 +310,8 @@ class Validate(Model):
                 plt.plot(df_['threshold'], df_['fraction_games_interval'], label=team)
             if self.response == 'spread':
                 plt.gca().invert_xaxis()
-                plt.text(10, 0.6, 'Home Wins Against Spread')
-                plt.text(-3, 0.6, 'Away Wins Against Spread')
+                plt.text(10, 0.6, 'Underdog Wins Against Spread')
+                plt.text(-3, 0.6, 'Favorite Wins Against Spread')
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
             plt.ylabel('Fraction of Games with Good Odds (>52.5%)')

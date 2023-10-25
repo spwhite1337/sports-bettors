@@ -25,19 +25,19 @@ class Config(object):
 
     @staticmethod
     def label_bet_ats(league: str, p: float) -> Optional[str]:
-        if league == 'nfl':
-            if p > 2.0:
-                return 'Home'
-            elif p < -2.5:
-                return 'Away'
+        if league == 'college_football':
+            if 3.5 <= p <= 7:
+                return 'Underdog'
+            elif p <= -6:
+                return 'Favorite'
             else:
                 return 'No Bet'
 
-        elif league == 'college_football':
-            if p > 5:
-                return 'Home'
-            elif p < -3:
-                return 'Away'
+        elif league == 'nfl':
+            if p >= 2.5:
+                return 'Underdog'
+            elif p <= -6 or (-1.5 >= p >= -2.5):
+                return 'Favorite'
             else:
                 return 'No Bet'
         else:

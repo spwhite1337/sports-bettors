@@ -24,15 +24,15 @@ class Model(Data):
                 'line_col': 'spread_line',
                 'diff_col': 'spread_diff',
                 'features': [
-                    'away_team_win_rate_ats',
-                    'home_team_win_rate_ats',
+                    'favorite_team_win_rate_ats',
+                    'underdog_team_win_rate_ats',
                     'money_line',
                     'spread_line',
                     'total_line',
-                    'away_team_points_for',
-                    'home_team_points_for',
-                    'away_team_points_against',
-                    'home_team_points_against',
+                    'favorite_team_points_for',
+                    'underdog_team_points_for',
+                    'favorite_team_points_against',
+                    'underdog_team_points_against',
                 ]
             },
             'over': {
@@ -40,15 +40,15 @@ class Model(Data):
                 'line_col': 'total_line',
                 'diff_col': 'total_diff',
                 'features': [
-                    'away_team_win_rate_ats',
-                    'home_team_win_rate_ats',
+                    'favorite_team_win_rate_ats',
+                    'underdog_team_win_rate_ats',
                     'money_line',
                     'spread_line',
                     'total_line',
-                    'away_team_points_for',
-                    'home_team_points_for',
-                    'away_team_points_against',
-                    'home_team_points_against',
+                    'favorite_team_points_for',
+                    'underdog_team_points_for',
+                    'favorite_team_points_against',
+                    'underdog_team_points_against',
                 ]
             }
         },
@@ -58,14 +58,14 @@ class Model(Data):
                 'line_col': 'spread_line',
                 'diff_col': 'spread_diff',
                 'features': [
-                    'away_team_win_rate_ats',
-                    'home_team_win_rate_ats',
+                    'favorite_team_win_rate_ats',
+                    'underdog_team_win_rate_ats',
                     'money_line',
                     'spread_line',
-                    'away_team_points_for',
-                    'home_team_points_for',
-                    'away_team_points_against',
-                    'home_team_points_against',
+                    'favorite_team_points_for',
+                    'underdog_team_points_for',
+                    'favorite_team_points_against',
+                    'underdog_team_points_against',
                 ]
             },
             'over': {
@@ -73,14 +73,15 @@ class Model(Data):
                 'line_col': 'total_line',
                 'diff_col': 'total_diff',
                 'features': [
-                    'away_team_win_rate_ats',
-                    'home_team_win_rate_ats',
+                    'favorite_team_win_rate_ats',
+                    'underdog_team_win_rate_ats',
                     'money_line',
                     'spread_line',
-                    'away_team_points_for',
-                    'home_team_points_for',
-                    'away_team_points_against',
-                    'home_team_points_against',
+                    'total_line',
+                    'favorite_team_points_for',
+                    'underdog_team_points_for',
+                    'favorite_team_points_against',
+                    'underdog_team_points_against',
                 ]
             }
         }
@@ -155,6 +156,7 @@ class Model(Data):
         # Engineer features from raw
         df = self.calcs(df)
         df = self.engineer_features(df)
+        df = self.label_teams(df)
 
         # Filter for predictions
         df = df[
@@ -174,8 +176,8 @@ class Model(Data):
             df = df[~df[feature].isna() | (df['game_id'].isin(test_games))]
 
         # Margin of victory for home-team is like a spread for away team
-        df['predicted_margin_of_victory_for_home_team'] = self.predict_spread(df)
-        df['spread_against_spread'] = df['predicted_margin_of_victory_for_home_team'] - df['spread_line']
+        df['predicted_margin_of_victory_for_underdog_team'] = self.predict_spread(df)
+        df['spread_against_spread'] = df['predicted_margin_of_victory_for_underdog_team'] - df['spread_line']
 
         # Label bets
         df['Bet_ATS'] = df.apply(lambda r: Config.label_bet_ats(self.league, r['spread_against_spread']), axis=1)
@@ -187,7 +189,7 @@ class Model(Data):
             'spread_actual',
             'spread_line',
             'money_line',
-            'predicted_margin_of_victory_for_home_team',
+            'predicted_margin_of_victory_for_underdog_team',
             'spread_against_spread',
             'Bet_ATS'
         ]])

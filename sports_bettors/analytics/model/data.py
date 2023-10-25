@@ -179,6 +179,19 @@ class Data(Eda):
         df['off_total'] = (df['total_actual'] - df['total_line'])
         return df
 
+    @staticmethod
+    def label_teams(df: pd.DataFrame) -> pd.DataFrame:
+        records = []
+        for row in df.to_dict(orient='records'):
+            # Away team is favorite
+            if row['spread_line'] <= 0:
+                record = {re.sub('home', 'underdog', re.sub('away', 'favorite', str(k))): v for k, v in row.items()}
+                records.append(record)
+            else:
+                record = {re.sub('home', 'favorite', re.sub('away', 'underdog', str(k))): v for k, v in row.items()}
+                records.append(record)
+        return pd.DataFrame.from_records(records)
+
     def engineer_features(self, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         if df is None:
             df = self.etl()
@@ -279,13 +292,20 @@ class Data(Eda):
             if col in df_out.columns:
                 df_out[col] = df_out[col].fillna(0.)
         df_out = df_out[df_out['gameday'] > self.training_start]
+
+        # Impute these so we can run predictions
         for col in ['spread_actual', 'spread_diff']:
             if col not in df.columns:
                 df[col] = None
+
         # Add back in non-time-dependent features
         df_out = df_out.\
             merge(
                 df[['game_id', 'gameday', 'spread_actual', 'spread_line', 'spread_diff', 'total_line', 'total_actual', 'total_diff']],
                 on=['game_id', 'gameday']
             )
+
+        # label teams
+        df_out = self.label_teams(df_out)
+
         return df_out
