@@ -49,7 +49,7 @@ class Data(Eda):
         else:
             return -1 / payout * 100
 
-    def _download_college_football(self) -> pd.DataFrame:
+    def _download_college_football(self, predict: bool = False) -> pd.DataFrame:
         if os.path.exists(os.path.join(self.cache_dir, 'df_training.csv')) and not self.overwrite:
             return pd.read_csv(os.path.join(self.cache_dir, 'df_training.csv'), parse_dates=['gameday'])
 
@@ -60,7 +60,10 @@ class Data(Eda):
         configuration.api_key_prefix['Authorization'] = 'Bearer'
         api_instance = cfbd.BettingApi(cfbd.ApiClient(configuration))
         current_year = datetime.datetime.today().year
-        years = list(np.linspace(current_year - self.training_years - 1, current_year, self.training_years + 2))
+        if not predict:
+            years = list(np.linspace(current_year - self.training_years - 1, current_year, self.training_years + 2))
+        else:
+            years = list(np.linspace(current_year - 1, current_year, 2))
         season_type = 'regular'
         df = []
         for year in tqdm(years):
@@ -128,7 +131,6 @@ class Data(Eda):
             &
             (~df['spread_line'].isna())
         ]
-
         return df
 
     def etl(self) -> pd.DataFrame:

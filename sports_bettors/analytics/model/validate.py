@@ -224,11 +224,14 @@ class Validate(Model):
             plt.close()
 
     def predict_next_week(self) -> pd.DataFrame:
-        if self.league != 'nfl':
-            return
+        if self.league == 'nfl':
+            df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
+            df = df[df['gameday'] > (pd.Timestamp(self.TODAY) - datetime.timedelta(days=self.window))]
+        elif self.league == 'college_football':
+            df = self._download_college_football(predict=True)
+        else:
+            raise NotImplementedError(self.league)
 
-        df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
-        df = df[df['gameday'] > (pd.Timestamp(self.TODAY) - datetime.timedelta(days=self.window))]
         df = self.engineer_features(df)
         df_ = df[
             # Next week of NFL
@@ -236,6 +239,8 @@ class Validate(Model):
             |
             # Keep this SF game as a test case
             (df['game_id'] == '2023_07_SF_MIN')
+            |
+            (df['game_id'] == 'COLLEGE_TEST_GAME')
         ].copy()
         df_ = df_[(~df_['money_line'].isna() & ~df_['spread_line'].isna()) | (df_['game_id'] == '2023_07_SF_MIN')]
 
