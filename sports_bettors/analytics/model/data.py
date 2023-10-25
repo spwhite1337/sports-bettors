@@ -18,7 +18,9 @@ class Data(Eda):
     link_to_data = 'https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv'
     window = 365
 
-    college_conferences = ['ACC', 'B12', 'B1G', 'SEC', 'Pac-10', 'PAC', 'Ind']
+    college_conferences = ['ACC', 'B12', 'B1G', 'SEC', 'Pac-10', 'PAC',
+                           # 'Ind'
+                           ]
 
     def __init__(self, league: str = 'nfl', overwrite: bool = False):
         super().__init__()
@@ -128,7 +130,9 @@ class Data(Eda):
         df = df.drop_duplicates().reset_index(drop=True)
 
         # Drop conferences with proper filter
-        college_conferences = ['Big Ten', 'SEC', 'Big 12', 'ACC', 'Pac-12', 'PAC', 'FBS Independents']
+        college_conferences = ['Big Ten', 'SEC', 'Big 12', 'ACC', 'Pac-12', 'PAC',
+                               # 'FBS Independents'
+                               ]
         df = df[
             (df['home_conference'].isin(college_conferences))
             &
