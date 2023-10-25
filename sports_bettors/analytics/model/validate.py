@@ -26,17 +26,10 @@ class Validate(Model):
         if any([df_ is None, df_val is None, df is None]):
             df_, df_val, df = self.fit_transform()
 
-        if self.response == 'spread':
-            df_['preds'] = self.predict_spread(df_)
-            df_val['preds'] = self.predict_spread(df_val)
-            df['preds'] = self.predict_spread(df)
-        elif self.response == 'over':
-            # Total change this
-            df_['preds'] = self.predict_spread(df_)
-            df_val['preds'] = self.predict_spread(df_val)
-            df['preds'] = self.predict_spread(df)
-        else:
-            raise NotImplementedError(self.response)
+        # Get predictions
+        df_['preds'] = self.predict(df_)
+        df_val['preds'] = self.predict(df_val)
+        df['preds'] = self.predict(df)
 
         # Preds vs Response
         with PdfPages(os.path.join(self.save_dir, 'validate_spreads.pdf')) as pdf:

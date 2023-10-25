@@ -24,21 +24,25 @@ class Config(object):
     CLOUD_RESULTS = 's3://scott-p-white/website/results'
 
     @staticmethod
-    def label_bet_ats(league: str, p: float) -> Optional[str]:
-        if league == 'college_football':
-            if 3.5 <= p <= 7:
-                return 'Underdog'
-            elif p <= -6:
-                return 'Favorite'
-            else:
-                return 'No Bet'
+    def label_bet(league: str, response: str, p: float) -> Optional[str]:
+        if response == 'spread':
+            if league == 'college_football':
+                if 3.5 <= p <= 7:
+                    return 'Underdog'
+                elif p <= -6:
+                    return 'Favorite'
+                else:
+                    return 'No Bet'
 
-        elif league == 'nfl':
-            if p >= 2.5:
-                return 'Underdog'
-            elif p <= -6 or (-1.5 >= p >= -2.5):
-                return 'Favorite'
+            elif league == 'nfl':
+                if p >= 2.5:
+                    return 'Underdog'
+                elif p <= -6 or (-1.5 >= p >= -2.5):
+                    return 'Favorite'
+                else:
+                    return 'No Bet'
             else:
-                return 'No Bet'
-        else:
+                return None
+
+        elif response == 'over':
             return None
