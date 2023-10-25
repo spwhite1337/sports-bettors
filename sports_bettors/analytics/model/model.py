@@ -95,7 +95,10 @@ class Model(Data):
         else:
             raise NotImplementedError(self.league)
 
+        # Engineer features from raw
         df = self.engineer_features(df)
+
+        # Filter for predictions
         df = df[
             # Next week of League
             df['gameday'].between(pd.Timestamp(self.TODAY), pd.Timestamp(self.TODAY) + datetime.timedelta(days=10))
