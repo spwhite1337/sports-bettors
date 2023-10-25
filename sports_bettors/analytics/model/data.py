@@ -27,7 +27,7 @@ class Data(Eda):
             '%Y-%m-%d',
         )
         self.overwrite = overwrite
-        assert league in ['nfl', 'college']
+        assert league in ['nfl', 'college_football']
         self.league = league
         self.model_dir = os.path.join(os.getcwd(), 'data', 'sports_bettors', 'models', self.league)
         if not os.path.exists(self.model_dir):
@@ -37,7 +37,9 @@ class Data(Eda):
             os.makedirs(self.cache_dir)
 
     @staticmethod
-    def _impute_money_line_from_spread(spread: float) -> float:
+    def _impute_money_line_from_spread(spread: float) -> Optional[float]:
+        if spread is None:
+            return None
         # Empirically fit from non-imputed data to payout
         p = [0.0525602, -0.08536405]
         payout = 10 ** (p[1] + p[0] * spread)
@@ -85,16 +87,48 @@ class Data(Eda):
                         record['over_under'] = line.over_under
                         record['provider'] = line.provider
                         # The spreads have different conventions but we want them relative to the away team
-                        if b.away_team in line.formatted_spread:
-                            record['spread_line'] = line.spread
+                        spread = line.formatted_spread.split(' ')[-1]
+                        if spread in ['-null', 'null']:
+                            record['spread_line'] = None
                         else:
-                            record['spread_line'] = -1 * line.spread
+                            if b.away_team in line.formatted_spread:
+                                record['spread_line'] = float(spread)
+                            else:
+                                record['spread_line'] = -1 * float(spread)
                         if record['away_moneyline'] is None:
                             record['away_moneyline'] = self._impute_money_line_from_spread(record['spread_line'])
                         records.append(record.copy())
                 df.append(pd.DataFrame.from_records(records))
         df = pd.concat(df).drop_duplicates().reset_index(drop=True)
         df['gameday'] = pd.to_datetime(df['gameday']).dt.date
+
+        # De-dupe from multiple spread providers
+        if 'provider' in df.columns:
+            df = df.drop('provider', axis=1).drop_duplicates()
+
+        # Arbitrarily take the min spread / away_moneyline
+        df['spread_line_min'] = df.groupby('game_id')['spread_line'].transform('min')
+        df = df[df['spread_line'] == df['spread_line_min']]
+        df = df.drop('spread_line_min', axis=1).drop_duplicates()
+        # Take the max over / under for now
+        df['over_under'] = df.groupby('game_id')['over_under'].transform('min')
+        df['home_moneyline'] = df.groupby('game_id')['home_moneyline'].transform('mean')
+        # Impute moneyline from spreads empircal fit to avoid dropping data
+        df['away_moneyline'] = df['away_moneyline'].\
+            fillna(df['spread_line'].apply(self._impute_money_line_from_spread))
+        df['away_moneyline'] = df.groupby('game_id')['away_moneyline'].transform('mean')
+        df = df.drop_duplicates().reset_index(drop=True)
+
+        # Drop conferences with proper filter
+        college_conferences = ['Big Ten', 'SEC', 'Big 12', 'ACC', 'Pac-12', 'PAC', 'FBS Independents']
+        df = df[
+            (df['home_conference'].isin(college_conferences))
+            &
+            (df['away_conference'].isin(college_conferences))
+            &
+            (~df['spread_line'].isna())
+        ]
+
         return df
 
     def etl(self) -> pd.DataFrame:

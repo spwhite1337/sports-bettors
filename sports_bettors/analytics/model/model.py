@@ -1,3 +1,4 @@
+import os
 import datetime
 from typing import Tuple, Optional
 import numpy as np
@@ -36,6 +37,9 @@ class Model(Data):
         super().__init__(league=league, overwrite=overwrite)
         self.model = None
         self.scaler = None
+        self.save_dir = os.path.join(os.getcwd(), 'docs', 'model', self.league)
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
 
     def fit_transform(self, df: Optional[pd.DataFrame] = None) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         if df is None:
