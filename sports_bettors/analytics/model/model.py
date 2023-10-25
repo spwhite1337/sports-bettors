@@ -191,6 +191,8 @@ class Model(Data):
             'spread_against_spread',
             'Bet_ATS'
         ]])
+        print('Bet Counts')
+        print(df['Bet_ATS'].value_counts())
 
         # Save results
         save_dir = os.path.join(os.getcwd(), 'data', 'predictions', self.league)

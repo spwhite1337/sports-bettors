@@ -215,14 +215,16 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            # Win-rate
+            # Betting Guide data
             records, n_total = [], df_val.shape[0]
             if self.response == 'spread':
                 thresholds = np.linspace(-10, 10, 41)
                 labels = 'Away', 'Home'
+                round_interval = 0.5
             elif self.response == 'over':
                 thresholds = np.linspace(-20, 20, 41)
                 labels = 'Under', 'Over'
+                round_interval = 1.
             else:
                 raise NotImplementedError(self.response)
 
@@ -231,19 +233,26 @@ class Validate(Model):
                     'threshold': threshold,
                     # preds_c is "the amount we need to add to the spread-line to get it "right"
                     # If preds_c is negative, then we are expecting the away team to do better
+
                     'fraction_games': df_val[df_val['preds_c'] < threshold].shape[0] / n_total,
-                    'win_rate': df_val[(df_val['preds_c']) < threshold][classifier_response].mean(),
+                    'fraction_games_interval': df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)].shape[0] / n_total,
+                    'win_rate': df_val[df_val['preds_c'] < threshold][classifier_response].mean(),
+                    'win_rate_interval': df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)][classifier_response].mean(),
                     'team': labels[0]
                 }
                 records.append(record)
                 record = {
                     'threshold': threshold,
                     'fraction_games': df_val[df_val['preds_c'] > threshold].shape[0] / n_total,
+                    'fraction_games_interval': df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)].shape[0] / n_total,
                     'win_rate': (1 - df_val[(df_val['preds_c']) > threshold][classifier_response]).mean(),
+                    'win_rate_interval': (1 - df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)][classifier_response]).mean(),
                     'team': labels[1]
                 }
                 records.append(record)
             df_plot = pd.DataFrame.from_records(records)
+
+            # Cumulative
             plt.figure()
             for team, df_ in df_plot.groupby('team'):
                 df_ = df_[df_['fraction_games'] > 0.05]
@@ -254,8 +263,26 @@ class Validate(Model):
                 plt.text(-3, 0.6, 'Away Wins Against Spread')
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
-            plt.ylabel('Win Rate')
+            plt.ylabel('Win Rate - Cumulative')
             plt.hlines(1-df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='black')
+            plt.hlines(df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='gray')
+            plt.title('Betting Guide (Cumulative)')
+            plt.grid(True)
+            pdf.savefig()
+            plt.close()
+
+            plt.figure()
+            for team, df_ in df_plot.groupby('team'):
+                df_ = df_[df_['fraction_games'] > 0.01]
+                plt.plot(df_['threshold'], df_['win_rate_interval'], label=team)
+            if self.response == 'spread':
+                plt.gca().invert_xaxis()
+                plt.text(10, 0.6, 'Home Wins Against Spread')
+                plt.text(-3, 0.6, 'Away Wins Against Spread')
+                plt.xlabel('Predicted Spread on the Vegas-Spread')
+            plt.legend()
+            plt.ylabel('Win Rate')
+            plt.hlines(1 - df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='black')
             plt.hlines(df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='gray')
             plt.title('Betting Guide')
             plt.grid(True)
@@ -272,8 +299,23 @@ class Validate(Model):
                 plt.text(-3, 0.6, 'Away Wins Against Spread')
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
+            plt.ylabel('Cumulative Fraction of Games with Good Odds (>52.5%)')
+            plt.title('Betting Guide: Number of Games (Cumulative)')
+            plt.grid(True)
+            pdf.savefig()
+            plt.close()
+
+            plt.figure()
+            for team, df_ in df_plot.groupby('team'):
+                plt.plot(df_['threshold'], df_['fraction_games_interval'], label=team)
+            if self.response == 'spread':
+                plt.gca().invert_xaxis()
+                plt.text(10, 0.6, 'Home Wins Against Spread')
+                plt.text(-3, 0.6, 'Away Wins Against Spread')
+                plt.xlabel('Predicted Spread on the Vegas-Spread')
+            plt.legend()
             plt.ylabel('Fraction of Games with Good Odds (>52.5%)')
-            plt.title('Betting Guide: Number of Games')
+            plt.title('Betting Guide: Number of Games ')
             plt.grid(True)
             pdf.savefig()
             plt.close()
