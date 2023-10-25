@@ -48,12 +48,18 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            bins = np.linspace(-50, 50, 21)
+            if self.response == 'spread':
+                bins = np.linspace(-50, 50, 21)
+            elif self.response == 'over':
+                bins = np.linspace(10, 90, 17)
+            else:
+                raise NotImplementedError(self.response)
+
             plt.figure()
             plt.hist(df_val['preds'], alpha=0.5, label='preds', bins=bins)
             plt.hist(df_val[self.response_col], alpha=0.5, label='Actuals', bins=bins)
-            plt.text(-40, 10, f'Preds: {df_val["preds"].mean().round(2)} +/- {df_val["preds"].std().round(2)}')
-            plt.text(-40, 20, f'Actuals: {df_val[self.response_col].mean().round(2)} +/- {df_val[self.response_col].std().round(2)}')
+            plt.text(bins[4], 10, f'Preds: {df_val["preds"].mean().round(2)} +/- {df_val["preds"].std().round(2)}')
+            plt.text(bins[4], 20, f'Actuals: {df_val[self.response_col].mean().round(2)} +/- {df_val[self.response_col].std().round(2)}')
             plt.xlabel(self.response)
             plt.title('Preds Distribution')
             plt.grid(True)
@@ -63,6 +69,7 @@ class Validate(Model):
 
             df_val['res'] = df_val['preds'] - df_val[self.response_col]
             df_['res'] = df_['preds'] - df_[self.response_col]
+            bins = np.linspace(-50, 50, 21)
             plt.figure()
             plt.hist(df_val['res'], alpha=0.5, label='Test', density=True, bins=bins)
             plt.hist(df_['res'], alpha=0.5, label='Train', density=True, bins=bins)
@@ -86,14 +93,15 @@ class Validate(Model):
             plt.close()
 
             # Compared to spread
+            bins = np.linspace(-50, 50, 21)
             plt.figure()
             plt.hist(df_val['res'], alpha=0.5, label='residuals', bins=bins)
             plt.hist(df_val[self.diff_col], alpha=0.5, label='spread-diff', bins=bins)
             plt.text(-40, 10, f'Residuals: {df_val["res"].mean().round(2)} +/- {df_val["res"].std().round(2)}')
-            plt.text(-40, 20, f'Spread-Diff: {df_val[self.diff_col].mean().round(2)} +/- {df_val[self.diff_col].std().round(2)}')
+            plt.text(-40, 20, f'Line-Diff: {df_val[self.diff_col].mean().round(2)} +/- {df_val[self.diff_col].std().round(2)}')
             plt.grid(True)
             plt.legend()
-            plt.title('Model vs. Spread')
+            plt.title('Model vs. Line')
             plt.xlabel('Error')
             pdf.savefig()
             plt.close()
@@ -139,7 +147,10 @@ class Validate(Model):
             # The away team wins against the spread if the spread line was larger than the margin of victory
             # E.g. spread is -7, but actual spread was -12
             # e.g. spread is +3 but actual spread was +1
+
+            # for the over, it is simpler, if the line is greater than the total then it didn't hit
             classifier_response = 'classifier_response'
+
             df[classifier_response] = (df[self.line_col] > df[self.response_col]).astype(int)
             df_ = df[df['gameday'] < (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
             df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
@@ -206,21 +217,30 @@ class Validate(Model):
 
             # Win-rate
             records, n_total = [], df_val.shape[0]
-            for threshold in np.linspace(-10, 10, 41):
+            if self.response == 'spread':
+                thresholds = np.linspace(-10, 10, 41)
+                labels = 'Away', 'Home'
+            elif self.response == 'over':
+                thresholds = np.linspace(-20, 20, 41)
+                labels = 'Under', 'Over'
+            else:
+                raise NotImplementedError(self.response)
+
+            for threshold in thresholds:
                 record = {
                     'threshold': threshold,
                     # preds_c is "the amount we need to add to the spread-line to get it "right"
                     # If preds_c is negative, then we are expecting the away team to do better
                     'fraction_games': df_val[df_val['preds_c'] < threshold].shape[0] / n_total,
                     'win_rate': df_val[(df_val['preds_c']) < threshold][classifier_response].mean(),
-                    'team': 'Away'
+                    'team': labels[0]
                 }
                 records.append(record)
                 record = {
                     'threshold': threshold,
                     'fraction_games': df_val[df_val['preds_c'] > threshold].shape[0] / n_total,
                     'win_rate': (1 - df_val[(df_val['preds_c']) > threshold][classifier_response]).mean(),
-                    'team': 'Home'
+                    'team': labels[1]
                 }
                 records.append(record)
             df_plot = pd.DataFrame.from_records(records)
@@ -228,12 +248,13 @@ class Validate(Model):
             for team, df_ in df_plot.groupby('team'):
                 df_ = df_[df_['fraction_games'] > 0.05]
                 plt.plot(df_['threshold'], df_['win_rate'], label=team)
-            plt.gca().invert_xaxis()
-            plt.text(10, 0.6, 'Home Wins Against Spread')
-            plt.text(-3, 0.6, 'Away Wins Against Spread')
+            if self.response == 'spread':
+                plt.gca().invert_xaxis()
+                plt.text(10, 0.6, 'Home Wins Against Spread')
+                plt.text(-3, 0.6, 'Away Wins Against Spread')
+                plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
             plt.ylabel('Win Rate')
-            plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.hlines(1-df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='black')
             plt.hlines(df_val[classifier_response].mean(), min(thresholds), max(thresholds), color='gray')
             plt.title('Betting Guide')
@@ -245,12 +266,13 @@ class Validate(Model):
             for team, df_ in df_plot.groupby('team'):
                 df_ = df_[df_['win_rate'] > 0.525]
                 plt.plot(df_['threshold'], df_['fraction_games'], label=team)
-            plt.gca().invert_xaxis()
-            plt.text(10, 0.6, 'Home Wins Against Spread')
-            plt.text(-3, 0.6, 'Away Wins Against Spread')
+            if self.response == 'spread':
+                plt.gca().invert_xaxis()
+                plt.text(10, 0.6, 'Home Wins Against Spread')
+                plt.text(-3, 0.6, 'Away Wins Against Spread')
+                plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
             plt.ylabel('Fraction of Games with Good Odds (>52.5%)')
-            plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.title('Betting Guide: Number of Games')
             plt.grid(True)
             pdf.savefig()

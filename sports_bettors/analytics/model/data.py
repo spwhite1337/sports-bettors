@@ -170,7 +170,7 @@ class Data(Eda):
         df['spread_actual'] = df['home_score'] - df['away_score']
         df['spread_diff'] = df['away_score'] + df['spread_line'] - df['home_score']
         df['total_actual'] = df['away_score'] + df['home_score']
-        df['total_diff'] = df['total_actual'] + df['total_line']
+        df['total_diff'] = df['total_actual'] - df['total_line']
         df['off_spread'] = (df['spread_actual'] - df['spread_line'])
         df['off_total'] = (df['total_actual'] - df['total_line'])
         return df
