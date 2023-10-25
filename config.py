@@ -1,5 +1,6 @@
 import os
 import logging
+from typing import Optional
 
 
 # Setup logs
@@ -23,7 +24,7 @@ class Config(object):
     CLOUD_RESULTS = 's3://scott-p-white/website/results'
 
     @staticmethod
-    def label_bet(league: str, p: float) -> str:
+    def label_bet(league: str, p: float) -> Optional[str]:
         if league == 'nfl':
             if p > 0.9:
                 return 'home'
@@ -38,3 +39,5 @@ class Config(object):
                 return 'Amay'
             else:
                 return 'No Bet'
+        else:
+            return None
