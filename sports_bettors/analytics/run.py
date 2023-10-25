@@ -10,8 +10,8 @@ def analysis():
     Bets().analyze()
 
 
-def run(league: str = 'nfl', run_shap: bool = False, overwrite: bool = False):
-    api = Validate(league=league, overwrite=overwrite)
+def run(league: str = 'nfl', response: str = 'spread', run_shap: bool = False, overwrite: bool = False):
+    api = Validate(league=league, response=response, overwrite=overwrite)
     df, df_val, df_all = api.fit_transform()
     api.train(df)
     api.validate(df, df_val, df_all, run_shap=run_shap)

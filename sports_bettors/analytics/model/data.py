@@ -1,6 +1,5 @@
 import re
 import os
-import pickle
 from typing import Optional
 import numpy as np
 import pandas as pd
@@ -31,9 +30,6 @@ class Data(Eda):
         self.overwrite = overwrite
         assert league in ['nfl', 'college_football']
         self.league = league
-        self.model_dir = os.path.join(os.getcwd(), 'data', 'sports_bettors', 'models', self.league)
-        if not os.path.exists(self.model_dir):
-            os.makedirs(self.model_dir)
         self.cache_dir = os.path.join(os.getcwd(), 'data', 'sports_bettors', 'cache', self.league)
         if not os.path.exists(self.cache_dir):
             os.makedirs(self.cache_dir)
@@ -174,6 +170,7 @@ class Data(Eda):
         df['spread_actual'] = df['home_score'] - df['away_score']
         df['spread_diff'] = df['away_score'] + df['spread_line'] - df['home_score']
         df['total_actual'] = df['away_score'] + df['home_score']
+        df['total_diff'] = df['total_actual'] + df['total_line']
         df['off_spread'] = (df['spread_actual'] - df['spread_line'])
         df['off_total'] = (df['total_actual'] - df['total_line'])
         return df
@@ -224,7 +221,7 @@ class Data(Eda):
                 'away_team_points_against': home_pa + away_pa,
                 'away_team_total_points': away_total + home_total,
                 'away_team_point_differential': away_pf + home_pf - home_pa - away_pa,
-                'money_line': self._calc_payout(row['away_moneyline'])
+                'money_line': self._calc_payout(row['away_moneyline']),
             }
 
             # Home team of row
@@ -262,6 +259,8 @@ class Data(Eda):
             record['home_team_points_against'] = home_pa + home_pa
             record['home_team_point_differential'] = home_pf + away_pf - home_pa - away_pa
             record['home_team_total_points'] = away_total + home_total
+
+            # Total
             records.append(record)
 
         df_out = pd.DataFrame.from_records(records)
@@ -278,24 +277,10 @@ class Data(Eda):
         for col in ['spread_actual', 'spread_diff']:
             if col not in df.columns:
                 df[col] = None
+        # Add back in non-time-dependent features
         df_out = df_out.\
             merge(
-                df[['game_id', 'gameday', 'spread_actual', 'spread_line', 'spread_diff']],
+                df[['game_id', 'gameday', 'spread_actual', 'spread_line', 'spread_diff', 'total_line', 'total_actual', 'total_diff']],
                 on=['game_id', 'gameday']
             )
         return df_out
-
-    def save_results(self):
-        filepath = os.path.join(self.model_dir, 'model.pkl')
-        with open(filepath, 'wb') as fp:
-            pickle.dump(self, fp)
-
-    def load_results(self, model_dir: Optional[str] = None):
-        model_dir = self.model_dir if model_dir is None else model_dir
-        filepath = os.path.join(model_dir, 'model.pkl')
-        if not os.path.exists(filepath):
-            print('No Model')
-            return None
-        with open(filepath, 'rb') as fp:
-            obj = pickle.load(fp)
-        return obj

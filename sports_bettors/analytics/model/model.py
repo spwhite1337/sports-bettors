@@ -1,5 +1,6 @@
 import os
 import time
+import pickle
 import datetime
 from typing import Tuple, Optional, Dict
 import numpy as np
@@ -16,42 +17,96 @@ class Model(Data):
     val_window = 365
     TODAY = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
 
-    FEATURES = {
-        'nfl': [
-            'away_team_win_rate_ats',
-            'home_team_win_rate_ats',
-            'money_line',
-            'spread_line',
-            'away_team_points_for',
-            'home_team_points_for',
-            'away_team_points_against',
-            'home_team_points_against',
-        ],
-        'college_football': [
-            'away_team_win_rate_ats',
-            'home_team_win_rate_ats',
-            # 'money_line',  # Bad data on moneyline for history
-            'spread_line',
-            'away_team_points_for',
-            'home_team_points_for',
-            'away_team_points_against',
-            'home_team_points_against',
-        ]
+    model_data_config = {
+        'nfl': {
+            'spread': {
+                'response_col': 'spread_actual',
+                'line_col': 'spread_line',
+                'diff_col': 'spread_diff',
+                'features': [
+                    'away_team_win_rate_ats',
+                    'home_team_win_rate_ats',
+                    'money_line',
+                    'spread_line',
+                    'total_line',
+                    'away_team_points_for',
+                    'home_team_points_for',
+                    'away_team_points_against',
+                    'home_team_points_against',
+                ]
+            },
+            'over': {
+                'response_col': 'total_actual',
+                'line_col': 'total_line',
+                'diff_col': 'total_diff',
+                'features': [
+                    'away_team_win_rate_ats',
+                    'home_team_win_rate_ats',
+                    'money_line',
+                    'spread_line',
+                    'total_line',
+                    'away_team_points_for',
+                    'home_team_points_for',
+                    'away_team_points_against',
+                    'home_team_points_against',
+                ]
+            }
+        },
+        'college_football': {
+            'spread': {
+                'response_col': 'spread_actual',
+                'line_col': 'spread_line',
+                'diff_col': 'spread_diff',
+                'features': [
+                    'away_team_win_rate_ats',
+                    'home_team_win_rate_ats',
+                    'money_line',
+                    'spread_line',
+                    'away_team_points_for',
+                    'home_team_points_for',
+                    'away_team_points_against',
+                    'home_team_points_against',
+                ]
+            },
+            'over': {
+                'response_col': 'total_actual',
+                'line_col': 'total_line',
+                'diff_col': 'total_diff',
+                'features': [
+                    'away_team_win_rate_ats',
+                    'home_team_win_rate_ats',
+                    'money_line',
+                    'spread_line',
+                    'away_team_points_for',
+                    'home_team_points_for',
+                    'away_team_points_against',
+                    'home_team_points_against',
+                ]
+            }
+        }
     }
-    response = 'spread_actual'
 
-    def __init__(self, league: str = 'nfl', overwrite: bool = False):
+    def __init__(self, league: str = 'nfl', response: str = 'spread', overwrite: bool = False):
         super().__init__(league=league, overwrite=overwrite)
         self.model = None
         self.scaler = None
-        self.features = self.FEATURES[league]
-        self.save_dir = os.path.join(os.getcwd(), 'docs', 'model', self.league)
+        self.response = response
+        self.features = self.model_data_config[self.league][self.response]['features']
+        self.response_col = self.model_data_config[self.league][self.response]['response_col']
+        self.line_col = self.model_data_config[self.league][self.response]['line_col']
+        self.diff_col = self.model_data_config[self.league][self.response]['diff_col']
+        self.save_dir = os.path.join(os.getcwd(), 'docs', 'model', self.league, self.response)
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
+        self.model_dir = os.path.join(os.getcwd(), 'data', 'sports_bettors', 'models', self.league, self.response)
+        if not os.path.exists(self.model_dir):
+            os.makedirs(self.model_dir)
 
     def fit_transform(self, df: Optional[pd.DataFrame] = None) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         if df is None:
             df = self.engineer_features()
+        # Drop nas
+        df = df[~df[self.line_col].isna() & ~df[self.response_col].isna()]
         # Train test split
         df_ = df[df['gameday'] < (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
         df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
@@ -76,7 +131,7 @@ class Model(Data):
             epsilon=0.1,
             **self.get_hyper_params()
         )
-        X, y = pd.DataFrame(self.scaler.transform(df[self.features]), columns=self.features), df[self.response]
+        X, y = pd.DataFrame(self.scaler.transform(df[self.features]), columns=self.features), df[self.response_col]
         self.model.fit(X, y)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -144,6 +199,21 @@ class Model(Data):
         df.to_csv(os.path.join(save_dir, fn), index=False)
 
         return df, fn
+
+    def save_results(self):
+        filepath = os.path.join(self.model_dir, 'model.pkl')
+        with open(filepath, 'wb') as fp:
+            pickle.dump(self, fp)
+
+    def load_results(self, model_dir: Optional[str] = None):
+        model_dir = self.model_dir if model_dir is None else model_dir
+        filepath = os.path.join(model_dir, 'model.pkl')
+        if not os.path.exists(filepath):
+            print('No Model')
+            return None
+        with open(filepath, 'rb') as fp:
+            obj = pickle.load(fp)
+        return obj
 
     def shap_explain(self, df: pd.DataFrame):
         # Example plot for jupyter analysis

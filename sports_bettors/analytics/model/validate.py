@@ -22,18 +22,26 @@ class Validate(Model):
         return 0.541
 
     def validate(self, df_: Optional[pd.DataFrame] = None, df_val: Optional[pd.DataFrame] = None,
-                 df: Optional[pd.DataFrame] = None, run_shap: bool = False):
+                         df: Optional[pd.DataFrame] = None, run_shap: bool = False):
         if any([df_ is None, df_val is None, df is None]):
             df_, df_val, df = self.fit_transform()
 
-        df_['preds'] = self.predict_spread(df_)
-        df_val['preds'] = self.predict_spread(df_val)
-        df['preds'] = self.predict_spread(df)
+        if self.response == 'spread':
+            df_['preds'] = self.predict_spread(df_)
+            df_val['preds'] = self.predict_spread(df_val)
+            df['preds'] = self.predict_spread(df)
+        elif self.response == 'over':
+            # Total change this
+            df_['preds'] = self.predict_spread(df_)
+            df_val['preds'] = self.predict_spread(df_val)
+            df['preds'] = self.predict_spread(df)
+        else:
+            raise NotImplementedError(self.response)
 
         # Preds vs Response
         with PdfPages(os.path.join(self.save_dir, 'validate_spreads.pdf')) as pdf:
             plt.figure()
-            plt.text(0.04, 0.95, f'League: {self.league}')
+            plt.text(0.04, 0.95, f'League: {self.league}, response: {self.response}')
             plt.text(0.04, 0.90, f'Train N: {df_.shape[0]}')
             plt.text(0.04, 0.85, f'Val N: {df_val.shape[0]}')
             plt.tick_params(axis='both', which='both', labelbottom=False, labelleft=False, bottom=False, left=False)
@@ -43,9 +51,9 @@ class Validate(Model):
             bins = np.linspace(-50, 50, 21)
             plt.figure()
             plt.hist(df_val['preds'], alpha=0.5, label='preds', bins=bins)
-            plt.hist(df_val[self.response], alpha=0.5, label='Actuals', bins=bins)
+            plt.hist(df_val[self.response_col], alpha=0.5, label='Actuals', bins=bins)
             plt.text(-40, 10, f'Preds: {df_val["preds"].mean().round(2)} +/- {df_val["preds"].std().round(2)}')
-            plt.text(-40, 20, f'Actuals: {df_val[self.response].mean().round(2)} +/- {df_val[self.response].std().round(2)}')
+            plt.text(-40, 20, f'Actuals: {df_val[self.response_col].mean().round(2)} +/- {df_val[self.response_col].std().round(2)}')
             plt.xlabel(self.response)
             plt.title('Preds Distribution')
             plt.grid(True)
@@ -53,8 +61,8 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            df_val['res'] = df_val['preds'] - df_val[self.response]
-            df_['res'] = df_['preds'] - df_[self.response]
+            df_val['res'] = df_val['preds'] - df_val[self.response_col]
+            df_['res'] = df_['preds'] - df_[self.response_col]
             plt.figure()
             plt.hist(df_val['res'], alpha=0.5, label='Test', density=True, bins=bins)
             plt.hist(df_['res'], alpha=0.5, label='Train', density=True, bins=bins)
@@ -80,9 +88,9 @@ class Validate(Model):
             # Compared to spread
             plt.figure()
             plt.hist(df_val['res'], alpha=0.5, label='residuals', bins=bins)
-            plt.hist(df_val['spread_diff'], alpha=0.5, label='spread-diff', bins=bins)
+            plt.hist(df_val[self.diff_col], alpha=0.5, label='spread-diff', bins=bins)
             plt.text(-40, 10, f'Residuals: {df_val["res"].mean().round(2)} +/- {df_val["res"].std().round(2)}')
-            plt.text(-40, 20, f'Spread-Diff: {df_val["spread_diff"].mean().round(2)} +/- {df_val["spread_diff"].std().round(2)}')
+            plt.text(-40, 20, f'Spread-Diff: {df_val[self.diff_col].mean().round(2)} +/- {df_val[self.diff_col].std().round(2)}')
             plt.grid(True)
             plt.legend()
             plt.title('Model vs. Spread')
@@ -126,13 +134,13 @@ class Validate(Model):
             # spread.
             # Our advantage is that we just need to get a moneyline bet off this new spread-spread
             # preds_c is the amount you need to add to the spread to get it "right"
-            df['preds_c'] = df['preds'] - df['spread_line']
+            df['preds_c'] = df['preds'] - df[self.line_col]
 
             # The away team wins against the spread if the spread line was larger than the margin of victory
             # E.g. spread is -7, but actual spread was -12
             # e.g. spread is +3 but actual spread was +1
-            classifier_response = 'away_team_wins_ats'
-            df[classifier_response] = (df['spread_line'] > df['spread_actual']).astype(int)
+            classifier_response = 'classifier_response'
+            df[classifier_response] = (df[self.line_col] > df[self.response_col]).astype(int)
             df_ = df[df['gameday'] < (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
             df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
 
