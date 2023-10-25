@@ -61,23 +61,47 @@ class Model(object):
                 df['Bet'] = df.apply(lambda r: Config.label_bet(league, response, r['preds_against_line']), axis=1)
                 df['Bet_type'] = response
 
-                # Print results
-                print(df[[
-                    'game_id',
-                    'gameday',
-                    'spread_line',
-                    'total_line',
-                    'preds',
-                    'preds_against_line',
-                    'Bet',
-                    'Bet_type'
-                ]])
-                print('Bet Counts')
-                print(df['Bet'].value_counts())
+                # # Print results
+                # print(df[[
+                #     'game_id',
+                #     'gameday',
+                #     'spread_line',
+                #     'total_line',
+                #     'preds',
+                #     'preds_against_line',
+                #     'Bet',
+                #     'Bet_type'
+                # ]])
+                # print('Bet Counts')
+                # print(df['Bet'].value_counts())
 
                 df_out.append(df)
-
             df_out = pd.concat(df_out)
+            # Pivot on bet-type
+            df_out = df_out[df_out['Bet_type'] == 'spread'].\
+                drop('Bet_type', axis=1).\
+                rename(columns={'preds': 'spread_adj', 'preds_against_line': 'model_vs_spread', 'Bet': 'Spread_Bet'}).\
+                merge(
+                    df_out[df_out['Bet_type'] == 'over'].\
+                      drop('Bet_type', axis=1).\
+                      rename(columns={'preds': 'over_adj', 'preds_against_line': 'model_vs_over', 'Bet': 'Over_Bet'})[
+                            ['game_id', 'gameday', 'over_adj', 'model_vs_over', 'Over_Bet']
+                      ], on=['game_id', 'gameday'], how='left'
+                )
+            print(df_out[[
+                'game_id',
+                'gameday',
+                'money_line',
+                'spread_line',
+                'total_line'
+                'spread_adj',
+                'model_vs_spread',
+                'Spread_Bet',
+                'over_adj',
+                'model_vs_over',
+                'Over_Bet',
+               ]
+            ])
             # Save results
             save_dir = os.path.join(os.getcwd(), 'data', 'predictions', league)
             fn = f'df_{int(time.time())}.csv'

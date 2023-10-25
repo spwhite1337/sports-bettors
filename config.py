@@ -45,4 +45,16 @@ class Config(object):
                 return None
 
         elif response == 'over':
+            if league == 'college_football':
+                if p >= 5:
+                    return 'Over'
+                if p < -5:
+                    return 'Under'
+            elif league == 'nfl':
+                if 1 < p < 3:
+                    return 'Over'
+                if p <= -1.5:
+                    return 'Under'
+        else:
             return None
+
