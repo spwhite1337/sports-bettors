@@ -93,7 +93,7 @@ class Model(object):
                 'gameday',
                 'money_line',
                 'spread_line',
-                'total_line'
+                'total_line',
                 'spread_adj',
                 'model_vs_spread',
                 'Spread_Bet',
