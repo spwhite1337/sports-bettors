@@ -21,3 +21,20 @@ class Config(object):
     sb_version = 'v2'
     CLOUD_DATA = 's3://scott-p-white/website/data'
     CLOUD_RESULTS = 's3://scott-p-white/website/results'
+
+    @staticmethod
+    def label_bet(league: str, p: float) -> str:
+        if league == 'nfl':
+            if p > 0.9:
+                return 'home'
+            elif p < -2.5:
+                return 'away'
+            else:
+                return 'No Bet'
+        elif league == 'college_football':
+            if p > 0:
+                return 'home'
+            elif p < -0.5:
+                return 'Amay'
+            else:
+                return 'No Bet'

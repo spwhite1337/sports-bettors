@@ -3,9 +3,12 @@ from sports_bettors.analytics.eda.eda import Eda
 from sports_bettors.analytics.model.validate import Validate
 
 
-def run(league: str = 'nfl', run_shap: bool = False, overwrite: bool = False):
+def analysis():
     Eda().analyze()
     Bets().analyze()
+
+
+def run(league: str = 'nfl', run_shap: bool = False, overwrite: bool = False):
     api = Validate(league=league, overwrite=overwrite)
     df, df_val, df_all = api.fit_transform()
     api.train(df)

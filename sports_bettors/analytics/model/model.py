@@ -1,4 +1,5 @@
 import os
+import time
 import datetime
 from typing import Tuple, Optional, Dict
 import numpy as np
@@ -8,7 +9,7 @@ from sklearn.svm import SVR
 import shap
 
 from sports_bettors.analytics.model.data import Data
-from config import logger
+from config import logger, Config
 
 
 class Model(Data):
@@ -80,7 +81,57 @@ class Model(Data):
             raise ValueError()
         return self.model.predict(self.transform(df))
 
+    def predict_next_week(self) -> pd.DataFrame:
+        if self.league == 'nfl':
+            df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
+            df = df[df['gameday'] > (pd.Timestamp(self.TODAY) - datetime.timedelta(days=self.window))]
+        elif self.league == 'college_football':
+            df = self._download_college_football(predict=True)
+        else:
+            raise NotImplementedError(self.league)
+
+        df = self.engineer_features(df)
+        df_ = df[
+            # Next week of League
+            df['gameday'].between(pd.Timestamp(self.TODAY), pd.Timestamp(self.TODAY) + datetime.timedelta(days=10))
+            |
+            # Keep this SF game as a test case
+            (df['game_id'] == '2023_07_SF_MIN')
+            |
+            # Keep a college game as a test case
+            (df['game_id'] == 'COLLEGE_TEST_GAME')
+            ].copy()
+        df_ = df_[(~df_['money_line'].isna() & ~df_['spread_line'].isna()) | (df_['game_id'] == '2023_07_SF_MIN')]
+
+        # Margin of victory for home-team is like a spread for away team
+        df_['predicted_margin_of_victory_for_home_team'] = self.predict_spread(df_)
+        df_['spread_against_spread'] = df_['predicted_margin_of_victory_for_home_team'] - df_['spread_line']
+
+        # Label bets
+        df_['Bet'] = df_.apply(lambda r: Config.label_bet(self.league, r['spread_against_spread']), axis=1)
+
+        # Print results
+        print(df_[[
+            'game_id',
+            'gameday',
+            'spread_actual',
+            'spread_line',
+            'money_line',
+            'predicted_margin_of_victory_for_home_team',
+            'spread_against_spread',
+            'Bet'
+        ]])
+
+        # Save results
+        save_dir = os.path.join(os.getcwd(), 'data', 'predictions', self.league)
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        df_.to_csv(os.path.join(save_dir, f'df_{int(time.time())}.csv'), index=False)
+
+        return df_
+
     def shap_explain(self, df: pd.DataFrame):
+        # Example plot for jupyter analysis
         _, df_, _ = self.fit_transform()
         logger.info('Deriving Explainer')
         explainer = shap.KernelExplainer(self.model.predict, self.transform(df_), nsamples=100, link='identity')
