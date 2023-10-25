@@ -26,8 +26,8 @@ class Model(Data):
                 'features': [
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    'money_line',
-                    'spread_line',
+                    'favorite_money_line',
+                    'favorite_spread_line',
                     'total_line',
                     'favorite_team_points_for',
                     'underdog_team_points_for',
@@ -42,8 +42,8 @@ class Model(Data):
                 'features': [
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    'money_line',
-                    'spread_line',
+                    'favorite_money_line',
+                    'favorite_spread_line',
                     'total_line',
                     'favorite_team_points_for',
                     'underdog_team_points_for',
@@ -60,8 +60,8 @@ class Model(Data):
                 'features': [
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    'money_line',
-                    'spread_line',
+                    'favorite_money_line',
+                    'favorite_spread_line',
                     'favorite_team_points_for',
                     'underdog_team_points_for',
                     'favorite_team_points_against',
@@ -75,8 +75,8 @@ class Model(Data):
                 'features': [
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    'money_line',
-                    'spread_line',
+                    'favorite_money_line',
+                    'favorite_spread_line',
                     'total_line',
                     'favorite_team_points_for',
                     'underdog_team_points_for',
@@ -108,6 +108,8 @@ class Model(Data):
             df = self.engineer_features()
         # Drop nas
         df = df[~df[self.line_col].isna() & ~df[self.response_col].isna()]
+        for col in self.features:
+            df = df[~df[col].isna()]
         # Train test split
         df_ = df[df['gameday'] < (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
         df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()

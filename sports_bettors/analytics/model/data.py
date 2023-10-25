@@ -239,7 +239,8 @@ class Data(Eda):
                 'away_team_points_against': home_pa + away_pa,
                 'away_team_total_points': away_total + home_total,
                 'away_team_point_differential': away_pf + home_pf - home_pa - away_pa,
-                'money_line': self._calc_payout(row['away_moneyline']),
+                'away_money_line': self._calc_payout(row['away_moneyline']),
+                'away_spread_line': row['spread_line']
             }
 
             # Home team of row
@@ -277,6 +278,8 @@ class Data(Eda):
             record['home_team_points_against'] = home_pa + home_pa
             record['home_team_point_differential'] = home_pf + away_pf - home_pa - away_pa
             record['home_team_total_points'] = away_total + home_total
+            record['home_money_line'] = self._calc_payout(row['home_moneyline'])
+            record['home_spread_line'] = -row['spread_line']
 
             # Total
             records.append(record)
@@ -301,7 +304,10 @@ class Data(Eda):
         # Add back in non-time-dependent features
         df_out = df_out.\
             merge(
-                df[['game_id', 'gameday', 'spread_actual', 'spread_line', 'spread_diff', 'total_line', 'total_actual', 'total_diff']],
+                df[[
+                    'game_id', 'gameday', 'spread_actual', 'spread_line',
+                    'spread_diff', 'total_line', 'total_actual', 'total_diff'
+                ]],
                 on=['game_id', 'gameday']
             )
 
