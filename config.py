@@ -27,18 +27,18 @@ class Config(object):
     def label_bet_ats(league: str, p: float) -> Optional[str]:
         if league == 'nfl':
             if p > 0.9:
-                return 'Home ATS'
+                return 'Home'
             elif p < -2.5:
-                return 'Away ATS'
+                return 'Away'
             else:
-                return 'No Bet ATS'
+                return 'No Bet'
 
         elif league == 'college_football':
             if p > 0:
-                return 'Home ATS'
+                return 'Home'
             elif 0 > p > -1:
-                return 'Away ATS'
+                return 'Away'
             else:
-                return 'No Bet ATS'
+                return 'No Bet'
         else:
             return None

@@ -108,7 +108,7 @@ class Model(Data):
         df_['spread_against_spread'] = df_['predicted_margin_of_victory_for_home_team'] - df_['spread_line']
 
         # Label bets
-        df_['Bet'] = df_.apply(lambda r: Config.label_bet_ats(self.league, r['spread_against_spread']), axis=1)
+        df_['Bet_ATS'] = df_.apply(lambda r: Config.label_bet_ats(self.league, r['spread_against_spread']), axis=1)
 
         # Print results
         print(df_[[
@@ -119,7 +119,7 @@ class Model(Data):
             'money_line',
             'predicted_margin_of_victory_for_home_team',
             'spread_against_spread',
-            'Bet'
+            'Bet_ATS'
         ]])
 
         # Save results
