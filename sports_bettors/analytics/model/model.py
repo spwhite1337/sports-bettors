@@ -96,7 +96,7 @@ class Model(Data):
             raise NotImplementedError(self.league)
 
         df = self.engineer_features(df)
-        df_ = df[
+        df = df[
             # Next week of League
             df['gameday'].between(pd.Timestamp(self.TODAY), pd.Timestamp(self.TODAY) + datetime.timedelta(days=10))
             |
@@ -106,17 +106,17 @@ class Model(Data):
             # Keep a college game as a test case
             (df['game_id'] == 'COLLEGE_TEST_GAME')
             ].copy()
-        df_ = df_[(~df_['money_line'].isna() & ~df_['spread_line'].isna()) | (df_['game_id'] == '2023_07_SF_MIN')]
+        df = df[(~df['money_line'].isna() & ~df['spread_line'].isna()) | (df['game_id'] == '2023_07_SF_MIN')]
 
         # Margin of victory for home-team is like a spread for away team
-        df_['predicted_margin_of_victory_for_home_team'] = self.predict_spread(df_)
-        df_['spread_against_spread'] = df_['predicted_margin_of_victory_for_home_team'] - df_['spread_line']
+        df['predicted_margin_of_victory_for_home_team'] = self.predict_spread(df)
+        df['spread_against_spread'] = df['predicted_margin_of_victory_for_home_team'] - df['spread_line']
 
         # Label bets
-        df_['Bet_ATS'] = df_.apply(lambda r: Config.label_bet_ats(self.league, r['spread_against_spread']), axis=1)
+        df['Bet_ATS'] = df.apply(lambda r: Config.label_bet_ats(self.league, r['spread_against_spread']), axis=1)
 
         # Print results
-        print(df_[[
+        print(df[[
             'game_id',
             'gameday',
             'spread_actual',
@@ -132,9 +132,9 @@ class Model(Data):
         fn = f'df_{int(time.time())}.csv'
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        df_.to_csv(os.path.join(save_dir, fn), index=False)
+        df.to_csv(os.path.join(save_dir, fn), index=False)
 
-        return df_, fn
+        return df, fn
 
     def shap_explain(self, df: pd.DataFrame):
         # Example plot for jupyter analysis
