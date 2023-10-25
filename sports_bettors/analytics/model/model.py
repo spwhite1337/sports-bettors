@@ -17,10 +17,6 @@ class Model(Data):
     TODAY = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
 
     FEATURES = {'nfl': [
-            # 'away_team_wins_ats',
-            # 'away_team_losses_ats',
-            # 'home_team_wins_ats',
-            # 'home_team_losses_ats',
             'away_team_win_rate_ats',
             'home_team_win_rate_ats',
             'money_line',
@@ -29,14 +25,8 @@ class Model(Data):
             'home_team_points_for',
             'away_team_points_against',
             'home_team_points_against',
-            # 'away_team_point_differential',
-            # 'home_team_point_differential'
         ],
         'college_football': [
-            # 'away_team_wins_ats',
-            # 'away_team_losses_ats',
-            # 'home_team_wins_ats',
-            # 'home_team_losses_ats',
             'away_team_win_rate_ats',
             'home_team_win_rate_ats',
             # 'money_line',  # Bad data on moneyline for history
@@ -45,8 +35,6 @@ class Model(Data):
             'home_team_points_for',
             'away_team_points_against',
             'home_team_points_against',
-            # 'away_team_point_differential',
-            # 'home_team_point_differential'
         ]}
     response = 'spread_actual'
 
