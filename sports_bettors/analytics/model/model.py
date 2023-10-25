@@ -105,8 +105,12 @@ class Model(Data):
             |
             # Keep a college game as a test case
             (df['game_id'] == 'COLLEGE_TEST_GAME')
-            ].copy()
-        df = df[(~df['money_line'].isna() & ~df['spread_line'].isna()) | (df['game_id'] == '2023_07_SF_MIN')]
+        ].copy()
+
+        # Filter for bad features
+        for feature in self.features:
+            test_games = ['2023_07_SF_MIN']
+            df = df[~df[feature].isna() | (df['game_id'].isin(test_games))]
 
         # Margin of victory for home-team is like a spread for away team
         df['predicted_margin_of_victory_for_home_team'] = self.predict_spread(df)
