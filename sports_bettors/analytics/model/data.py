@@ -170,8 +170,21 @@ class Data(Eda):
     def calcs(self, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         if df is None:
             df = self.etl()
+
         # Metrics
+        def _define_spread_favorite(r) -> Optional[float]:
+            # away was favorite
+            if r['spread_line'] <= 0:
+                return r['away_score'] - r['home_score']
+            # home was favorite
+            elif r['spread_line'] > 0:
+                return r['home_score'] - r['away_score']
+            else:
+                return None
         df['spread_actual'] = df['home_score'] - df['away_score']
+        df['spread_favorite'] = df['spread_line'].abs()
+        df['spread_favorite_actual'] = df.apply(_define_spread_favorite, axis=1)
+        df['spread_favorite_diff'] = df['spread_favorite_actual'] - df['spread_favorite']
         df['spread_diff'] = df['away_score'] + df['spread_line'] - df['home_score']
         df['total_actual'] = df['away_score'] + df['home_score']
         df['total_diff'] = df['total_actual'] - df['total_line']
@@ -194,7 +207,6 @@ class Data(Eda):
 
     def engineer_features(self, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         if df is None:
-            df = self.etl()
             df = self.calcs()
 
         records = []
@@ -239,8 +251,9 @@ class Data(Eda):
                 'away_team_points_against': home_pa + away_pa,
                 'away_team_total_points': away_total + home_total,
                 'away_team_point_differential': away_pf + home_pf - home_pa - away_pa,
+                'money_line': self._calc_payout(row['away_moneyline']),
                 'away_money_line': self._calc_payout(row['away_moneyline']),
-                'away_spread_line': row['spread_line']
+                'away_spread_line': row['spread_line'],
             }
 
             # Home team of row
@@ -305,7 +318,8 @@ class Data(Eda):
         df_out = df_out.\
             merge(
                 df[[
-                    'game_id', 'gameday', 'spread_actual', 'spread_line',
+                    'game_id', 'gameday', 'spread_actual', 'spread_line', 'spread_favorite', 'spread_favorite_actual',
+                    'spread_favorite_diff',
                     'spread_diff', 'total_line', 'total_actual', 'total_diff'
                 ]],
                 on=['game_id', 'gameday']
@@ -313,5 +327,6 @@ class Data(Eda):
 
         # label teams
         df_out = self.label_teams(df_out)
-
+        # Keep one away-specific boolean
+        df_out['away_is_favorite'] = (df_out['spread_line'] < 0).astype(int)
         return df_out

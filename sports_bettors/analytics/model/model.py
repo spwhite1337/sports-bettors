@@ -20,19 +20,20 @@ class Model(Data):
     model_data_config = {
         'nfl': {
             'spread': {
-                'response_col': 'spread_actual',
-                'line_col': 'spread_line',
-                'diff_col': 'spread_diff',
+                'response_col': 'spread_favorite_actual',
+                'line_col': 'spread_favorite',
+                'diff_col': 'spread_favorite_diff',
                 'features': [
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    'favorite_money_line',
-                    'favorite_spread_line',
+                    # 'money_line',
+                    'spread_favorite',
                     'total_line',
                     'favorite_team_points_for',
                     'underdog_team_points_for',
                     'favorite_team_points_against',
                     'underdog_team_points_against',
+                    'away_is_favorite',
                 ]
             },
             'over': {
@@ -49,25 +50,27 @@ class Model(Data):
                     'underdog_team_points_for',
                     'favorite_team_points_against',
                     'underdog_team_points_against',
+                    'away_is_favorite'
                 ]
             }
         },
         'college_football': {
             'spread': {
-                'response_col': 'spread_actual',
-                'line_col': 'spread_line',
-                'diff_col': 'spread_diff',
+                'response_col': 'spread_favorite_actual',
+                'line_col': 'spread_favorite',
+                'diff_col': 'spread_favorite_diff',
                 'features': [
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    'favorite_money_line',
-                    'favorite_spread_line',
+                    # 'money_line',
+                    'spread_favorite',
                     'favorite_team_points_for',
                     'underdog_team_points_for',
                     'favorite_team_points_against',
                     'underdog_team_points_against',
+                    'away_is_favorite',
                 ]
-            },
+        },
             'over': {
                 'response_col': 'total_actual',
                 'line_col': 'total_line',
@@ -82,6 +85,7 @@ class Model(Data):
                     'underdog_team_points_for',
                     'favorite_team_points_against',
                     'underdog_team_points_against',
+                    'away_is_favorite'
                 ]
             }
         }
