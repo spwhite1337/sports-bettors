@@ -9,7 +9,7 @@ def run(league: str = 'nfl', overwrite: bool = False):
     api = Validate(league=league, overwrite=overwrite)
     df, df_val, df_all = api.fit_transform()
     api.train(df)
-    api.validate(df, df_val, df_all)
+    api.validate(df, df_val, df_all, run_shap=True)
     api.save_results()
 
 
