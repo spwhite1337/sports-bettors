@@ -123,35 +123,20 @@ class Validate(Model):
                     pdf.savefig()
                     plt.close()
             # As classifier
-            # Logic:
-            # If preds (predicted number of points to add to away team to get a tie)
-            # is less than spread-line, then we would predict the away team to cover
-            # e.g. spread is -7 but we predict -9, or spread is 5 and we predict -3
-            # If it is more than the spread-line, then we would predict the home team to cover
-            # e.g. spread is -5 but we predict +1, or spread is +7 and we predict +10
-            # In this case, the away team is favored but we see them as underdogs relative to the spread
-
-            # Therefore a "spread against the spread" is the away team's expected margin of victory against the
-            # spread.
-            # Our advantage is that we just need to get a moneyline bet off this new spread-spread
-            # preds_c is the amount you need to add to the spread to get it "right"
+            # preds-c is the amount above the line the favorite is expected to win by
+            # or how much over the over it was expected to be
+            # in each case, the actual should be above the line so they are positively correlated
             df['preds_c'] = df['preds'] - df[self.line_col]
-
-            # The away team wins against the spread if the spread line was larger than the margin of victory
-            # E.g. spread is -7, but actual spread was -12
-            # e.g. spread is +3 but actual spread was +1
-
-            # for the over, it is simpler, if the line is greater than the total then it didn't hit
+            # Response is if the favorite won by more than the line, or the over hit
+            # (positively correlated with preds-c)
             classifier_response = 'classifier_response'
-
-            df[classifier_response] = (df[self.line_col] > df[self.response_col]).astype(int)
+            df[classifier_response] = (df[self.response_col] > df[self.line_col]).astype(int)
             df_ = df[df['gameday'] < (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
             df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
 
             # ROC
-            # 1 - response so polarity is "normal"
-            fpr, tpr, thresholds = roc_curve(1-df_[classifier_response], df_['preds_c'])
-            auc = roc_auc_score(1-df_[classifier_response], df_['preds_c'])
+            fpr, tpr, thresholds = roc_curve(df_[classifier_response], df_['preds_c'])
+            auc = roc_auc_score(df_[classifier_response], df_['preds_c'])
             plt.figure()
             plt.plot(fpr, tpr)
             plt.text(0.2, 0.9, f'AUC: {auc:.3f}\nn={df_val.shape[0]}')
@@ -161,8 +146,8 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            fpr, tpr, thresholds = roc_curve(1-df_val[classifier_response], df_val['preds_c'])
-            auc = roc_auc_score(1-df_val[classifier_response], df_val['preds_c'])
+            fpr, tpr, thresholds = roc_curve(df_val[classifier_response], df_val['preds_c'])
+            auc = roc_auc_score(df_val[classifier_response], df_val['preds_c'])
             plt.figure()
             plt.plot(fpr, tpr)
             plt.text(0.2, 0.9, f'AUC: {auc:.3f}\nn={df_val.shape[0]}')
@@ -172,7 +157,7 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            precision, recall, thresholds = precision_recall_curve(1-df_[classifier_response], df_['preds_c'])
+            precision, recall, thresholds = precision_recall_curve(df_[classifier_response], df_['preds_c'])
             plt.figure()
             plt.plot(thresholds, precision[1:], label='precision')
             plt.plot(thresholds, recall[1:], label='recall')
@@ -184,7 +169,7 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
-            precision, recall, thresholds = precision_recall_curve(1-df_val[classifier_response], df_val['preds_c'])
+            precision, recall, thresholds = precision_recall_curve(df_val[classifier_response], df_val['preds_c'])
             plt.figure()
             plt.plot(thresholds, precision[1:], label='precision')
             plt.plot(thresholds, recall[1:], label='recall')
@@ -216,7 +201,7 @@ class Validate(Model):
                 round_interval = 0.5
             elif self.response == 'over':
                 thresholds = np.linspace(-20, 20, 41)
-                labels = 'Under', 'Over'
+                labels = 'Over', 'Under'
                 round_interval = 1.
             else:
                 raise NotImplementedError(self.response)
@@ -224,21 +209,19 @@ class Validate(Model):
             for threshold in thresholds:
                 record = {
                     'threshold': threshold,
-                    # preds_c is "the amount we need to add to the spread-line to get it "right"
-                    # If preds_c is negative, then we are expecting the away team to do better
-
-                    'fraction_games': df_val[df_val['preds_c'] < threshold].shape[0] / n_total,
+                    # preds_c is the amount we expect the favorite to win by or the over to hit
+                    'fraction_games': df_val[df_val['preds_c'] > threshold].shape[0] / n_total,
                     'fraction_games_interval': df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)].shape[0] / n_total,
-                    'win_rate': df_val[df_val['preds_c'] < threshold][classifier_response].mean(),
+                    'win_rate': df_val[df_val['preds_c'] > threshold][classifier_response].mean(),
                     'win_rate_interval': df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)][classifier_response].mean(),
                     'team': labels[0]
                 }
                 records.append(record)
                 record = {
                     'threshold': threshold,
-                    'fraction_games': df_val[df_val['preds_c'] > threshold].shape[0] / n_total,
+                    'fraction_games': df_val[df_val['preds_c'] < threshold].shape[0] / n_total,
                     'fraction_games_interval': df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)].shape[0] / n_total,
-                    'win_rate': (1 - df_val[(df_val['preds_c']) > threshold][classifier_response]).mean(),
+                    'win_rate': (1 - df_val[(df_val['preds_c']) < threshold][classifier_response]).mean(),
                     'win_rate_interval': (1 - df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)][classifier_response]).mean(),
                     'team': labels[1]
                 }
@@ -251,9 +234,9 @@ class Validate(Model):
                 df_ = df_[df_['fraction_games'] > 0.05]
                 plt.plot(df_['threshold'], df_['win_rate'], label=team)
             if self.response == 'spread':
-                plt.gca().invert_xaxis()
-                plt.text(10, 0.6, 'Underdog Wins Against Spread')
-                plt.text(-3, 0.6, 'Favorite Wins Against Spread')
+                # plt.gca().invert_xaxis()
+                # plt.text(10, 0.6, 'Underdog Wins Against Spread')
+                # plt.text(-3, 0.6, 'Favorite Wins Against Spread')
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
             plt.ylabel('Win Rate - Cumulative')
@@ -264,14 +247,25 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
+            for team, df_ in df_plot.groupby('team'):
+                plt.plot(df_['threshold'], df_['fraction_games'], label=team)
+            if self.response == 'spread':
+                plt.xlabel('Predicted Spread on the Vegas-Spread')
+            plt.legend()
+            plt.ylabel('Cumulative Fraction of Games with Good Odds (>52.5%)')
+            plt.title('Betting Guide: Number of Games (Cumulative)')
+            plt.grid(True)
+            pdf.savefig()
+            plt.close()
+
             plt.figure()
             for team, df_ in df_plot.groupby('team'):
                 df_ = df_[df_['fraction_games'] > 0.01]
                 plt.plot(df_['threshold'], df_['win_rate_interval'], label=team)
             if self.response == 'spread':
-                plt.gca().invert_xaxis()
-                plt.text(10, 0.6, 'Underdog Wins Against Spread')
-                plt.text(-3, 0.6, 'Favorite Wins Against Spread')
+                # plt.gca().invert_xaxis()
+                # plt.text(10, 0.6, 'Underdog Wins Against Spread')
+                # plt.text(-3, 0.6, 'Favorite Wins Against Spread')
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
             plt.ylabel('Win Rate')
@@ -284,27 +278,8 @@ class Validate(Model):
 
             plt.figure()
             for team, df_ in df_plot.groupby('team'):
-                df_ = df_[df_['win_rate'] > 0.525]
-                plt.plot(df_['threshold'], df_['fraction_games'], label=team)
-            if self.response == 'spread':
-                plt.gca().invert_xaxis()
-                plt.text(10, 0.6, 'Underdog Wins Against Spread')
-                plt.text(-3, 0.6, 'Favorite Wins Against Spread')
-                plt.xlabel('Predicted Spread on the Vegas-Spread')
-            plt.legend()
-            plt.ylabel('Cumulative Fraction of Games with Good Odds (>52.5%)')
-            plt.title('Betting Guide: Number of Games (Cumulative)')
-            plt.grid(True)
-            pdf.savefig()
-            plt.close()
-
-            plt.figure()
-            for team, df_ in df_plot.groupby('team'):
                 plt.plot(df_['threshold'], df_['fraction_games_interval'], label=team)
             if self.response == 'spread':
-                plt.gca().invert_xaxis()
-                plt.text(10, 0.6, 'Underdog Wins Against Spread')
-                plt.text(-3, 0.6, 'Favorite Wins Against Spread')
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
             plt.ylabel('Fraction of Games with Good Odds (>52.5%)')
@@ -312,3 +287,4 @@ class Validate(Model):
             plt.grid(True)
             pdf.savefig()
             plt.close()
+            plt.figure()
