@@ -5,7 +5,8 @@ from sports_bettors.analytics.model.validate import Validate
 
 
 def analysis():
-    Eda().analyze()
+    for league in ['nfl', 'college_football']:
+        Eda(league=league).analyze()
     Bets().analyze()
 
 
