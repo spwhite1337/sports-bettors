@@ -32,8 +32,8 @@ class Model(Data):
     ]
     response = 'spread_actual'
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, league: str = 'nfl', overwrite: bool = False):
+        super().__init__(league=league, overwrite=overwrite)
         self.model = None
         self.scaler = None
 

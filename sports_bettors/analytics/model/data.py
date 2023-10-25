@@ -95,7 +95,6 @@ class Data(Eda):
                 df.append(pd.DataFrame.from_records(records))
         df = pd.concat(df).drop_duplicates().reset_index(drop=True)
         df['gameday'] = pd.to_datetime(df['gameday']).dt.date
-
         return df
 
     def etl(self) -> pd.DataFrame:

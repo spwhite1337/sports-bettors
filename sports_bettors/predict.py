@@ -1,8 +1,8 @@
 from sports_bettors.analytics.model.validate import Validate
 
 
-def predict(retrain: bool = False):
-    api = Validate().load_results()
+def predict(league: str = 'nfl', overwrite: bool = False, retrain: bool = False):
+    api = Validate(league=league).load_results()
     if api is None:
         api = Validate()
         api.train()
@@ -16,6 +16,8 @@ def predict(retrain: bool = False):
 def predict_cli():
     import argparse
     parser = argparse.ArgumentParser()
+    parser.add_argument('--league', type=str, default='nfl')
+    parser.add_argument('--overwrite', action='store_true')
     parser.add_argument('--retrain', action='store_true')
     args = parser.parse_args()
-    predict(args.retrain)
+    predict(args.league, args.overwrite, args.retrain)
