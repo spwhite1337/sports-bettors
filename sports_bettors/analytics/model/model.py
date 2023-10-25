@@ -86,7 +86,7 @@ class Model(Data):
             raise ValueError()
         return self.model.predict(self.transform(df))
 
-    def predict_next_week(self) -> pd.DataFrame:
+    def predict_next_week(self) -> Tuple[pd.DataFrame, str]:
         if self.league == 'nfl':
             df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
             df = df[df['gameday'] > (pd.Timestamp(self.TODAY) - datetime.timedelta(days=self.window))]
@@ -129,11 +129,12 @@ class Model(Data):
 
         # Save results
         save_dir = os.path.join(os.getcwd(), 'data', 'predictions', self.league)
+        fn = f'df_{int(time.time())}.csv'
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        df_.to_csv(os.path.join(save_dir, f'df_{int(time.time())}.csv'), index=False)
+        df_.to_csv(os.path.join(save_dir, fn), index=False)
 
-        return df_
+        return df_, fn
 
     def shap_explain(self, df: pd.DataFrame):
         # Example plot for jupyter analysis
