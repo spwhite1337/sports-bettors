@@ -1,6 +1,6 @@
 import os
 import datetime
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
@@ -52,11 +52,22 @@ class Model(Data):
         self.scaler.fit(df_[self.features])
         return df_, df_val, df
 
+    def get_hyper_params(self) -> Dict[str, float]:
+        if self.league == 'nfl':
+            return {'C': 3}
+        elif self.league == 'college_football':
+            return {'C': 3}
+
     def train(self, df: Optional[pd.DataFrame] = None):
         if df is None:
             df, _, _ = self.fit_transform()
         logger.info('Train a Model')
-        self.model = SVR(kernel='rbf', C=3, gamma=0.1, epsilon=0.1)
+        self.model = SVR(
+            kernel='rbf',
+            gamma=0.1,
+            epsilon=0.1,
+            **self.get_hyper_params()
+        )
         X, y = pd.DataFrame(self.scaler.transform(df[self.features]), columns=self.features), df[self.response]
         self.model.fit(X, y)
 
