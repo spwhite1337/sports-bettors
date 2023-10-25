@@ -32,10 +32,20 @@ class Validate(Model):
 
         # Preds vs Response
         with PdfPages(os.path.join(self.save_dir, 'validate_spreads.pdf')) as pdf:
+            plt.figure()
+            plt.text(0.04, 0.95, f'League: {self.league}')
+            plt.text(0.04, 0.90, f'Train N: {df_.shape[0]}')
+            plt.text(0.04, 0.85, f'Val N: {df_val.shape[0]}')
+            plt.tick_params(axis='both', which='both', labelbottom=False, labelleft=False, bottom=False, left=False)
+            pdf.savefig()
+            plt.close()
+
             bins = np.linspace(-50, 50, 21)
             plt.figure()
             plt.hist(df_val['preds'], alpha=0.5, label='preds', bins=bins)
             plt.hist(df_val[self.response], alpha=0.5, label='Actuals', bins=bins)
+            plt.text(-40, 10, f'Preds: {df_val["preds"].mean().round(2)} +/- {df_val["preds"].std().round(2)}')
+            plt.text(-40, 20, f'Actuals: {df_val[self.response].mean().round(2)} +/- {df_val[self.response].std().round(2)}')
             plt.xlabel(self.response)
             plt.title('Preds Distribution')
             plt.grid(True)
@@ -46,8 +56,10 @@ class Validate(Model):
             df_val['res'] = df_val['preds'] - df_val[self.response]
             df_['res'] = df_['preds'] - df_[self.response]
             plt.figure()
-            plt.hist(df_val['res'], alpha=0.5, label='test', density=True, bins=bins)
-            plt.hist(df_['res'], alpha=0.5, label='train', density=True, bins=bins)
+            plt.hist(df_val['res'], alpha=0.5, label='Test', density=True, bins=bins)
+            plt.hist(df_['res'], alpha=0.5, label='Train', density=True, bins=bins)
+            plt.text(-40, 0.01, f'Test: {df_val["res"].mean().round(2)} +/- {df_val["res"].std().round(2)}')
+            plt.text(-40, 0.02, f'Train: {df_["res"].mean().round(2)} +/- {df_["res"].std().round(2)}')
             plt.title('Residuals Distribution')
             plt.grid(True)
             plt.legend()
@@ -69,6 +81,8 @@ class Validate(Model):
             plt.figure()
             plt.hist(df_val['res'], alpha=0.5, label='residuals', bins=bins)
             plt.hist(df_val['spread_diff'], alpha=0.5, label='spread-diff', bins=bins)
+            plt.text(-40, 10, f'Residuals: {df_val["res"].mean().round(2)} +/- {df_val["res"].std().round(2)}')
+            plt.text(-40, 20, f'Spread-Diff: {df_val["spread_diff"].mean().round(2)} +/- {df_val["spread_diff"].std().round(2)}')
             plt.grid(True)
             plt.legend()
             plt.title('Model vs. Spread')
@@ -123,7 +137,7 @@ class Validate(Model):
             df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
 
             # ROC
-            # 1- response so polarity is "normal"
+            # 1 - response so polarity is "normal"
             fpr, tpr, thresholds = roc_curve(1-df_[classifier_response], df_['preds_c'])
             auc = roc_auc_score(1-df_[classifier_response], df_['preds_c'])
             plt.figure()
@@ -207,8 +221,8 @@ class Validate(Model):
                 df_ = df_[df_['fraction_games'] > 0.05]
                 plt.plot(df_['threshold'], df_['win_rate'], label=team)
             plt.gca().invert_xaxis()
-            plt.text(10, 0.92, 'Home Wins Against Spread')
-            plt.text(-3, 0.88, 'Away Wins Against Spread')
+            plt.text(10, 0.6, 'Home Wins Against Spread')
+            plt.text(-3, 0.6, 'Away Wins Against Spread')
             plt.legend()
             plt.ylabel('Win Rate')
             plt.xlabel('Predicted Spread on the Vegas-Spread')
@@ -224,8 +238,8 @@ class Validate(Model):
                 df_ = df_[df_['win_rate'] > 0.525]
                 plt.plot(df_['threshold'], df_['fraction_games'], label=team)
             plt.gca().invert_xaxis()
-            plt.text(10, 0.92, 'Home Wins Against Spread')
-            plt.text(-3, 0.88, 'Away Wins Against Spread')
+            plt.text(10, 0.6, 'Home Wins Against Spread')
+            plt.text(-3, 0.6, 'Away Wins Against Spread')
             plt.legend()
             plt.ylabel('Fraction of Games with Good Odds (>52.5%)')
             plt.xlabel('Predicted Spread on the Vegas-Spread')

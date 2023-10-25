@@ -52,8 +52,10 @@ class Data(Eda):
             return -1 / payout * 100
 
     def _download_college_football(self, predict: bool = False) -> pd.DataFrame:
-        # Pull data from https://github.com/CFBD/cfbd-python
-        # As of 10/2023 it is "free to use without restrictions"
+        """
+        Pull data from https://github.com/CFBD/cfbd-python
+        As of 10/2023 it is "free to use without restrictions"
+        """
 
         configuration = cfbd.Configuration()
         configuration.api_key['Authorization'] = os.environ['API_KEY_COLLEGE_API']
@@ -65,7 +67,7 @@ class Data(Eda):
         else:
             years = list(np.linspace(current_year - 1, current_year, 2))
         season_type = 'regular'
-        df = []
+        df, df_raw = [], None
         for year in tqdm(years):
             for conference in tqdm(self.college_conferences):
                 # Rest a bit for the API because it is free
@@ -73,6 +75,7 @@ class Data(Eda):
                 try:
                     api_response = api_instance.get_lines(year=year, season_type=season_type, conference=conference)
                 except:
+                    logger.error('API Miss')
                     if predict:
                         return pd.read_csv(os.path.join(self.cache_dir, 'df_training.csv'), parse_dates=['gameday'])
                     else:
