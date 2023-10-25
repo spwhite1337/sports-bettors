@@ -52,6 +52,7 @@ class Data(Eda):
     def _download_college_football(self, predict: bool = False) -> pd.DataFrame:
         # Pull data from https://github.com/CFBD/cfbd-python
         # As of 10/2023 it is "free to use without restrictions"
+
         configuration = cfbd.Configuration()
         configuration.api_key['Authorization'] = os.environ['API_KEY_COLLEGE_API']
         configuration.api_key_prefix['Authorization'] = 'Bearer'
@@ -67,7 +68,13 @@ class Data(Eda):
             for conference in tqdm(self.college_conferences):
                 # Rest a bit for the API because it is free
                 time.sleep(2)
-                api_response = api_instance.get_lines(year=year, season_type=season_type, conference=conference)
+                try:
+                    api_response = api_instance.get_lines(year=year, season_type=season_type, conference=conference)
+                except:
+                    if predict:
+                        return pd.read_csv(os.path.join(self.cache_dir, 'df_training.csv'), parse_dates=['gameday'])
+                    else:
+                        raise Exception
                 records = []
                 for b in api_response:
                     record = {
