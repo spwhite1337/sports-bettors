@@ -74,7 +74,8 @@ class Data(Eda):
                     if predict:
                         return pd.read_csv(os.path.join(self.cache_dir, 'df_training.csv'), parse_dates=['gameday'])
                     else:
-                        raise Exception
+                        df_raw = pd.read_csv(os.path.join(self.cache_dir, 'df_training_raw.csv'), parse_dates=['gameday'])
+                        api_response = []
                 records = []
                 for b in api_response:
                     record = {
@@ -106,7 +107,7 @@ class Data(Eda):
                             record['away_moneyline'] = self._impute_money_line_from_spread(record['spread_line'])
                         records.append(record.copy())
                 df.append(pd.DataFrame.from_records(records))
-        df = pd.concat(df).drop_duplicates().reset_index(drop=True)
+        df = pd.concat(df).drop_duplicates().reset_index(drop=True) if len(df) > 0 else df_raw
         df['gameday'] = pd.to_datetime(df['gameday']).dt.date
 
         # De-dupe from multiple spread providers

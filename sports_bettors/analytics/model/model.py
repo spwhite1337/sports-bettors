@@ -16,28 +16,45 @@ class Model(Data):
     val_window = 365
     TODAY = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
 
-    features = [
-        # 'away_team_wins_ats',
-        # 'away_team_losses_ats',
-        # 'home_team_wins_ats',
-        # 'home_team_losses_ats',
-        'away_team_win_rate_ats',
-        'home_team_win_rate_ats',
-        'money_line',
-        'spread_line',
-        'away_team_points_for',
-        'home_team_points_for',
-        'away_team_points_against',
-        'home_team_points_against',
-        # 'away_team_point_differential',
-        # 'home_team_point_differential'
-    ]
+    FEATURES = {'nfl': [
+            # 'away_team_wins_ats',
+            # 'away_team_losses_ats',
+            # 'home_team_wins_ats',
+            # 'home_team_losses_ats',
+            'away_team_win_rate_ats',
+            'home_team_win_rate_ats',
+            'money_line',
+            'spread_line',
+            'away_team_points_for',
+            'home_team_points_for',
+            'away_team_points_against',
+            'home_team_points_against',
+            # 'away_team_point_differential',
+            # 'home_team_point_differential'
+        ],
+        'college_football': [
+            # 'away_team_wins_ats',
+            # 'away_team_losses_ats',
+            # 'home_team_wins_ats',
+            # 'home_team_losses_ats',
+            'away_team_win_rate_ats',
+            'home_team_win_rate_ats',
+            # 'money_line',  # Bad data on moneyline for history
+            'spread_line',
+            'away_team_points_for',
+            'home_team_points_for',
+            'away_team_points_against',
+            'home_team_points_against',
+            # 'away_team_point_differential',
+            # 'home_team_point_differential'
+        ]}
     response = 'spread_actual'
 
     def __init__(self, league: str = 'nfl', overwrite: bool = False):
         super().__init__(league=league, overwrite=overwrite)
         self.model = None
         self.scaler = None
+        self.features = self.FEATURES[league]
         self.save_dir = os.path.join(os.getcwd(), 'docs', 'model', self.league)
         if not os.path.exists(self.save_dir):
             os.makedirs(self.save_dir)
