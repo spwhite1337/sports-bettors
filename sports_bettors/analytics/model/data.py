@@ -1,9 +1,13 @@
+import re
 import os
 import pickle
 from typing import Optional
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import datetime
+import time
+import cfbd
 
 from sports_bettors.analytics.eda.eda import Eda
 from config import logger
@@ -14,27 +18,106 @@ class Data(Eda):
     link_to_data = 'https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv'
     window = 365
 
-    def __init__(self):
+    college_conferences = ['ACC', 'B12', 'B1G', 'SEC', 'Pac-10', 'PAC', 'Ind']
+
+    def __init__(self, league: str = 'nfl', overwrite: bool = False):
         super().__init__()
         self.training_start = datetime.datetime.strftime(
             datetime.datetime.today() - datetime.timedelta(days=self.training_years * 365),
             '%Y-%m-%d',
         )
-        self.model_dir = os.path.join(os.getcwd(), 'data', 'sports_bettors', 'models')
+        self.overwrite = overwrite
+        assert league in ['nfl', 'college']
+        self.league = league
+        self.model_dir = os.path.join(os.getcwd(), 'data', 'sports_bettors', 'models', self.league)
         if not os.path.exists(self.model_dir):
             os.makedirs(self.model_dir)
+        self.cache_dir = os.path.join(os.getcwd(), 'data', 'sports_bettors', 'cache', self.league)
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
+
+    @staticmethod
+    def _impute_money_line_from_spread(spread: float) -> float:
+        # Empirically fit from non-imputed data to payout
+        p = [0.0525602, -0.08536405]
+        payout = 10 ** (p[1] + p[0] * spread)
+        # Convert to moneyline
+        if payout > 1:
+            return payout * 100
+        else:
+            return -1 / payout * 100
+
+    def _download_college_football(self) -> pd.DataFrame:
+        if os.path.exists(os.path.join(self.cache_dir, 'df_training.csv')) and not self.overwrite:
+            return pd.read_csv(os.path.join(self.cache_dir, 'df_training.csv'), parse_dates=['gameday'])
+
+        # Pull data from https://github.com/CFBD/cfbd-python
+        # As of 10/2023 it is "free to use without restrictions"
+        configuration = cfbd.Configuration()
+        configuration.api_key['Authorization'] = os.environ['API_KEY_COLLEGE_API']
+        configuration.api_key_prefix['Authorization'] = 'Bearer'
+        api_instance = cfbd.BettingApi(cfbd.ApiClient(configuration))
+        current_year = datetime.datetime.today().year
+        years = list(np.linspace(current_year - self.training_years - 1, current_year, self.training_years + 2))
+        season_type = 'regular'
+        df = []
+        for year in tqdm(years):
+            for conference in tqdm(self.college_conferences):
+                # Rest a bit for the API because it is free
+                time.sleep(2)
+                api_response = api_instance.get_lines(year=year, season_type=season_type, conference=conference)
+                records = []
+                for b in api_response:
+                    record = {
+                        'gameday': b.start_date,
+                        'game_id': str(year) + '_' + re.sub(' ', '', b.away_team) + '_' + re.sub(' ', '', b.home_team),
+                        'away_conference': b.away_conference,
+                        'away_team': b.away_team,
+                        'away_score': b.away_score,
+                        'home_conference': b.home_conference,
+                        'home_team': b.home_team,
+                        'home_score': b.home_score
+                    }
+                    for line in b.lines:
+                        record['away_moneyline'] = line.away_moneyline
+                        record['home_moneyline'] = line.home_moneyline
+                        record['formatted_spread'] = line.formatted_spread
+                        record['over_under'] = line.over_under
+                        record['provider'] = line.provider
+                        # The spreads have different conventions but we want them relative to the away team
+                        if b.away_team in line.formatted_spread:
+                            record['spread_line'] = line.spread
+                        else:
+                            record['spread_line'] = -1 * line.spread
+                        if record['away_moneyline'] is None:
+                            record['away_moneyline'] = self._impute_money_line_from_spread(record['spread_line'])
+                        records.append(record.copy())
+                df.append(pd.DataFrame.from_records(records))
+        df = pd.concat(df).drop_duplicates().reset_index(drop=True)
+        df['gameday'] = pd.to_datetime(df['gameday']).dt.date
+
+        return df
 
     def etl(self) -> pd.DataFrame:
-        # Model training
-        logger.info('Downloading Data from Github')
-        df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
-        df = df[
-            # Regular season only
-            (df['game_type'] == 'REG')
-            &
-            # Not planned
-            (~df['away_score'].isna())
-        ]
+        if os.path.exists(os.path.join(self.cache_dir, 'df_training.csv')) and not self.overwrite:
+            return pd.read_csv(os.path.join(self.cache_dir, 'df_training.csv'), parse_dates=['gameday'])
+        if self.league == 'nfl':
+            # Model training
+            logger.info('Downloading Data from Github')
+            df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
+            df = df[
+                # Regular season only
+                (df['game_type'] == 'REG')
+                &
+                # Not planned
+                (~df['away_score'].isna())
+            ]
+        elif self.league == 'college_football':
+            df = self._download_college_football()
+        else:
+            raise NotImplementedError(self.league)
+        # Save to cache
+        df.to_csv(os.path.join(self.cache_dir, 'df_training.csv'), index=False)
         return df
 
     def calcs(self, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
