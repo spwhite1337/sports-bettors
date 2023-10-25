@@ -24,20 +24,21 @@ class Config(object):
     CLOUD_RESULTS = 's3://scott-p-white/website/results'
 
     @staticmethod
-    def label_bet(league: str, p: float) -> Optional[str]:
+    def label_bet_ats(league: str, p: float) -> Optional[str]:
         if league == 'nfl':
             if p > 0.9:
-                return 'home'
+                return 'Home ATS'
             elif p < -2.5:
-                return 'away'
+                return 'Away ATS'
             else:
-                return 'No Bet'
+                return 'No Bet ATS'
+
         elif league == 'college_football':
             if p > 0:
-                return 'home'
+                return 'Home ATS'
             elif p < -0.5:
-                return 'Amay'
+                return 'Away ATS'
             else:
-                return 'No Bet'
+                return 'No Bet ATS'
         else:
             return None
