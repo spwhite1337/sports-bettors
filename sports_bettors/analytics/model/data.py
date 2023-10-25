@@ -50,9 +50,6 @@ class Data(Eda):
             return -1 / payout * 100
 
     def _download_college_football(self, predict: bool = False) -> pd.DataFrame:
-        if os.path.exists(os.path.join(self.cache_dir, 'df_training.csv')) and not self.overwrite:
-            return pd.read_csv(os.path.join(self.cache_dir, 'df_training.csv'), parse_dates=['gameday'])
-
         # Pull data from https://github.com/CFBD/cfbd-python
         # As of 10/2023 it is "free to use without restrictions"
         configuration = cfbd.Configuration()

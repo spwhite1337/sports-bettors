@@ -256,5 +256,8 @@ class Validate(Model):
             'predicted_margin_of_victory_for_home_team',
             'spread_against_spread'
         ]])
-        df_.to_csv(os.path.join(os.getcwd(), 'data', 'df_test.csv'), index=False)
+        save_dir = os.path.join(os.getcwd(), 'data', 'predictions', self.league)
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        df_.to_csv(os.path.join(save_dir, 'df_test_college.csv'), index=False)
         return df_

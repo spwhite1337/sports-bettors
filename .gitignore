@@ -8,5 +8,5 @@
 data/
 *.ipynb
 docs/*.pdf
-docs/college_football/*.pdf
-docs/nfl/*.pdf
+docs/model/college_football/*.pdf
+docs/model/nfl/*.pdf
