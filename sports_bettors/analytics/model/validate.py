@@ -170,6 +170,18 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
+            # Win-Rate by month
+            df_plot = df_val[['gameday', classifier_response]].copy()
+            df_plot['month'] = df_plot['gameday'].dt.month
+            df_plot = df_plot.groupby('month').agg(win_rate=(classifier_response, 'mean')).reset_index()
+            plt.figure()
+            plt.bar(df_plot['month'], df_plot['win_rate'])
+            plt.title('Bias check')
+            plt.xlabel('Month')
+            plt.ylabel('Win Rate')
+            pdf.savefig()
+            plt.close()
+
             # Win-rate
             records, n_total = [], df_val.shape[0]
             for threshold in np.linspace(-10, 10, 41):
@@ -190,10 +202,9 @@ class Validate(Model):
                 }
                 records.append(record)
             df_plot = pd.DataFrame.from_records(records)
-            baseline_prob = self._baseline_prob()
             plt.figure()
             for team, df_ in df_plot.groupby('team'):
-                df_ = df_[df_['fraction_games'] > 0.01]
+                df_ = df_[df_['fraction_games'] > 0.05]
                 plt.plot(df_['threshold'], df_['win_rate'], label=team)
             plt.gca().invert_xaxis()
             plt.text(10, 0.92, 'Home Wins Against Spread')
@@ -216,7 +227,7 @@ class Validate(Model):
             plt.text(10, 0.92, 'Home Wins Against Spread')
             plt.text(-3, 0.88, 'Away Wins Against Spread')
             plt.legend()
-            plt.ylabel('Fraction of Games with Good Odds')
+            plt.ylabel('Fraction of Games with Good Odds (>52.5%)')
             plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.title('Betting Guide: Number of Games')
             plt.grid(True)
