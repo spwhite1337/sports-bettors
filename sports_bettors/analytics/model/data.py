@@ -121,7 +121,7 @@ class Data(Eda):
         # Take the max over / under for now
         df['over_under'] = df.groupby('game_id')['over_under'].transform('min')
         df['home_moneyline'] = df.groupby('game_id')['home_moneyline'].transform('mean')
-        # Impute moneyline from spreads empircal fit to avoid dropping data
+        # Impute moneyline from spreads empirical fit to avoid dropping data
         df['away_moneyline'] = df['away_moneyline'].\
             fillna(df['spread_line'].apply(self._impute_money_line_from_spread))
         df['away_moneyline'] = df.groupby('game_id')['away_moneyline'].transform('mean')
