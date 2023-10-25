@@ -16,7 +16,8 @@ class Model(Data):
     val_window = 365
     TODAY = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
 
-    FEATURES = {'nfl': [
+    FEATURES = {
+        'nfl': [
             'away_team_win_rate_ats',
             'home_team_win_rate_ats',
             'money_line',
@@ -35,7 +36,8 @@ class Model(Data):
             'home_team_points_for',
             'away_team_points_against',
             'home_team_points_against',
-        ]}
+        ]
+    }
     response = 'spread_actual'
 
     def __init__(self, league: str = 'nfl', overwrite: bool = False):
