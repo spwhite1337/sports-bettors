@@ -182,6 +182,7 @@ class Data(Eda):
     def engineer_features(self, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         if df is None:
             df = self.etl()
+            df = self.calcs()
 
         records = []
         # Subset for window past training start
