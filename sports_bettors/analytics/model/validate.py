@@ -224,6 +224,9 @@ class Validate(Model):
             plt.close()
 
     def predict_next_week(self) -> pd.DataFrame:
+        if self.league != 'nfl':
+            return
+
         df = pd.read_csv(self.link_to_data, parse_dates=['gameday'])
         df = df[df['gameday'] > (pd.Timestamp(self.TODAY) - datetime.timedelta(days=self.window))]
         df = self.engineer_features(df)
