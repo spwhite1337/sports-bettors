@@ -153,6 +153,7 @@ class Model(Data):
             raise NotImplementedError(self.league)
 
         # Engineer features from raw
+        df = self.calcs(df)
         df = self.engineer_features(df)
 
         # Filter for predictions

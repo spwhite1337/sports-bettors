@@ -159,6 +159,10 @@ class Data(Eda):
             df = self._download_college_football()
         else:
             raise NotImplementedError(self.league)
+
+        # Run calcs
+        df = self.calcs(df)
+
         # Save to cache
         df.to_csv(os.path.join(self.cache_dir, 'df_training.csv'), index=False)
         return df
@@ -177,7 +181,7 @@ class Data(Eda):
 
     def engineer_features(self, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         if df is None:
-            df = self.calcs()
+            df = self.etl()
 
         records = []
         # Subset for window past training start
