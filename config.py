@@ -36,7 +36,7 @@ class Config(object):
         elif league == 'college_football':
             if p > 0:
                 return 'Home ATS'
-            elif p < -0.5:
+            elif 0 > p > -1:
                 return 'Away ATS'
             else:
                 return 'No Bet ATS'
