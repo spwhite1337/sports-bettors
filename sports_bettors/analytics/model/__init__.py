@@ -105,6 +105,11 @@ class Model(object):
         df['gameday'] = df['gameday'].dt.date.astype(str)
         for col in ['money_line', 'spread_adj', 'over_adj']:
             df[col] = df[col].round(2)
+        df['Spread_from_Model_for_Away_Team'] = df.\
+            apply(
+            lambda r: -r['spread_adj'] if r['away_is_favorite'] == 1 else r['spread_adj'],
+            axis=1
+        )
         df_x = df[[
             'game_id',
             'gameday',
@@ -113,15 +118,14 @@ class Model(object):
             'away_is_favorite',
             'money_line',
             'spread_line',
-            'spread_adj',
+            'Spread_from_Model_for_Away_Team',
             'Spread_Bet',
             'total_line',
             'over_adj',
             'Over_Bet',
         ]].rename(
             columns={
-                'spread_adj': 'Spread_from_Model',
-                'spread_line': 'Spread_from_Vegas',
+                'spread_line': 'Spread_from_Vegas_for_Away_Team',
                 'total_line': 'Over_Line_from_Vegas',
                 'over_adj': 'Over_Line_from_Model',
                 'money_line': 'payout_per_dollar_bet_on_away_team_moneyline'
