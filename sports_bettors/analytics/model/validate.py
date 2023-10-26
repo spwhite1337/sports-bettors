@@ -209,7 +209,9 @@ class Validate(Model):
                     'threshold': threshold,
                     # preds_c is the amount we expect the favorite to win by or the over to hit
                     'fraction_games': df_val[df_val['preds_c'] > threshold].shape[0] / n_total,
+                    'n_games': df_val[df_val['preds_c'] > threshold].shape[0],
                     'fraction_games_interval': df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)].shape[0] / n_total,
+                    'n_games_interval': df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)].shape[0],
                     'win_rate': df_val[df_val['preds_c'] > threshold][classifier_response].mean(),
                     'win_rate_interval': df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)][classifier_response].mean(),
                     'team': labels[0]
@@ -218,7 +220,9 @@ class Validate(Model):
                 record = {
                     'threshold': threshold,
                     'fraction_games': df_val[df_val['preds_c'] < threshold].shape[0] / n_total,
+                    'n_games': df_val[df_val['preds_c'] < threshold].shape[0],
                     'fraction_games_interval': df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)].shape[0] / n_total,
+                    'n_games_interval': df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)].shape[0],
                     'win_rate': (1 - df_val[(df_val['preds_c']) < threshold][classifier_response]).mean(),
                     'win_rate_interval': (1 - df_val[df_val['preds_c'].between(threshold - round_interval, threshold + round_interval)][classifier_response]).mean(),
                     'team': labels[1]
@@ -229,7 +233,7 @@ class Validate(Model):
             # Cumulative
             plt.figure()
             for team, df_ in df_plot.groupby('team'):
-                df_ = df_[df_['fraction_games'] > 0.05]
+                df_ = df_[df_['n_games'] > 2]
                 plt.plot(df_['threshold'], df_['win_rate'], label=team)
             if self.response == 'spread':
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
@@ -243,7 +247,7 @@ class Validate(Model):
             plt.close()
 
             for team, df_ in df_plot.groupby('team'):
-                plt.plot(df_['threshold'], df_['fraction_games'], label=team)
+                plt.plot(df_['threshold'], df_['n_games'], label=team)
             if self.response == 'spread':
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
@@ -255,7 +259,7 @@ class Validate(Model):
 
             plt.figure()
             for team, df_ in df_plot.groupby('team'):
-                df_ = df_[df_['fraction_games'] > 0.01]
+                df_ = df_[df_['n_games_interval'] > 2]
                 plt.plot(df_['threshold'], df_['win_rate_interval'], label=team)
             if self.response == 'spread':
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
@@ -270,11 +274,11 @@ class Validate(Model):
 
             plt.figure()
             for team, df_ in df_plot.groupby('team'):
-                plt.plot(df_['threshold'], df_['fraction_games_interval'], label=team)
+                plt.plot(df_['threshold'], df_['n_games_interval'], label=team)
             if self.response == 'spread':
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
-            plt.ylabel('Fraction of Games with Good Odds (>52.5%)')
+            plt.ylabel('Number of Games')
             plt.title('Betting Guide: Number of Games ')
             plt.grid(True)
             pdf.savefig()

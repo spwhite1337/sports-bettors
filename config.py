@@ -49,11 +49,15 @@ class Config(object):
                     return 'Over'
                 if p < -4:
                     return 'Under'
+                else:
+                    return 'No Bet'
             elif league == 'nfl':
                 if p >= 4:
                     return 'Over'
                 if p <= -1:
                     return 'Under'
+                else:
+                    return 'No Bet'
         else:
             return None
 

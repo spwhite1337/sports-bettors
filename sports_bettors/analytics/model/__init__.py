@@ -21,6 +21,7 @@ class Model(object):
                 'over': Validate(league='college_football', response='over').load_results(),
             }
         }
+        self.save_dir = os.path.join(os.getcwd(), 'data', 'predictions')
 
     def predict_next_week(self):
         for league, models in self.models.items():
@@ -93,3 +94,42 @@ class Model(object):
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
             df_out.to_csv(os.path.join(save_dir, fn), index=False)
+            self.format_for_consumption(df_out, league)
+
+    def format_for_consumption(self, df: pd.DataFrame, league: str):
+        """
+        Save it to a nice excel file
+        """
+        df['away_team'] = df['game_id'].apply(lambda s: s.split('_')[-2])
+        df['home_team'] = df['game_id'].apply(lambda s: s.split('_')[-1])
+        df['gameday'] = df['gameday'].dt.date.astype(str)
+        for col in ['money_line', 'spread_adj', 'over_adj']:
+            df[col] = df[col].round(2)
+        df_x = df[[
+            'game_id',
+            'gameday',
+            'home_team',
+            'away_team',
+            'away_is_favorite',
+            'money_line',
+            'spread_line',
+            'spread_adj',
+            'Spread_Bet',
+            'total_line',
+            'over_adj',
+            'Over_Bet',
+        ]].rename(
+            columns={
+                'spread_adj': 'Spread_from_Model',
+                'spread_line': 'Spread_from_Vegas',
+                'total_line': 'Over_Line_from_Vegas',
+                'over_adj': 'Over_Line_from_Model',
+                'money_line': 'payout_per_dollar_bet_on_away_team_moneyline'
+            }
+        )
+        df_x['away_is_favorite'] = df_x['away_is_favorite'].replace({1: 'Yes', 0: 'No'})
+        week_no = datetime.datetime.now().isocalendar()[1]
+        save_dir = os.path.join(self.save_dir, league, str(week_no))
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        df_x.to_excel(os.path.join(save_dir, f'{league}_predictions.xlsx'), index=False)

@@ -34,5 +34,6 @@ setup(
         'dash-bootstrap-components',
         'awscli',
         'shap',
+        'openpyxl'
     ]
 )
