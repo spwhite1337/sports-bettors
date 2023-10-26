@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import datetime
 import shap
+from scipy.stats import binomtest
 
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
@@ -330,10 +331,11 @@ class Validate(Model):
             num_losses = (1 - df_plot['Bet_result']).sum()
             num_bets = df_plot[~df_plot['Bet_result'].isna()].shape[0]
             win_rate = round(num_wins / num_bets, 3) if num_bets > 0 else None
+            p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
             plt.text(0.04, 0.95, f'League: {self.league}, response: {self.response}')
             plt.text(0.04, 0.90, 'Time-Frame: {}'.format('past_year'))
             plt.text(0.04, 0.85, f'Record: {int(num_wins)}-{int(num_losses)}')
-            plt.text(0.04, 0.80, f'Win Percentage: {win_rate}')
+            plt.text(0.04, 0.80, f'Win Percentage: {win_rate} (p={round(p_value, 3)})')
 
             # Season so far
             # This season so far (Note: maximum this can be is 126 days, so we'll just do the last 180 days
@@ -344,10 +346,11 @@ class Validate(Model):
             num_losses = (1 - df_plot['Bet_result']).sum()
             num_bets = df_plot[~df_plot['Bet_result'].isna()].shape[0]
             win_rate = round(num_wins / num_bets, 3) if num_bets > 0 else None
+            p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
             plt.text(0.04, 0.70, f'League: {self.league}, response: {self.response}')
             plt.text(0.04, 0.65, 'Time-Frame: {}'.format('This Season so Far'))
             plt.text(0.04, 0.60, f'Record: {int(num_wins)}-{int(num_losses)}')
-            plt.text(0.04, 0.55, f'Win Percentage: {win_rate}')
+            plt.text(0.04, 0.55, f'Win Percentage: {win_rate} (p={round(p_value, 3)})')
 
             # Past Week
             df_policy = df_policy[df_policy['gameday'] > pd.Timestamp(self.TODAY) - datetime.timedelta(days=8)].copy()
@@ -357,10 +360,11 @@ class Validate(Model):
             num_losses = (1 - df_plot['Bet_result']).sum()
             num_bets = df_plot[~df_plot['Bet_result'].isna()].shape[0]
             win_rate = round(num_wins / num_bets, 3) if num_bets > 0 else None
+            p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
             plt.text(0.04, 0.45, f'League: {self.league}, response: {self.response}')
             plt.text(0.04, 0.40, 'Time-Frame: {}'.format('Past 7 Days'))
             plt.text(0.04, 0.35, f'Record: {int(num_wins)}-{int(num_losses)}')
-            plt.text(0.04, 0.30, f'Win Percentage: {win_rate}')
+            plt.text(0.04, 0.30, f'Win Percentage: {win_rate} (p={round(p_value, 3)})')
 
             plt.tick_params(axis='both', which='both', labelbottom=False, labelleft=False, bottom=False, left=False)
             pdf.savefig()
