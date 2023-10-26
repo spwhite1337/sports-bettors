@@ -20,6 +20,58 @@ class Validate(Model):
     # Response col label
     classifier_response = 'classifier_response'
 
+    def __init__(self, league: str = 'nfl', response: str = 'spread', overwrite: bool = False):
+        super().__init__(league=league, response=response, overwrite=overwrite)
+        self.policy = {}
+
+    def discover_policy(self, df: pd.DataFrame, pdf: PdfPages) -> pd.DataFrame:
+        df = df[['game_id', 'preds_c', self.classifier_response]]
+        thresholds = np.linspace(-10, 10, 41)
+        result_records = []
+        for left_threshold in thresholds:
+            for right_threshold in thresholds[thresholds > left_threshold]:
+                for game_record in df.to_dict(orient='records'):
+                    result_record = {
+                        'game_id': game_record['game_id'],
+                        'preds_c': game_record['preds_c'],
+                        self.classifier_response: game_record[self.classifier_response],
+                        'left_threshold': left_threshold,
+                        'right_threshold': right_threshold
+                    }
+                    if game_record['preds_c'] <= left_threshold:
+                        result_record['left_bet'] = True
+                        result_record['left_correct'] = game_record[self.classifier_response] == 0
+                    if game_record['preds_c'] >= right_threshold:
+                        result_record['right_bet'] = True
+                        result_record['right_correct'] = game_record[self.classifier_response] == 1
+                    result_records.append(result_record)
+        df_policy = pd.DataFrame.from_records(result_records)
+        df_policy = df_policy.groupby(['left_threshold', 'right_threshold']).\
+            agg(
+                num_left_bet=('left_bet', 'sum'),
+                num_right_bet=('right_bet', 'sum'),
+                num_left_bet_correct=('left_correct', 'sum'),
+                num_right_bet_correct=('right_correct', 'sum')
+            ).reset_index(drop=True)
+        # Totals for the policy
+        df_policy['num_bets'] = df_policy['left_bet'] + df_policy['right_bet']
+        df_policy['num_wins'] = df_policy['num_left_bet_correct'] + df_policy['num_right_bet_correct']
+        # Have to have some bets and a win
+        df_policy = df_policy[(df_policy['num_wins'] > 0) & (df_policy['num_bets'] > 0)]
+        df_policy['win_rate'] = df_policy['num_wins'] / df_policy['num_bets']
+
+        # P-value assumes a coin-flip is the baseline probability of getting a spread right
+        # Alternatively you could compare to your own intuition or some policy like, "Always bet right"
+        df_policy['p_value'] = df_policy.\
+            apply(lambda r: binomtest(r['num_wins'], r['num_bets'], p=0.5, alternative='greatest').pvalue, axis=1)
+        # Expected return
+        df_policy['expected_return'] = df_policy['win_rate'] * (1 - df_policy['p_value']) + 0.5 * df_policy['p_value']
+
+        # Debug
+        print(df_policy[
+                  ['left_threshold', 'right_threshold', 'num_wins', 'num_bets', 'p_value', 'expected_return']
+              ].sort_values(ascending=False).head())
+
     def assess_policy(self, df: pd.DataFrame) -> pd.DataFrame:
         # How well does the bet match the result?
         def _bet_result(bet: str, result: float) -> Optional[float]:
@@ -323,8 +375,10 @@ class Validate(Model):
             # Get win-rate and records for a few time-frames
             plt.figure()
 
+
             # Whole year
             df_policy = df_val[['game_id', 'gameday', 'preds_c', self.classifier_response]].copy()
+            self.discover_policy(df, pdf)
             df_plot = self.assess_policy(df_policy)
             # Note: No Bet is a null so it won't be summed
             num_wins = df_plot['Bet_result'].sum()
