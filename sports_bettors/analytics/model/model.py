@@ -109,7 +109,7 @@ class Model(Data):
 
     def fit_transform(self, df: Optional[pd.DataFrame] = None) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         if df is None:
-            df = self.engineer_features()
+            df = self.wrangle()
         # Drop nas
         df = df[~df[self.line_col].isna() & ~df[self.response_col].isna()]
         for col in self.features:

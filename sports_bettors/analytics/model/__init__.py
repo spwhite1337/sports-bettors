@@ -30,15 +30,15 @@ class Model(object):
                 if league == 'nfl':
                     df = pd.read_csv(model.link_to_data, parse_dates=['gameday'])
                     df = df[df['gameday'] > (pd.Timestamp(model.TODAY) - datetime.timedelta(days=model.window))]
+                    df = model._add_metrics(df)
                 elif league == 'college_football':
                     df = model._download_college_football(predict=True)
+                    df = model._add_metrics(df)
                 else:
                     raise NotImplementedError(league)
 
                 # Engineer features from raw
-                df = model.calcs(df)
-                df = model.engineer_features(df)
-                df = model.label_teams(df)
+                df = model.wrangle(df)
 
                 # Filter for predictions
                 test_games = ['2023_07_SF_MIN', 'COLLEGE_TEST_GAME']
@@ -52,29 +52,14 @@ class Model(object):
 
                 # Filter for bad features
                 for feature in model.features:
-                    df = df[~df[feature].isna() | (df['game_id'].isin(test_games))]
-
-                # Margin of victory for home-team is like a spread for away team
+                    df = df[~df[feature].isna()]
+                # Get preds as expected "actual" spread / total from model
                 df['preds'] = model.predict(df)
+                # Get diff from odds-line
                 df['preds_against_line'] = df['preds'] - df[model.line_col]
-                # Label bets
+                # Label bets based on human-derived thresholds
                 df['Bet'] = df.apply(lambda r: Config.label_bet(league, response, r['preds_against_line']), axis=1)
                 df['Bet_type'] = response
-
-                # # Print results
-                # print(df[[
-                #     'game_id',
-                #     'gameday',
-                #     'spread_line',
-                #     'total_line',
-                #     'preds',
-                #     'preds_against_line',
-                #     'Bet',
-                #     'Bet_type'
-                # ]])
-                # print('Bet Counts')
-                # print(df['Bet'].value_counts())
-
                 df_out.append(df)
             df_out = pd.concat(df_out)
             # Pivot on bet-type

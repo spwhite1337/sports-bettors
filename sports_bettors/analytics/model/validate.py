@@ -17,10 +17,6 @@ from config import logger
 
 class Validate(Model):
 
-    @staticmethod
-    def _baseline_prob():
-        return 0.541
-
     def validate(self, df_: Optional[pd.DataFrame] = None, df_val: Optional[pd.DataFrame] = None,
                          df: Optional[pd.DataFrame] = None, run_shap: bool = False):
         if any([df_ is None, df_val is None, df is None]):
@@ -122,6 +118,7 @@ class Validate(Model):
                     plt.title(feature)
                     pdf.savefig()
                     plt.close()
+
             # As classifier
             # preds-c is the amount above the line the favorite is expected to win by
             # or how much over the over it was expected to be
@@ -157,6 +154,7 @@ class Validate(Model):
             pdf.savefig()
             plt.close()
 
+            # Precision recall by test / train
             precision, recall, thresholds = precision_recall_curve(df_[classifier_response], df_['preds_c'])
             plt.figure()
             plt.plot(thresholds, precision[1:], label='precision')
@@ -234,9 +232,6 @@ class Validate(Model):
                 df_ = df_[df_['fraction_games'] > 0.05]
                 plt.plot(df_['threshold'], df_['win_rate'], label=team)
             if self.response == 'spread':
-                # plt.gca().invert_xaxis()
-                # plt.text(10, 0.6, 'Underdog Wins Against Spread')
-                # plt.text(-3, 0.6, 'Favorite Wins Against Spread')
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
             plt.ylabel('Win Rate - Cumulative')
@@ -263,9 +258,6 @@ class Validate(Model):
                 df_ = df_[df_['fraction_games'] > 0.01]
                 plt.plot(df_['threshold'], df_['win_rate_interval'], label=team)
             if self.response == 'spread':
-                # plt.gca().invert_xaxis()
-                # plt.text(10, 0.6, 'Underdog Wins Against Spread')
-                # plt.text(-3, 0.6, 'Favorite Wins Against Spread')
                 plt.xlabel('Predicted Spread on the Vegas-Spread')
             plt.legend()
             plt.ylabel('Win Rate')

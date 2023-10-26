@@ -27,18 +27,17 @@ class Config(object):
     def label_bet(league: str, response: str, p: float) -> Optional[str]:
         if response == 'spread':
             if league == 'college_football':
-                if 3.5 <= p <= 7:
-                    return 'Underdog'
-                elif p <= -6:
+                if p >= 3.5:
                     return 'Favorite'
+                elif p <= -2.5:
+                    return 'Underdog'
                 else:
                     return 'No Bet'
-
             elif league == 'nfl':
-                if p >= 2.5:
-                    return 'Underdog'
-                elif p <= -6 or (-1.5 >= p >= -2.5):
+                if p >= 2.0:
                     return 'Favorite'
+                elif p <= -3:
+                    return 'Underdog'
                 else:
                     return 'No Bet'
             else:
@@ -46,14 +45,14 @@ class Config(object):
 
         elif response == 'over':
             if league == 'college_football':
-                if p >= 5:
+                if 0.5 <= p <= 3.5:
                     return 'Over'
-                if p < -5:
+                if p < -4:
                     return 'Under'
             elif league == 'nfl':
-                if 1 < p < 3:
+                if p >= 4:
                     return 'Over'
-                if p <= -1.5:
+                if p <= -1:
                     return 'Under'
         else:
             return None

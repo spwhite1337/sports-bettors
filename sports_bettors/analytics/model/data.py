@@ -143,7 +143,9 @@ class Data(Eda):
 
     def etl(self) -> pd.DataFrame:
         if os.path.exists(os.path.join(self.cache_dir, 'df_training.csv')) and not self.overwrite:
-            return pd.read_csv(os.path.join(self.cache_dir, 'df_training.csv'), parse_dates=['gameday'])
+            df = pd.read_csv(os.path.join(self.cache_dir, 'df_training.csv'), parse_dates=['gameday'])
+            df = self._add_metrics(df)
+            return df
         if self.league == 'nfl':
             # Model training
             logger.info('Downloading Data from Github')
@@ -160,17 +162,15 @@ class Data(Eda):
         else:
             raise NotImplementedError(self.league)
 
-        # Run calcs
-        df = self.calcs(df)
-
         # Save to cache
         df.to_csv(os.path.join(self.cache_dir, 'df_training.csv'), index=False)
+
+        # Add metrics off raw data for each game
+        df = self._add_metrics(df)
         return df
 
-    def calcs(self, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
-        if df is None:
-            df = self.etl()
-
+    @staticmethod
+    def _add_metrics(df: pd.DataFrame) -> pd.DataFrame:
         # Metrics
         def _define_spread_favorite(r) -> Optional[float]:
             # away was favorite
@@ -181,15 +181,20 @@ class Data(Eda):
                 return r['home_score'] - r['away_score']
             else:
                 return None
+        # Actual spread from perspective of away team
         df['spread_actual'] = df['home_score'] - df['away_score']
+        # Difference between actual and odds-spread from perspective of away team
+        df['spread_diff'] = (df['home_score'] - df['away_score']) - df['spread_line']
+        # odds-spread from perspective of the favorite
         df['spread_favorite'] = df['spread_line'].abs()
+        # Actual spread from persepctive of favorite
         df['spread_favorite_actual'] = df.apply(_define_spread_favorite, axis=1)
+        # Difference between actual and odds-spread from perspective of favorite team
         df['spread_favorite_diff'] = df['spread_favorite_actual'] - df['spread_favorite']
-        df['spread_diff'] = df['away_score'] + df['spread_line'] - df['home_score']
+        # Actual total points
         df['total_actual'] = df['away_score'] + df['home_score']
+        # Difference between actual total and odds-total
         df['total_diff'] = df['total_actual'] - df['total_line']
-        df['off_spread'] = (df['spread_actual'] - df['spread_line'])
-        df['off_total'] = (df['total_actual'] - df['total_line'])
         return df
 
     @staticmethod
@@ -205,14 +210,15 @@ class Data(Eda):
                 records.append(record)
         return pd.DataFrame.from_records(records)
 
-    def engineer_features(self, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
+    def wrangle(self, df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         if df is None:
-            df = self.calcs()
-
-        records = []
+            df = self.etl()
         # Subset for window past training start
         df__ = df[df['gameday'] > (pd.Timestamp(self.training_start) - pd.Timedelta(days=self.window))]
+
+        records = []
         for rdx, row in tqdm(df__.iterrows(), total=df__.shape[0]):
+
             # Away team of row
             df_ = df[
                 (df['away_team'] == row['away_team']) &
@@ -253,7 +259,7 @@ class Data(Eda):
                 'away_team_point_differential': away_pf + home_pf - home_pa - away_pa,
                 'money_line': self._calc_payout(row['away_moneyline']),
                 'away_money_line': self._calc_payout(row['away_moneyline']),
-                'away_spread_line': row['spread_line'],
+                'away_spread_line': row['spread_line'],  # spread-line is from perspective of away team
             }
 
             # Home team of row
@@ -292,9 +298,7 @@ class Data(Eda):
             record['home_team_point_differential'] = home_pf + away_pf - home_pa - away_pa
             record['home_team_total_points'] = away_total + home_total
             record['home_money_line'] = self._calc_payout(row['home_moneyline'])
-            record['home_spread_line'] = -row['spread_line']
-
-            # Total
+            record['home_spread_line'] = -row['spread_line']  # spread line if from perspective of away team
             records.append(record)
 
         df_out = pd.DataFrame.from_records(records)
@@ -327,6 +331,8 @@ class Data(Eda):
 
         # label teams
         df_out = self.label_teams(df_out)
+
         # Keep one away-specific boolean
         df_out['away_is_favorite'] = (df_out['spread_line'] < 0).astype(int)
+
         return df_out
