@@ -7,6 +7,7 @@
 *.pkl
 data/
 *.ipynb
+docs/
 docs/*.pdf
 docs/model/college_football/*.pdf
 docs/model/nfl/*.pdf

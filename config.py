@@ -23,6 +23,17 @@ class Config(object):
     CLOUD_DATA = 's3://scott-p-white/website/data'
     CLOUD_RESULTS = 's3://scott-p-white/website/results'
 
+    manual_policy = {
+        'nfl': {
+            'spread': False,
+            'over': False,
+        },
+        'college_football': {
+            'spread': False,
+            'over': False
+        }
+    }
+
     @staticmethod
     def label_bet(league: str, response: str, p: float) -> Optional[str]:
         if response == 'spread':

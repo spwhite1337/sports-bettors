@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import datetime
 import shap
+from tqdm import tqdm
 from scipy.stats import binomtest
 
 import matplotlib.pyplot as plt
@@ -19,16 +20,40 @@ from config import logger, Config
 class Validate(Model):
     # Response col label
     classifier_response = 'classifier_response'
+    # In policy, correct for biases that aren't 50/50
+    bias_correction = True
 
     def __init__(self, league: str = 'nfl', response: str = 'spread', overwrite: bool = False):
         super().__init__(league=league, response=response, overwrite=overwrite)
-        self.policy = {}
+        if self.response == 'spread':
+            self.policy = {
+                'left': {
+                    'name': 'Underdog',
+                    'threshold': None
+                },
+                'right': {
+                    'name': 'Favorite',
+                    'threshold': None
+                }
+            }
+        elif self.response == 'over':
+            self.policy = {
+                'left': {
+                    'name': 'Under',
+                    'threshold': None
+                },
+                'right': {
+                    'name': 'Over',
+                    'threshold': None
+                }
+            }
 
-    def discover_policy(self, df: pd.DataFrame, pdf: PdfPages) -> pd.DataFrame:
+    def discover_policy(self, df: pd.DataFrame, pdf: PdfPages):
+        logger.info('Discovering best policy')
         df = df[['game_id', 'preds_c', self.classifier_response]]
         thresholds = np.linspace(-10, 10, 41)
         result_records = []
-        for left_threshold in thresholds:
+        for left_threshold in tqdm(thresholds):
             for right_threshold in thresholds[thresholds > left_threshold]:
                 for game_record in df.to_dict(orient='records'):
                     result_record = {
@@ -41,38 +66,81 @@ class Validate(Model):
                     if game_record['preds_c'] <= left_threshold:
                         result_record['left_bet'] = True
                         result_record['left_correct'] = game_record[self.classifier_response] == 0
+                    else:
+                        result_record['left_bet'] = False
+                        result_record['left_correct'] = None
                     if game_record['preds_c'] >= right_threshold:
                         result_record['right_bet'] = True
                         result_record['right_correct'] = game_record[self.classifier_response] == 1
+                    else:
+                        result_record['right_bet'] = False
+                        result_record['right_correct'] = None
                     result_records.append(result_record)
         df_policy = pd.DataFrame.from_records(result_records)
         df_policy = df_policy.groupby(['left_threshold', 'right_threshold']).\
             agg(
                 num_left_bet=('left_bet', 'sum'),
                 num_right_bet=('right_bet', 'sum'),
-                num_left_bet_correct=('left_correct', 'sum'),
-                num_right_bet_correct=('right_correct', 'sum')
-            ).reset_index(drop=True)
+                num_left_wins=('left_correct', 'sum'),
+                num_right_wins=('right_correct', 'sum'),
+                num_games=('game_id', 'nunique')
+            ).reset_index()
         # Totals for the policy
-        df_policy['num_bets'] = df_policy['left_bet'] + df_policy['right_bet']
-        df_policy['num_wins'] = df_policy['num_left_bet_correct'] + df_policy['num_right_bet_correct']
+        df_policy['num_bets'] = df_policy['num_left_bet'] + df_policy['num_right_bet']
+        df_policy['num_wins'] = df_policy['num_left_wins'] + df_policy['num_right_wins']
+        # Left and right wins can be subject to bias that I don't want my policy dependent on generalizing
+        # To correct, we'll calculate a win-rate for each side...
+        df_policy['left_win_rate'] = df_policy.\
+            apply(lambda r: r['num_left_wins'] / r['num_left_bet'] if r['num_left_bet'] > 0 else 0, axis=1)
+        df_policy['right_win_rate'] = df_policy.\
+            apply(lambda r: r['num_right_wins'] / r['num_right_bet'] if r['num_right_bet'] > 0 else 0, axis=1)
+        # ... then calculate the bias from 50% for each side
+        left_bias = (1 - df[self.classifier_response]).mean() - 0.5
+        right_bias = df[self.classifier_response].mean() - 0.5
+        # Assume that these wins are due to luck / bias and won't generalize and subtract / add to the observed num_wins
+        df_policy['num_left_wins_eff'] = (df_policy['left_win_rate'] - left_bias).clip(0, 1) * df_policy['num_left_bet']
+        df_policy['num_right_wins_eff'] = (df_policy['right_win_rate'] - right_bias).clip(0, 1) * df_policy['num_right_bet']
+
+        # Optionally apply bias correction
+        if self.bias_correction:
+            df_policy['num_wins'] = df_policy['num_left_wins_eff'] + df_policy['num_right_wins_eff']
+        else:
+            df_policy['num_wins'] = df_policy['num_left_wins'] + df_policy['num_right_wins']
+
         # Have to have some bets and a win
         df_policy = df_policy[(df_policy['num_wins'] > 0) & (df_policy['num_bets'] > 0)]
         df_policy['win_rate'] = df_policy['num_wins'] / df_policy['num_bets']
 
-        # P-value assumes a coin-flip is the baseline probability of getting a spread right
+        # P-value assumes a coin-flip is the baseline probability of getting a spread right but we will
+        # be more conservative and set it to 52.5 to account for the vigorish
         # Alternatively you could compare to your own intuition or some policy like, "Always bet right"
         df_policy['p_value'] = df_policy.\
-            apply(lambda r: binomtest(r['num_wins'], r['num_bets'], p=0.5, alternative='greatest').pvalue, axis=1)
-        # Expected return
-        df_policy['expected_return'] = df_policy['win_rate'] * (1 - df_policy['p_value']) + 0.5 * df_policy['p_value']
+            apply(lambda r: binomtest(int(r['num_wins']), int(r['num_bets']), p=0.525, alternative='greater').pvalue, axis=1)
+        # Expected return with a conservative edge case of 0.5
+        df_policy['expected_win_rate'] = (df_policy['win_rate'] * (1 - df_policy['p_value']) + 0.5 * df_policy['p_value'])
+        # Assume payout for a win is ~0.909 to account for vigorish
+        df_policy['expected_return'] = 0.909 * df_policy['expected_win_rate'] * df_policy['num_bets'] - 1 * (1 - df_policy['expected_win_rate']) * df_policy['num_bets']
 
-        # Debug
-        print(df_policy[
-                  ['left_threshold', 'right_threshold', 'num_wins', 'num_bets', 'p_value', 'expected_return']
-              ].sort_values(ascending=False).head())
+        # Save policy-check work
+        df_policy.to_csv(os.path.join(self.save_dir, 'df_policy_check.csv'), index=False)
 
-    def assess_policy(self, df: pd.DataFrame) -> pd.DataFrame:
+        # save results to policy
+        self.policy['left']['threshold'] = df_policy[df_policy['expected_return'] == df_policy['expected_return'].max()]['left_threshold'].iloc[0]
+        self.policy['right']['threshold'] = df_policy[df_policy['expected_return'] == df_policy['expected_return'].max()]['right_threshold'].iloc[0]
+
+    def apply_policy(self, p: float) -> str:
+        # Manual thresholds, use that
+        if Config.manual_policy[self.league][self.response]:
+            return Config.label_bet(self.league, self.response, p)
+
+        if p < self.policy['left']['threshold']:
+            return self.policy['left']['name']
+        elif p > self.policy['right']['threshold']:
+            return self.policy['right']['name']
+        else:
+            return 'No Bet'
+
+    def assess_policy(self, df: pd.DataFrame) -> pd.Series:
         # How well does the bet match the result?
         def _bet_result(bet: str, result: float) -> Optional[float]:
             if self.response == 'spread':
@@ -93,9 +161,7 @@ class Validate(Model):
                     return None
                 else:
                     return None
-        df['Bet'] = df['preds_c'].apply(lambda p: Config.label_bet(self.league, self.response, p))
-        df['Bet_result'] = df.apply(lambda r: _bet_result(r['Bet'], r[self.classifier_response]), axis=1)
-        return df
+        return df.apply(lambda r: _bet_result(r['Bet'], r[self.classifier_response]), axis=1)
 
     def validate(self, df_: Optional[pd.DataFrame] = None, df_val: Optional[pd.DataFrame] = None,
                          df: Optional[pd.DataFrame] = None, run_shap: bool = False):
@@ -108,7 +174,7 @@ class Validate(Model):
         df['preds'] = self.predict(df)
 
         # Preds vs Response
-        with PdfPages(os.path.join(self.save_dir, 'validate_spreads.pdf')) as pdf:
+        with PdfPages(os.path.join(self.save_dir, 'validate.pdf')) as pdf:
             plt.figure()
             plt.text(0.04, 0.95, f'League: {self.league}, response: {self.response}')
             plt.text(0.04, 0.90, f'Train N: {df_.shape[0]}')
@@ -211,52 +277,31 @@ class Validate(Model):
             df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
 
             # ROC
-            fpr, tpr, thresholds = roc_curve(df_[self.classifier_response], df_['preds_c'])
-            auc = roc_auc_score(df_[self.classifier_response], df_['preds_c'])
-            plt.figure()
-            plt.plot(fpr, tpr)
-            plt.text(0.2, 0.9, f'AUC: {auc:.3f}\nn={df_val.shape[0]}')
-            plt.plot([0, 1], [0, 1], 'k--')
-            plt.title('Train')
-            plt.grid(True)
-            pdf.savefig()
-            plt.close()
-
-            fpr, tpr, thresholds = roc_curve(df_val[self.classifier_response], df_val['preds_c'])
-            auc = roc_auc_score(df_val[self.classifier_response], df_val['preds_c'])
-            plt.figure()
-            plt.plot(fpr, tpr)
-            plt.text(0.2, 0.9, f'AUC: {auc:.3f}\nn={df_val.shape[0]}')
-            plt.plot([0, 1], [0, 1], 'k--')
-            plt.grid(True)
-            plt.title('Test')
-            pdf.savefig()
-            plt.close()
+            for label, df_plot in {'train': df_, 'test': df_val}.items():
+                fpr, tpr, thresholds = roc_curve(df_plot[self.classifier_response], df_plot['preds_c'])
+                auc = roc_auc_score(df_plot[self.classifier_response], df_plot['preds_c'])
+                plt.figure()
+                plt.plot(fpr, tpr)
+                plt.text(0.2, 0.9, f'AUC: {auc:.3f}\nn={df_plot.shape[0]}')
+                plt.plot([0, 1], [0, 1], 'k--')
+                plt.title(label)
+                plt.grid(True)
+                pdf.savefig()
+                plt.close()
 
             # Precision recall by test / train
-            precision, recall, thresholds = precision_recall_curve(df_[self.classifier_response], df_['preds_c'])
-            plt.figure()
-            plt.plot(thresholds, precision[1:], label='precision')
-            plt.plot(thresholds, recall[1:], label='recall')
-            plt.hlines(1-df_[self.classifier_response].mean(), min(thresholds), max(thresholds), color='black')
-            plt.hlines(df_[self.classifier_response].mean(), min(thresholds), max(thresholds), color='gray')
-            plt.legend()
-            plt.grid(True)
-            plt.title('Train')
-            pdf.savefig()
-            plt.close()
-
-            precision, recall, thresholds = precision_recall_curve(df_val[self.classifier_response], df_val['preds_c'])
-            plt.figure()
-            plt.plot(thresholds, precision[1:], label='precision')
-            plt.plot(thresholds, recall[1:], label='recall')
-            plt.legend()
-            plt.hlines(1-df_val[self.classifier_response].mean(), min(thresholds), max(thresholds), color='black')
-            plt.hlines(df_val[self.classifier_response].mean(), min(thresholds), max(thresholds), color='gray')
-            plt.grid(True)
-            plt.title('Test')
-            pdf.savefig()
-            plt.close()
+            for label, df_plot in {'train': df_, 'test': df_val}.items():
+                precision, recall, thresholds = precision_recall_curve(df_plot[self.classifier_response], df_plot['preds_c'])
+                plt.figure()
+                plt.plot(thresholds, precision[1:], label='precision')
+                plt.plot(thresholds, recall[1:], label='recall')
+                plt.hlines(1-df_plot[self.classifier_response].mean(), min(thresholds), max(thresholds), color='black')
+                plt.hlines(df_plot[self.classifier_response].mean(), min(thresholds), max(thresholds), color='gray')
+                plt.legend()
+                plt.grid(True)
+                plt.title(label)
+                pdf.savefig()
+                plt.close()
 
             # Win-Rate by month
             df_plot = df_val[['gameday', self.classifier_response]].copy()
@@ -374,13 +419,14 @@ class Validate(Model):
 
             # Get win-rate and records for a few time-frames
             plt.figure()
-
-
             # Whole year
             df_policy = df_val[['game_id', 'gameday', 'preds_c', self.classifier_response]].copy()
-            self.discover_policy(df, pdf)
-            df_plot = self.assess_policy(df_policy)
+            self.discover_policy(df_val, pdf)
+            df_policy['Bet'] = df_policy['preds_c'].apply(self.apply_policy)
+            df_policy['Bet_result'] = self.assess_policy(df_policy)
+
             # Note: No Bet is a null so it won't be summed
+            df_plot = df_policy.copy()
             num_wins = df_plot['Bet_result'].sum()
             num_losses = (1 - df_plot['Bet_result']).sum()
             num_bets = df_plot[~df_plot['Bet_result'].isna()].shape[0]
@@ -394,8 +440,9 @@ class Validate(Model):
             # Season so far
             # This season so far (Note: maximum this can be is 126 days, so we'll just do the last 180 days
             df_policy = df_policy[df_policy['gameday'] > pd.Timestamp(self.TODAY) - datetime.timedelta(days=180)].copy()
-            df_plot = self.assess_policy(df_policy)
+            df_policy['Bet_result'] = self.assess_policy(df_policy)
             # Note: No Bet is a null so it won't be summed
+            df_plot = df_policy.copy()
             num_wins = df_plot['Bet_result'].sum()
             num_losses = (1 - df_plot['Bet_result']).sum()
             num_bets = df_plot[~df_plot['Bet_result'].isna()].shape[0]
@@ -408,8 +455,9 @@ class Validate(Model):
 
             # Past Week
             df_policy = df_policy[df_policy['gameday'] > pd.Timestamp(self.TODAY) - datetime.timedelta(days=8)].copy()
-            df_plot = self.assess_policy(df_policy)
+            df_policy['Bet_result'] = self.assess_policy(df_policy)
             # Note: No Bet is a null so it won't be summed
+            df_plot = df_policy.copy()
             num_wins = df_plot['Bet_result'].sum()
             num_losses = (1 - df_plot['Bet_result']).sum()
             num_bets = df_plot[~df_plot['Bet_result'].isna()].shape[0]
