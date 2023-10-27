@@ -280,8 +280,9 @@ class Policy(Validate):
                 plt.figure()
                 plt.text(0.04, 0.95, f'League: {self.league}, response: {self.response}, policy: {policy}')
                 plt.text(0.04, 0.90, 'Time-Frame: {}'.format('past_year'))
-                plt.text(0.04, 0.85, f'Record: {int(num_wins)}-{int(num_losses)}')
-                plt.text(0.04, 0.80, f'Win Percentage: {win_rate} (p={round(p_value, 3)})')
+                plt.text(0.04, 0.85, f'Record: {int(num_wins)}-{int(num_losses)} '
+                                     f'(Bet Percentage: {round(100 * int(num_bets) / df_policy.shape[0], 1)}%)')
+                plt.text(0.04, 0.80, f'Win Percentage: {win_rate} (p={round(p_value, 3)}) ')
 
                 # Season so far
                 # This season so far (Note: maximum this can be is 126 days, so we'll just do the last 180 days
@@ -299,7 +300,8 @@ class Policy(Validate):
                     p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
                 plt.text(0.04, 0.70, f'League: {self.league}, response: {self.response}, policy: {policy}')
                 plt.text(0.04, 0.65, 'Time-Frame: {}'.format('This Season so Far'))
-                plt.text(0.04, 0.60, f'Record: {int(num_wins)}-{int(num_losses)}')
+                plt.text(0.04, 0.60, f'Record: {int(num_wins)}-{int(num_losses)} '
+                                     f'(Bet Percentage: {round(100 * int(num_bets) / df_policy.shape[0], 1)}%)')
                 plt.text(0.04, 0.55, f'Win Percentage: {win_rate} (p={round(p_value, 3)})')
 
                 # Past Week
@@ -317,7 +319,8 @@ class Policy(Validate):
                     p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
                 plt.text(0.04, 0.45, f'League: {self.league}, response: {self.response}, policy: {policy}')
                 plt.text(0.04, 0.40, 'Time-Frame: {}'.format('Past 7 Days'))
-                plt.text(0.04, 0.35, f'Record: {int(num_wins)}-{int(num_losses)}')
+                plt.text(0.04, 0.35, f'Record: {int(num_wins)}-{int(num_losses)} '
+                                     f'(Bet Percentage: {round(100 * int(num_bets) / df_policy.shape[0], 1)}%)')
                 plt.text(0.04, 0.30, f'Win Percentage: {win_rate} (p={round(p_value, 3)})')
                 plt.tick_params(axis='both', which='both', labelbottom=False, labelleft=False, bottom=False, left=False)
                 pdf.savefig()
