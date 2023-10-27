@@ -174,7 +174,7 @@ class Policy(Validate):
                 1 - df_policy['expected_win_rate']) * df_policy['num_bets']
 
         # Save policy-check work
-        df_policy.to_csv(os.path.join(self.save_dir, 'df_policy_check.csv'), index=False)
+        df_policy.to_csv(os.path.join(self.save_dir, f'df_policy_check.csv'), index=False)
 
         # save results to policy for max-expected-return
         self.policies['max_return']['left']['threshold'] = \
@@ -200,13 +200,14 @@ class Policy(Validate):
                 record = {
                     'policy': policy,
                     'threshold': d_params['name'],
+                    'value': d_params['threshold'],
                     'direction': direction
                 }
                 df_plot.append(record)
-        df_plot = pd.concat(df_plot).reset_index(drop=True)
+        df_plot = pd.DataFrame.from_records(df_plot)
         plt.figure()
-        for policy, df_plot_ in df_plot.groupby('policy'):
-            plt.bar(df_plot_, x='direction', y='treshold', label=policy)
+        for direction, df_plot_ in df_plot.groupby('direction'):
+            plt.bar(df_plot_['policy'], df_plot_['value'], label=direction, alpha=0.5)
         plt.legend()
         plt.grid(True)
         plt.xlabel('Direction')
@@ -245,8 +246,13 @@ class Policy(Validate):
 
         return df.apply(lambda r: _bet_result(r['Bet'], r[self.classifier_response]), axis=1)
 
-    def validate(self, run_shap: bool = False):
-        df_, df_val, df = self.fit_transform()
+    def validate(self,
+                 df_: Optional[pd.DataFrame] = None,
+                 df_val: Optional[pd.DataFrame] = None,
+                 df: Optional[pd.DataFrame] = None,
+                 run_shap: bool = False):
+        if any([df_ is None, df_val is None, df is None]):
+            df_, df_val, df = self.fit_transform()
 
         with PdfPages(os.path.join(self.save_dir, 'validate.pdf')) as pdf:
             # Validate model before moving on to policies

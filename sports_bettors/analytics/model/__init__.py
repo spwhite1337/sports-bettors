@@ -4,7 +4,7 @@ import datetime
 from typing import Tuple
 import pandas as pd
 
-from sports_bettors.analytics.model.validate import Validate
+from sports_bettors.analytics.model.policy import Policy
 from config import Config
 
 
@@ -13,12 +13,12 @@ class Model(object):
     def __init__(self):
         self.models = {
             'nfl': {
-                'spread': Validate(league='nfl', response='spread').load_results(),
-                'over': Validate(league='nfl', response='over').load_results()
+                'spread': Policy(league='nfl', response='spread').load_results(),
+                'over': Policy(league='nfl', response='over').load_results()
             },
             'college_football': {
-                'spread': Validate(league='college_football', response='spread').load_results(),
-                'over': Validate(league='college_football', response='over').load_results(),
+                'spread': Policy(league='college_football', response='spread').load_results(),
+                'over': Policy(league='college_football', response='over').load_results(),
             }
         }
         self.save_dir = os.path.join(os.getcwd(), 'data', 'predictions')
