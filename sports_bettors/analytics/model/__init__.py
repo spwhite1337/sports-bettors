@@ -59,7 +59,8 @@ class Model(object):
                 # Get diff from odds-line
                 df['preds_against_line'] = df['preds'] - df[model.line_col]
                 # Label bets based on human-derived thresholds
-                df['Bet'] = df.apply(lambda r: Config.label_bet(league, response, r['preds_against_line']), axis=1)
+                df['Bet'] = df['preds_against_line'].apply(model.apply_policy)
+                # df['Bet'] = df.apply(lambda r: Config.label_bet(league, response, r['preds_against_line']), axis=1)
                 df['Bet_type'] = response
                 df_out.append(df)
             df_out = pd.concat(df_out)
