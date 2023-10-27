@@ -190,10 +190,29 @@ class Policy(Validate):
             self.policies['min_risk']['left']['threshold'] = None
             self.policies['min_risk']['right']['threshold'] = None
         else:
-            self.policies['min_risk']['left']['threshold'] = None
-            self.policies['min_risk']['right']['threshold'] = None
+            self.policies['min_risk']['left']['threshold'] = df_min_risk['left_threshold'].iloc[0]
+            self.policies['min_risk']['right']['threshold'] = df_min_risk['right_threshold'].iloc[0]
 
         # Make graph with thresholds
+        df_plot = []
+        for policy, p_params in self.policies.items():
+            for direction, d_params in p_params.items():
+                record = {
+                    'policy': policy,
+                    'threshold': d_params['name'],
+                    'direction': direction
+                }
+                df_plot.append(record)
+        df_plot = pd.concat(df_plot).reset_index(drop=True)
+        plt.figure()
+        for policy, df_plot_ in df_plot.groupby('policy'):
+            plt.bar(df_plot_, x='direction', y='treshold', label=policy)
+        plt.legend()
+        plt.grid(True)
+        plt.xlabel('Direction')
+        plt.ylabel('Threshold Amount')
+        pdf.savefig()
+        plt.close()
 
     def apply_policy(self, p: float, policy: str) -> str:
         l_threshold = self.policies[policy]['left']['threshold']
@@ -253,7 +272,7 @@ class Policy(Validate):
                     p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
 
                 plt.figure()
-                plt.text(0.04, 0.95, f'League: {self.league}, response: {self.response}')
+                plt.text(0.04, 0.95, f'League: {self.league}, response: {self.response}, policy: {policy}')
                 plt.text(0.04, 0.90, 'Time-Frame: {}'.format('past_year'))
                 plt.text(0.04, 0.85, f'Record: {int(num_wins)}-{int(num_losses)}')
                 plt.text(0.04, 0.80, f'Win Percentage: {win_rate} (p={round(p_value, 3)})')
@@ -272,7 +291,7 @@ class Policy(Validate):
                     p_value = None
                 else:
                     p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
-                plt.text(0.04, 0.70, f'League: {self.league}, response: {self.response}')
+                plt.text(0.04, 0.70, f'League: {self.league}, response: {self.response}, policy: {policy}')
                 plt.text(0.04, 0.65, 'Time-Frame: {}'.format('This Season so Far'))
                 plt.text(0.04, 0.60, f'Record: {int(num_wins)}-{int(num_losses)}')
                 plt.text(0.04, 0.55, f'Win Percentage: {win_rate} (p={round(p_value, 3)})')
@@ -290,7 +309,6 @@ class Policy(Validate):
                     p_value = None
                 else:
                     p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
-                p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
                 plt.text(0.04, 0.45, f'League: {self.league}, response: {self.response}, policy: {policy}')
                 plt.text(0.04, 0.40, 'Time-Frame: {}'.format('Past 7 Days'))
                 plt.text(0.04, 0.35, f'Record: {int(num_wins)}-{int(num_losses)}')
