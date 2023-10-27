@@ -23,52 +23,41 @@ class Config(object):
     CLOUD_DATA = 's3://scott-p-white/website/data'
     CLOUD_RESULTS = 's3://scott-p-white/website/results'
 
-    manual_policy = {
-        'nfl': {
-            'spread': False,
-            'over': False,
-        },
-        'college_football': {
-            'spread': False,
-            'over': False
-        }
-    }
-
-    @staticmethod
-    def label_bet(league: str, response: str, p: float) -> Optional[str]:
-        if response == 'spread':
-            if league == 'college_football':
-                if p >= 3.5:
-                    return 'Favorite'
-                elif p <= -2.5:
-                    return 'Underdog'
-                else:
-                    return 'No Bet'
-            elif league == 'nfl':
-                if p >= 2.0:
-                    return 'Favorite'
-                elif p <= -3:
-                    return 'Underdog'
-                else:
-                    return 'No Bet'
-            else:
-                return None
-
-        elif response == 'over':
-            if league == 'college_football':
-                if 0.5 <= p <= 3.5:
-                    return 'Over'
-                if p < -4:
-                    return 'Under'
-                else:
-                    return 'No Bet'
-            elif league == 'nfl':
-                if p >= 4:
-                    return 'Over'
-                if p <= -1:
-                    return 'Under'
-                else:
-                    return 'No Bet'
-        else:
-            return None
+    # @staticmethod
+    # def label_bet(league: str, response: str, p: float) -> Optional[str]:
+    #     if response == 'spread':
+    #         if league == 'college_football':
+    #             if p >= 3.5:
+    #                 return 'Favorite'
+    #             elif p <= -2.5:
+    #                 return 'Underdog'
+    #             else:
+    #                 return 'No Bet'
+    #         elif league == 'nfl':
+    #             if p >= 2.0:
+    #                 return 'Favorite'
+    #             elif p <= -3:
+    #                 return 'Underdog'
+    #             else:
+    #                 return 'No Bet'
+    #         else:
+    #             return None
+    #
+    #     elif response == 'over':
+    #         if league == 'college_football':
+    #             if 0.5 <= p <= 3.5:
+    #                 return 'Over'
+    #             if p < -4:
+    #                 return 'Under'
+    #             else:
+    #                 return 'No Bet'
+    #         elif league == 'nfl':
+    #             if p >= 4:
+    #                 return 'Over'
+    #             if p <= -1:
+    #                 return 'Under'
+    #             else:
+    #                 return 'No Bet'
+    #     else:
+    #         return None
 
