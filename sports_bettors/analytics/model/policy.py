@@ -183,9 +183,9 @@ class Policy(Validate):
             df_policy[df_policy['expected_return'] == df_policy['expected_return'].max()]['right_threshold'].iloc[0]
 
         # Save results to policy for min_risk
-        df_min_risk = df_policy[df_policy['expected_return'] > 0]
-        df_min_risk = df_min_risk[df_min_risk['p_value'] == df_min_risk['p_value'].min()]
-        df_min_risk = df_min_risk[df_min_risk['expected_return'] == df_min_risk['expected_return'].max()]
+        # Must have a positive return with a decent p-value
+        df_min_risk = df_policy[(df_policy['expected_return'] > 0) & (df_policy['p_value'] <= 0.1)]
+        df_min_risk = df_min_risk[df_min_risk['expected_win_rate'] == df_min_risk['expected_win_rate'].max()]
         if df_min_risk.shape[0] == 0:
             self.policies['min_risk']['left']['threshold'] = None
             self.policies['min_risk']['right']['threshold'] = None
@@ -273,7 +273,7 @@ class Policy(Validate):
                 num_bets = df_plot[~df_plot['Bet_result'].isna()].shape[0]
                 win_rate = round(num_wins / num_bets, 3) if num_bets > 0 else None
                 if any([num_wins == 0, num_bets == 0]):
-                    p_value = None
+                    p_value = np.nan
                 else:
                     p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
 
@@ -294,7 +294,7 @@ class Policy(Validate):
                 num_bets = df_plot[~df_plot['Bet_result'].isna()].shape[0]
                 win_rate = round(num_wins / num_bets, 3) if num_bets > 0 else None
                 if any([num_wins == 0, num_bets == 0]):
-                    p_value = None
+                    p_value = np.nan
                 else:
                     p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
                 plt.text(0.04, 0.70, f'League: {self.league}, response: {self.response}, policy: {policy}')
@@ -312,7 +312,7 @@ class Policy(Validate):
                 num_bets = df_plot[~df_plot['Bet_result'].isna()].shape[0]
                 win_rate = round(num_wins / num_bets, 3) if num_bets > 0 else None
                 if any([num_wins == 0, num_bets == 0]):
-                    p_value = None
+                    p_value = np.nan
                 else:
                     p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
                 plt.text(0.04, 0.45, f'League: {self.league}, response: {self.response}, policy: {policy}')

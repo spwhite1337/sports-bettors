@@ -25,7 +25,7 @@ class Model(object):
 
     def predict_next_week(self):
         for league, models in self.models.items():
-            df_out = []
+            df_out, policies = [], []
             for response, model in models.items():
 
                 if league == 'nfl':
@@ -59,20 +59,29 @@ class Model(object):
                 # Get diff from odds-line
                 df['preds_against_line'] = df['preds'] - df[model.line_col]
                 # Label bets based on human-derived thresholds
-                df['Bet'] = df['preds_against_line'].apply(model.apply_policy)
-                # df['Bet'] = df.apply(lambda r: Config.label_bet(league, response, r['preds_against_line']), axis=1)
+                for policy, p_params in model.policies.items():
+                    df[f'Bet_{policy}'] = df['preds_against_line'].apply(lambda p: model.apply_policy(p, policy))
+                    policies.append(policy)
                 df['Bet_type'] = response
                 df_out.append(df)
             df_out = pd.concat(df_out)
+            policies = sorted(list(set(policies)))
+            # Col-names
+            col_names_spread = {f'Bet_{p}': f'Spread_Bet_{p}' for p in policies}
+            col_names_spread['preds'] = 'spread_adj'
+            col_names_spread['preds_against_line'] = 'model_vs_spread'
+            col_names_over = {f'Bet_{p}': f'Over_Bet_{p}' for p in policies}
+            col_names_over['preds'] = 'over_adj'
+            col_names_over['preds_against_line'] = 'model_vs_over'
             # Pivot on bet-type
             df_out = df_out[df_out['Bet_type'] == 'spread'].\
                 drop('Bet_type', axis=1).\
-                rename(columns={'preds': 'spread_adj', 'preds_against_line': 'model_vs_spread', 'Bet': 'Spread_Bet'}).\
+                rename(columns=col_names_spread).\
                 merge(
                     df_out[df_out['Bet_type'] == 'over'].\
                       drop('Bet_type', axis=1).\
-                      rename(columns={'preds': 'over_adj', 'preds_against_line': 'model_vs_over', 'Bet': 'Over_Bet'})[
-                            ['game_id', 'gameday', 'over_adj', 'model_vs_over', 'Over_Bet']
+                      rename(columns=col_names_over)[
+                            ['game_id', 'gameday', 'over_adj', 'model_vs_over'] + [f'Over_Bet_{p}' for p in policies]
                       ], on=['game_id', 'gameday'], how='left'
                 )
             print(df_out[[
@@ -82,12 +91,11 @@ class Model(object):
                 'spread_line',
                 'spread_adj',
                 'model_vs_spread',
-                'Spread_Bet',
+               ] + [f'Spread_Bet_{p}' for p in policies] + [
                 'total_line',
                 'over_adj',
                 'model_vs_over',
-                'Over_Bet',
-               ]
+                ] + [f'Over_Bet_{p}' for p in policies]
             ])
             # Save results
             save_dir = os.path.join(os.getcwd(), 'data', 'predictions', league)
@@ -120,10 +128,14 @@ class Model(object):
             'money_line',
             'spread_line',
             'Spread_from_Model_for_Away_Team',
-            'Spread_Bet',
+            'Spread_Bet_max_return',
+            'Spread_Bet_moderate',
+            'Spread_Bet_min_risk',
             'total_line',
             'over_adj',
-            'Over_Bet',
+            'Over_Bet_max_return',
+            'Over_Bet_moderate',
+            'Over_Bet_min_risk'
         ]].rename(
             columns={
                 'spread_line': 'Spread_from_Vegas_for_Away_Team',
