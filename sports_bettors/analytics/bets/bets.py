@@ -39,8 +39,8 @@ class Bets(object):
             parse_dates=['Date']
         )
         df = df[[
-            'Date', 'Money', 'Bet Type', 'Number', 'Odds', 'Supporting Team',
-            'Opposing Team', 'League', 'Result', 'Amount'
+            'Date', 'Money', 'Bet_Type', 'Number', 'Odds', 'Supporting Team',
+            'Opposing Team', 'League', 'Result', 'Amount', 'Model_Agree'
         ]]
         df = df[df['Odds'].between(-130, 300)].copy()
         df['payout'] = df['Odds'].apply(self._calc_payout)
@@ -113,3 +113,41 @@ class Bets(object):
             plt.title('Cumulative Gain on Bets by League')
             pdf.savefig()
             plt.close()
+
+            df['Model_Agree'] = df['Model_Agree'].fillna('Not Used')
+            for (league, bet_type), df_ in df.groupby(['League', 'Bet_Type']):
+                plt.figure()
+                for model_agree, df_plot in df_.groupby('Model_Agree'):
+                    df_plot['cumsum'] = df_plot['Net_Gain'].cumsum()
+                    df_plot['Bet_no'] = df_plot.reset_index(drop=True).index
+                    plt.plot(df_plot['Bet_no'], df_plot['cumsum'], label=model_agree)
+                plt.title(f'{league}: {bet_type}')
+                plt.grid(True)
+                plt.legend()
+                plt.tight_layout()
+                pdf.savefig()
+                plt.close()
+
+            # Curate categories a bit
+            df['Model_Agree'] = df['Model_Agree'].replace({
+                'Against Max Return': 'Not Used',
+                'Against Min Risk': 'Not Used',
+                'No Bet': 'Not Used',
+                'Max Return': 'Model Used',
+                'Min Risk': 'Model Used'
+            })
+            df['Bet_Type'] = df['Bet_Type'].replace({
+                'Under': 'Over'
+            })
+            for (league, bet_type), df_ in df.groupby(['League', 'Bet_Type']):
+                plt.figure()
+                for model_agree, df_plot in df_.groupby('Model_Agree'):
+                    df_plot['cumsum'] = df_plot['Net_Gain'].cumsum()
+                    df_plot['Bet_no'] = df_plot.reset_index(drop=True).index
+                    plt.plot(df_plot['Bet_no'], df_plot['cumsum'], label=model_agree)
+                plt.title(f'{league}: {bet_type} (Curated)')
+                plt.grid(True)
+                plt.legend()
+                plt.tight_layout()
+                pdf.savefig()
+                plt.close()

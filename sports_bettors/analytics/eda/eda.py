@@ -102,7 +102,7 @@ class Eda(object):
                     if predict:
                         return pd.read_csv(os.path.join(self.cache_dir, 'df_training.csv'), parse_dates=['gameday'])
                     else:
-                        df_raw = pd.read_csv(os.path.join(self.cache_dir, 'df_eda_raw.csv'), parse_dates=['gameday'])
+                        df_raw = pd.read_csv(os.path.join(self.cache_dir, 'df_training_raw.csv'), parse_dates=['gameday'])
                         api_response = []
                 records = []
                 for b in api_response:
