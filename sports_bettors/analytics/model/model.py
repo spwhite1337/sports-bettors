@@ -16,7 +16,7 @@ from config import logger, Config
 
 class Model(Data):
     val_window = 365
-    balance_data = True
+    balance_data = {'nfl': True, 'college_football': False}
     TODAY = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
 
     model_data_config = {
@@ -150,7 +150,7 @@ class Model(Data):
         df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
 
         # Balance Data
-        if self.balance_data and not val:
+        if self.balance_data[self.league] and not val:
             df_['balance'] = df_[self.response_col] > df_[self.line_col]
             df_val['balance'] = df_val[self.response_col] > df_val[self.line_col]
             df_ = self.make_resample(df_, 'balance')

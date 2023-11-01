@@ -62,9 +62,12 @@ class Data(Eda):
         df, df_raw = [], None
         for year in tqdm(years):
             for conference in tqdm(self.college_conferences):
+                if df_raw is not None:
+                    continue
                 # Rest a bit for the API because it is free
                 time.sleep(2)
                 try:
+
                     configuration = cfbd.Configuration()
                     configuration.api_key['Authorization'] = os.environ['API_KEY_COLLEGE_API']
                     configuration.api_key_prefix['Authorization'] = 'Bearer'
@@ -108,8 +111,8 @@ class Data(Eda):
                             record['away_moneyline'] = self._impute_money_line_from_spread(record['spread_line'])
                         records.append(record.copy())
                 df.append(pd.DataFrame.from_records(records))
-        df = pd.concat(df).drop_duplicates().reset_index(drop=True) if len(df) > 0 else df_raw
-        df['gameday'] = pd.to_datetime(df['gameday']).dt.date
+        df = pd.concat(df).drop_duplicates().reset_index(drop=True) if df_raw is None else df_raw
+        df['gameday'] = pd.to_datetime(df['gameday'])
 
         # De-dupe from multiple spread providers
         if 'provider' in df.columns:
@@ -139,6 +142,9 @@ class Data(Eda):
             &
             (~df['spread_line'].isna())
         ]
+
+        # Rename to consistent format
+        df = df.rename(columns={'over_under': 'total_line'})
         return df
 
     def etl(self) -> pd.DataFrame:
