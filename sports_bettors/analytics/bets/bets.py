@@ -142,9 +142,13 @@ class Bets(object):
             for (league, bet_type), df_ in df.groupby(['League', 'Bet_Type']):
                 plt.figure()
                 for model_agree, df_plot in df_.groupby('Model_Agree'):
+                    num_wins = df_plot[df_plot['Result'] == 'Won'].shape[0]
+                    num_losses = df_plot[df_plot['Result'] == 'Lost'].shape[0]
+                    num_ties = df_plot[df_plot['Result'] == 'Push'].shape[0]
                     df_plot['cumsum'] = df_plot['Net_Gain'].cumsum()
                     df_plot['Bet_no'] = df_plot.reset_index(drop=True).index
-                    plt.plot(df_plot['Bet_no'], df_plot['cumsum'], label=model_agree)
+                    plt.plot(df_plot['Bet_no'], df_plot['cumsum'],
+                             label=str(model_agree) + f' ({num_wins}-{num_losses}-{num_ties})')
                 plt.title(f'{league}: {bet_type} (Curated)')
                 plt.grid(True)
                 plt.legend()

@@ -252,7 +252,7 @@ class Policy(Validate):
                  df: Optional[pd.DataFrame] = None,
                  run_shap: bool = False):
         if any([df_ is None, df_val is None, df is None]):
-            df_, df_val, df = self.fit_transform()
+            df_, df_val, df = self.fit_transform(val=True)
 
         with PdfPages(os.path.join(self.save_dir, 'validate.pdf')) as pdf:
             # Validate model before moving on to policies

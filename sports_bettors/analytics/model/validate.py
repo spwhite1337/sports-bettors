@@ -29,7 +29,7 @@ class Validate(Model):
                        run_shap: bool = False
                        ) -> pd.DataFrame:
         if any([df_ is None, df_val is None, df is None]):
-            df_, df_val, df = self.fit_transform()
+            df_, df_val, df = self.fit_transform(val=True)
 
         # Get predictions
         df_['preds'] = self.predict(df_)

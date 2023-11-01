@@ -14,6 +14,7 @@ from config import logger
 
 class Data(Eda):
     training_years = 5
+    # https://github.com/nflverse/nfldata
     link_to_data = 'https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv'
     window = 365
 
@@ -52,11 +53,6 @@ class Data(Eda):
         Pull data from https://github.com/CFBD/cfbd-python
         As of 10/2023 it is "free to use without restrictions"
         """
-
-        configuration = cfbd.Configuration()
-        configuration.api_key['Authorization'] = os.environ['API_KEY_COLLEGE_API']
-        configuration.api_key_prefix['Authorization'] = 'Bearer'
-        api_instance = cfbd.BettingApi(cfbd.ApiClient(configuration))
         current_year = datetime.datetime.today().year
         if not predict:
             years = list(np.linspace(current_year - self.training_years - 1, current_year, self.training_years + 2))
@@ -69,6 +65,10 @@ class Data(Eda):
                 # Rest a bit for the API because it is free
                 time.sleep(2)
                 try:
+                    configuration = cfbd.Configuration()
+                    configuration.api_key['Authorization'] = os.environ['API_KEY_COLLEGE_API']
+                    configuration.api_key_prefix['Authorization'] = 'Bearer'
+                    api_instance = cfbd.BettingApi(cfbd.ApiClient(configuration))
                     api_response = api_instance.get_lines(year=year, season_type=season_type, conference=conference)
                 except:
                     logger.error('API Miss')

@@ -6,6 +6,7 @@ from typing import Tuple, Optional, Dict
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
+from sklearn.utils import resample
 from sklearn.svm import SVR
 import shap
 
@@ -15,6 +16,7 @@ from config import logger, Config
 
 class Model(Data):
     val_window = 365
+    balance_data = True
     TODAY = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
 
     model_data_config = {
@@ -107,19 +109,58 @@ class Model(Data):
         if not os.path.exists(self.model_dir):
             os.makedirs(self.model_dir)
 
-    def fit_transform(self, df: Optional[pd.DataFrame] = None) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+    @staticmethod
+    def make_resample(_df, column):
+        """
+        From stack-overflow
+        https://stackoverflow.com/questions/53218341/up-sampling-imbalanced-datasets-minor-classes
+        """
+
+        dfs_r = {}
+        dfs_c = {}
+        bigger = 0
+        ignore = ""
+        for c in _df[column].unique():
+            dfs_c[c] = _df[_df[column] == c]
+            if dfs_c[c].shape[0] > bigger:
+                bigger = dfs_c[c].shape[0]
+                ignore = c
+
+        for c in dfs_c:
+            if c == ignore:
+                continue
+            dfs_r[c] = resample(dfs_c[c],
+                                replace=True,
+                                n_samples=bigger - dfs_c[c].shape[0],
+                                random_state=0)
+        return pd.concat([dfs_r[c] for c in dfs_r] + [_df])
+
+    def fit_transform(self, df: Optional[pd.DataFrame] = None, val: bool = False
+                      ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         if df is None:
             df = self.wrangle()
+
         # Drop nas
         df = df[~df[self.line_col].isna() & ~df[self.response_col].isna()]
         for col in self.features:
             df = df[~df[col].isna()]
+
         # Train test split
         df_ = df[df['gameday'] < (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
         df_val = df[df['gameday'] > (pd.Timestamp(self.TODAY) - pd.Timedelta(days=self.val_window))].copy()
+
+        # Balance Data
+        if self.balance_data and not val:
+            df_['balance'] = df_[self.response_col] > df_[self.line_col]
+            df_val['balance'] = df_val[self.response_col] > df_val[self.line_col]
+            df_ = self.make_resample(df_, 'balance')
+            df_val = self.make_resample(df_val, 'balance')
+            df = pd.concat([df_, df_val]).reset_index(drop=True).drop('balance', axis=1)
+
         # Scale features
         self.scaler = StandardScaler()
         self.scaler.fit(df_[self.features])
+
         return df_, df_val, df
 
     def get_hyper_params(self) -> Dict[str, float]:
