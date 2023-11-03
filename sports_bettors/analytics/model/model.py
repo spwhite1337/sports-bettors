@@ -1,13 +1,18 @@
 import os
+import ast
 import time
 import pickle
 import datetime
 from typing import Tuple, Optional, Dict
 import numpy as np
 import pandas as pd
+
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 from sklearn.svm import SVR
+from sklearn.model_selection import StratifiedKFold, GridSearchCV
+
 import shap
 
 from sports_bettors.analytics.model.data import Data
@@ -18,6 +23,8 @@ class Model(Data):
     val_window = 365
     balance_data = {'nfl': True, 'college_football': False}
     TODAY = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
+
+    n_jobs = 100
 
     model_data_config = {
         'nfl': {
@@ -115,24 +122,16 @@ class Model(Data):
         From stack-overflow
         https://stackoverflow.com/questions/53218341/up-sampling-imbalanced-datasets-minor-classes
         """
-
-        dfs_r = {}
-        dfs_c = {}
-        bigger = 0
-        ignore = ""
+        dfs_r, dfs_c, bigger, ignore = {}, {}, 0, ''
         for c in _df[column].unique():
             dfs_c[c] = _df[_df[column] == c]
             if dfs_c[c].shape[0] > bigger:
                 bigger = dfs_c[c].shape[0]
                 ignore = c
-
         for c in dfs_c:
             if c == ignore:
                 continue
-            dfs_r[c] = resample(dfs_c[c],
-                                replace=True,
-                                n_samples=bigger - dfs_c[c].shape[0],
-                                random_state=0)
+            dfs_r[c] = resample(dfs_c[c], replace=True, n_samples=bigger - dfs_c[c].shape[0], random_state=0)
         return pd.concat([dfs_r[c] for c in dfs_r] + [_df])
 
     def fit_transform(self, df: Optional[pd.DataFrame] = None, val: bool = False
@@ -163,23 +162,47 @@ class Model(Data):
 
         return df_, df_val, df
 
-    def get_hyper_params(self) -> Dict[str, float]:
-        if self.league == 'nfl':
-            return {'C': 3}
-        elif self.league == 'college_football':
-            return {'C': 3}
-
-    def train(self, df: Optional[pd.DataFrame] = None):
-        if df is None:
-            df, _, _ = self.fit_transform()
-        logger.info(f'Training a Model for {self.league} on {self.response}')
-        self.model = SVR(
-            kernel='rbf',
-            gamma=0.1,
-            epsilon=0.1,
-            **self.get_hyper_params()
+    def get_hyper_params(self, X: pd.DataFrame, y: pd.DataFrame) -> Dict[str, float]:
+        # Define model
+        model = Pipeline([('model', SVR(kernel='rbf', gamma=0.1, epsilon=0.1))])
+        parameters = {
+            'model__gamma': [0.05, 0.1, 0.2],
+            'model__epsilon': [0.05, 0.1, 0.2],
+            'model__C': [0.1, 0.5, 1, 2, 3, 5, 10]
+        }
+        grid = GridSearchCV(
+            model,
+            cv=3,
+            param_grid=parameters,
+            scoring='r2',
+            return_train_score=True,
+            verbose=1,
+            n_jobs=self.n_jobs
         )
+        logger.info(f'Running Grid Search for {self.league} on {self.response}')
+        grid.fit(X, y)
+        df = pd.DataFrame().from_dict(grid.cv_results_)
+        df = df[df['mean_test_score'] == df['mean_test_score'].max()]
+        return df['params'].iloc[0]
+
+    def train(self, df: Optional[pd.DataFrame] = None, df_val: Optional[pd.DataFrame] = None):
+        if df is None or df_val is None:
+            df, df_val, _ = self.fit_transform()
+
+        # Train / test split
         X, y = pd.DataFrame(self.scaler.transform(df[self.features]), columns=self.features), df[self.response_col]
+
+        # Get hyper-params
+        hyper_params = self.get_hyper_params(X, y)
+        logger.info(f'Training a Model for {self.league} on {self.response}')
+        self.model = Pipeline([
+            ('model', SVR(
+                kernel='rbf',
+                C=hyper_params['model__C'],
+                gamma=hyper_params['model__gamma'],
+                epsilon=hyper_params['model__epsilon']
+            ))
+        ])
         self.model.fit(X, y)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
