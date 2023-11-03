@@ -277,18 +277,34 @@ class Policy(Validate):
                 else:
                     p_value = binomtest(int(num_wins), int(num_bets), p=0.5, alternative='greater').pvalue
 
-                # Weekly win-loss trends
                 df_policy['week'] = df_policy['gameday'].dt.year * 52 + df_policy['gameday'].dt.isocalendar().week
-                df_plot = df_policy.groupby('week').agg(win_rate=('Bet_result', 'mean')).reset_index()
-                plt.figure()
-                plt.bar(df_plot['week'], df_plot['win_rate'])
-                plt.hlines(0.5, df_plot['week'].min(), df_plot['week'].max())
-                plt.grid(True)
-                plt.xlabel('Week No')
-                plt.ylabel('Win Rate')
-                plt.title(f'{self.league}, {self.response}: {policy}')
-                pdf.savefig()
-                plt.close()
+                df_policy['yes_bet'] = (~df_policy['Bet_result'].isna()).astype(int)
+                df_plot = df_policy[df_policy['yes_bet'] == 1].copy()
+                if df_plot.shape[0] > 0:
+                    # Weekly win-loss trends
+                    df_plot = df_plot.\
+                        groupby('week').\
+                        agg(win_rate=('Bet_result', 'mean'), num_bets=('yes_bet', 'sum')).\
+                        reset_index()
+                    plt.figure()
+                    plt.bar(df_plot['week'], df_plot['win_rate'])
+                    plt.hlines(0.5, df_plot['week'].min(), df_plot['week'].max())
+                    plt.grid(True)
+                    plt.xlabel('Week No')
+                    plt.ylabel('Win Rate')
+                    plt.title(f'{self.league}, {self.response}: {policy}')
+                    pdf.savefig()
+                    plt.close()
+
+                    # Number of bets by week
+                    plt.figure()
+                    plt.bar(df_plot['week'], df_plot['num_bets'])
+                    plt.grid(True)
+                    plt.xlabel('Week No')
+                    plt.ylabel('Number of Bets')
+                    plt.title(f'{self.league}, {self.response}: {policy}')
+                    pdf.savefig()
+                    plt.close()
 
                 plt.figure()
                 plt.text(0.04, 0.95, f'League: {self.league}, response: {self.response}, policy: {policy}')
