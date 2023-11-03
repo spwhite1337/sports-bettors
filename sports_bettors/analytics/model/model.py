@@ -177,7 +177,7 @@ class Model(Data):
             scoring='r2',
             return_train_score=True,
             verbose=1,
-            n_jobs=self.n_jobs
+            n_jobs=None
         )
         logger.info(f'Running Grid Search for {self.league} on {self.response}')
         grid.fit(X, y)

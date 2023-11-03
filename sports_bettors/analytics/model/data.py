@@ -132,9 +132,7 @@ class Data(Eda):
         df = df.drop_duplicates().reset_index(drop=True)
 
         # Drop conferences with proper filter
-        college_conferences = ['Big Ten', 'SEC', 'Big 12', 'ACC', 'Pac-12', 'PAC',
-                               # 'FBS Independents'
-                               ]
+        college_conferences = ['Big Ten', 'SEC', 'Big 12', 'ACC', 'Pac-12', 'PAC']
         df = df[
             (df['home_conference'].isin(college_conferences))
             &
@@ -145,6 +143,11 @@ class Data(Eda):
 
         # Rename to consistent format
         df = df.rename(columns={'over_under': 'total_line'})
+
+        # Hard de-dupe
+        df = df.reset_index(names=['dedupe_col'])
+        df = df[df['dedupe_col'] == df.groupby('game_id')['dedupe_col'].transform('min')]
+
         return df
 
     def etl(self) -> pd.DataFrame:
