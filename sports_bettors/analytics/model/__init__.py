@@ -95,8 +95,8 @@ class Model(object):
                 'total_line',
                 'over_adj',
                 'model_vs_over',
-                ] + [f'Over_Bet_{p}' for p in policies]
-            ])
+               ] + [f'Over_Bet_{p}' for p in policies]
+            ].sort_values(['gameday', 'game_id']))
             # Save results
             save_dir = os.path.join(os.getcwd(), 'data', 'predictions', league)
             fn = f'df_{int(time.time())}.csv'
@@ -143,7 +143,7 @@ class Model(object):
                 'over_adj': 'Over_Line_from_Model',
                 'money_line': 'payout_per_dollar_bet_on_away_team_moneyline'
             }
-        )
+        ).sort_values(['gameday', 'game_id']).reset_index(drop=True)
         df_x['away_is_favorite'] = df_x['away_is_favorite'].replace({1: 'Yes', 0: 'No'})
         week_no = datetime.datetime.now().isocalendar()[1]
         save_dir = os.path.join(self.save_dir, league, str(week_no))
