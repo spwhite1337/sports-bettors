@@ -48,6 +48,10 @@ class Data(Eda):
         else:
             return -1 / payout * 100
 
+    @staticmethod
+    def _parse_college_football(df: pd.DataFrame) -> pd.DataFrame:
+        return df
+
     def _download_college_football(self, predict: bool = False) -> pd.DataFrame:
         """
         Pull data from https://github.com/CFBD/cfbd-python
@@ -67,7 +71,6 @@ class Data(Eda):
                 # Rest a bit for the API because it is free
                 time.sleep(2)
                 try:
-
                     configuration = cfbd.Configuration()
                     configuration.api_key['Authorization'] = os.environ['API_KEY_COLLEGE_API']
                     configuration.api_key_prefix['Authorization'] = 'Bearer'
