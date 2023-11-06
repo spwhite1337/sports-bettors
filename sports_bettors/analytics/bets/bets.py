@@ -136,9 +136,8 @@ class Bets(object):
                 'Max Return': 'Model Used',
                 'Min Risk': 'Model Used'
             })
-            df['Bet_Type'] = df['Bet_Type'].replace({
-                'Under': 'Over'
-            })
+            df['Bet_Type'] = df['Bet_Type'].replace({'Under': 'Over'})
+
             for (league, bet_type), df_ in df.groupby(['League', 'Bet_Type']):
                 plt.figure()
                 for model_agree, df_plot in df_.groupby('Model_Agree'):
