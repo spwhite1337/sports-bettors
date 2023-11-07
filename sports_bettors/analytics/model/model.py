@@ -11,7 +11,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import resample
 from sklearn.svm import SVR
-from sklearn.model_selection import StratifiedKFold, GridSearchCV
+from sklearn.model_selection import GroupKFold, GridSearchCV
 
 import shap
 
@@ -164,7 +164,7 @@ class Model(Data):
 
         return df_, df_val, df
 
-    def get_hyper_params(self, X: pd.DataFrame, y: pd.DataFrame) -> Dict[str, float]:
+    def get_hyper_params(self, X: pd.DataFrame, y: pd.DataFrame, group: pd.Series) -> Dict[str, float]:
         # Define model
         model = Pipeline([('model', SVR())])
         parameters = {
@@ -173,11 +173,13 @@ class Model(Data):
             'model__epsilon': [0.05, 0.1, 0.2],
             'model__C': [0.1, 0.5, 1, 2, 3, 5, 10]
         }
+        gkf = GroupKFold(n_splits=group.nunique())
         grid = GridSearchCV(
             model,
-            cv=3,
+            cv=gkf.split(X, y, group),
             param_grid=parameters,
-            scoring='r2',
+            # scoring='r2',
+            scoring='neg_mean_squared_error',
             return_train_score=True,
             verbose=1,
             n_jobs=None
@@ -197,7 +199,8 @@ class Model(Data):
         X, y = pd.DataFrame(self.scaler.transform(df[self.features]), columns=self.features), df[self.response_col]
 
         # Get hyper-params
-        self.hyper_params = self.get_hyper_params(X, y)
+        df['group_col'] = df['gameday'].dt.year
+        self.hyper_params = self.get_hyper_params(X, y, df['group_col'])
         logger.info(f'Training a Model for {self.league} on {self.response}')
         self.model = Pipeline([
             ('model', SVR(

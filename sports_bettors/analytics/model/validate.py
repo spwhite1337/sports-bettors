@@ -41,7 +41,7 @@ class Validate(Model):
         plt.text(0.04, 0.95, f'League: {self.league}, response: {self.response}')
         plt.text(0.04, 0.90, f'Train N: {df_.shape[0]}')
         plt.text(0.04, 0.85, f'Val N: {df_val.shape[0]}')
-        plt.text(0.04, 0.80, f'Optimization Metric: {self.opt_metric}')
+        plt.text(0.04, 0.80, f'Optimization Metric: {round(self.opt_metric, 3)}')
         for hdx, (k, v) in enumerate(self.hyper_params.items()):
             plt.text(0.04, 0.75 - 0.05 * hdx, f'Hyper Params: {k} = {v}')
         plt.tick_params(axis='both', which='both', labelbottom=False, labelleft=False, bottom=False, left=False)
