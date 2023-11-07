@@ -165,9 +165,10 @@ class Model(Data):
 
     def get_hyper_params(self, X: pd.DataFrame, y: pd.DataFrame) -> Dict[str, float]:
         # Define model
-        model = Pipeline([('model', SVR(kernel='rbf'))])
+        model = Pipeline([('model', SVR())])
         parameters = {
-            'model__gamma': [0.05, 0.1, 0.2],
+            'model__kernel': ['rbf', 'poly', 'linear', 'sigmoid'],
+            'model__gamma': [0.05, 'scale', 'auto'],
             'model__epsilon': [0.05, 0.1, 0.2],
             'model__C': [0.1, 0.5, 1, 2, 3, 5, 10]
         }
@@ -198,7 +199,7 @@ class Model(Data):
         logger.info(f'Training a Model for {self.league} on {self.response}')
         self.model = Pipeline([
             ('model', SVR(
-                kernel='rbf',
+                kernel=self.hyper_params['model__kernel'],
                 C=self.hyper_params['model__C'],
                 gamma=self.hyper_params['model__gamma'],
                 epsilon=self.hyper_params['model__epsilon']
