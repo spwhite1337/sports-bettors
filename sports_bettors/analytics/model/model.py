@@ -105,6 +105,7 @@ class Model(Data):
         self.model = None
         self.scaler = None
         self.hyper_params = {}
+        self.opt_metric = None
         self.response = response
         self.features = self.model_data_config[self.league][self.response]['features']
         self.response_col = self.model_data_config[self.league][self.response]['response_col']
@@ -167,8 +168,8 @@ class Model(Data):
         # Define model
         model = Pipeline([('model', SVR())])
         parameters = {
-            'model__kernel': ['rbf', 'poly', 'linear', 'sigmoid'],
-            'model__gamma': [0.05, 'scale', 'auto'],
+            'model__kernel': ['rbf', 'poly', 'sigmoid'],
+            'model__gamma': ['scale', 'auto'],
             'model__epsilon': [0.05, 0.1, 0.2],
             'model__C': [0.1, 0.5, 1, 2, 3, 5, 10]
         }
@@ -184,7 +185,8 @@ class Model(Data):
         logger.info(f'Running Grid Search for {self.league} on {self.response}')
         grid.fit(X, y)
         df = pd.DataFrame().from_dict(grid.cv_results_)
-        df = df[df['mean_test_score'] == df['mean_test_score'].max()]
+        self.opt_metric = df['mean_test_score'].max()
+        df = df[df['mean_test_score'] == self.opt_metric]
         return df['params'].iloc[0]
 
     def train(self, df: Optional[pd.DataFrame] = None, df_val: Optional[pd.DataFrame] = None):
