@@ -49,7 +49,7 @@ class Validate(Model):
         plt.close()
 
         plt.figure()
-        plt.scatter(df_val[self.response_col], df_val['preds'], label=f'Opt: {self.opt_metric}')
+        plt.scatter(df_val[self.response_col], df_val['preds'], label=f'Opt: {round(self.opt_metric, 3)}')
         plt.xlabel('Response')
         plt.ylabel('Preds')
         plt.title('Preds vs. Response')
