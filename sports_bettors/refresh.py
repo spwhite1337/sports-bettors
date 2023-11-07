@@ -1,4 +1,5 @@
 from sports_bettors.analytics.run import run, analysis
+from config import logger
 
 
 def refresh_college_data():
@@ -58,6 +59,7 @@ def refresh():
     analysis()
     for league in ['nfl', 'college_football']:
         for model in ['spread', 'over']:
+            logger.info(f'Creating Model for {league}, {model}')
             run(league, model, overwrite=True)
 
 
