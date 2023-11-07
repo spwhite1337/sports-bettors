@@ -146,7 +146,8 @@ class Model(object):
         ).sort_values(['gameday', 'game_id']).reset_index(drop=True)
         df_x['away_is_favorite'] = df_x['away_is_favorite'].replace({1: 'Yes', 0: 'No'})
         week_no = datetime.datetime.now().isocalendar()[1]
-        save_dir = os.path.join(self.save_dir, league, str(week_no))
+        current_year = datetime.datetime.now().year
+        save_dir = os.path.join(self.save_dir, league, str(current_year), str(week_no))
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
         df_x.to_excel(os.path.join(save_dir, f'{league}_predictions.xlsx'), index=False)

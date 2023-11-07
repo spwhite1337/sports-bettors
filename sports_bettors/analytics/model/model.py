@@ -104,6 +104,7 @@ class Model(Data):
         super().__init__(league=league, overwrite=overwrite)
         self.model = None
         self.scaler = None
+        self.hyper_params = {}
         self.response = response
         self.features = self.model_data_config[self.league][self.response]['features']
         self.response_col = self.model_data_config[self.league][self.response]['response_col']
@@ -193,14 +194,14 @@ class Model(Data):
         X, y = pd.DataFrame(self.scaler.transform(df[self.features]), columns=self.features), df[self.response_col]
 
         # Get hyper-params
-        hyper_params = self.get_hyper_params(X, y)
+        self.hyper_params = self.get_hyper_params(X, y)
         logger.info(f'Training a Model for {self.league} on {self.response}')
         self.model = Pipeline([
             ('model', SVR(
                 kernel='rbf',
-                C=hyper_params['model__C'],
-                gamma=hyper_params['model__gamma'],
-                epsilon=hyper_params['model__epsilon']
+                C=self.hyper_params['model__C'],
+                gamma=self.hyper_params['model__gamma'],
+                epsilon=self.hyper_params['model__epsilon']
             ))
         ])
         self.model.fit(X, y)

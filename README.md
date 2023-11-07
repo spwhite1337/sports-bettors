@@ -153,7 +153,13 @@ A dashboard is available to explore results.
 - `flask run`
 
 
-## Spread Preds
+## Betting Assistant
 
 - `pip install -e .`
-- `sb_predict_next_week --retrain`
+- Update `data/sports_bettors/raw_archive/betting/bets.csv` for model-tracking and bets analysis
+- (Optional): Update `data/sports_bettors/cache/college_football/df_training_raw.csv` from a jupyter notebook with
+the API KEY for the API from your e-mail.
+    - This is likely necessary as the script with `overwrite=True` fails to hit the API presumably because of some 
+    throttling from the API for automated scripts.
+- `sb_refresh`
+- `sb_predict_next_week`
