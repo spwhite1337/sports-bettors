@@ -165,7 +165,7 @@ class Model(Data):
 
     def get_hyper_params(self, X: pd.DataFrame, y: pd.DataFrame) -> Dict[str, float]:
         # Define model
-        model = Pipeline([('model', SVR(kernel='rbf', gamma=0.1, epsilon=0.1))])
+        model = Pipeline([('model', SVR(kernel='rbf'))])
         parameters = {
             'model__gamma': [0.05, 0.1, 0.2],
             'model__epsilon': [0.05, 0.1, 0.2],
