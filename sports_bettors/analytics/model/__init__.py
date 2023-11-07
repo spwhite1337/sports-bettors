@@ -96,7 +96,7 @@ class Model(object):
                 'over_adj',
                 'model_vs_over',
                ] + [f'Over_Bet_{p}' for p in policies]
-            ].sort_values(['gameday', 'game_id']))
+            ].sort_values(['gameday', 'game_id']).reset_index(drop=True))
             # Save results
             save_dir = os.path.join(os.getcwd(), 'data', 'predictions', league)
             fn = f'df_{int(time.time())}.csv'
