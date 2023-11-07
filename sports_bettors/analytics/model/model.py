@@ -21,7 +21,7 @@ from config import logger, Config
 
 class Model(Data):
     val_window = 365
-    balance_data = {'nfl': True, 'college_football': False}
+    balance_data = {'nfl': True, 'college_football': True}
     TODAY = datetime.datetime.strftime(datetime.datetime.today(), '%Y-%m-%d')
 
     n_jobs = 100
@@ -162,6 +162,13 @@ class Model(Data):
         self.scaler = StandardScaler()
         self.scaler.fit(df_[self.features])
 
+        if self.response == 'spread':
+            # Clip training data so it doesn't over-penalize bad spreads
+            df_[self.response_col] = df_[self.response_col].clip(-7, 7)
+        elif self.response == 'over':
+            # Clip training data so it doesn't over-penalize bad over totals
+            df_[self.response_col] = df_[self.response_col].clip(df_[self.line_col] - 20, df_[self.line_col] + 20)
+
         return df_, df_val, df
 
     def get_hyper_params(self, X: pd.DataFrame, y: pd.DataFrame, group: pd.Series) -> Dict[str, float]:
@@ -207,7 +214,7 @@ class Model(Data):
                 kernel=self.hyper_params['model__kernel'],
                 C=self.hyper_params['model__C'],
                 gamma=self.hyper_params['model__gamma'],
-                epsilon=self.hyper_params['model__epsilon']
+                epsilon=self.hyper_params['model__epsilon'],
             ))
         ])
         self.model.fit(X, y)

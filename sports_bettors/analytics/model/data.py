@@ -229,6 +229,7 @@ class Data(Eda):
         df__ = df[df['gameday'] > (pd.Timestamp(self.training_start) - pd.Timedelta(days=self.window))]
 
         records = []
+        logger.info(f'Wrangling Data for {self.league}')
         for rdx, row in tqdm(df__.iterrows(), total=df__.shape[0]):
 
             # Away team of row
