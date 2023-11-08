@@ -129,12 +129,12 @@ class Model(object):
             'spread_line',
             'Spread_from_Model_for_Away_Team',
             'Spread_Bet_max_return',
-            'Spread_Bet_moderate',
+            # 'Spread_Bet_moderate',
             'Spread_Bet_min_risk',
             'total_line',
             'over_adj',
             'Over_Bet_max_return',
-            'Over_Bet_moderate',
+            # 'Over_Bet_moderate',
             'Over_Bet_min_risk'
         ]].rename(
             columns={
