@@ -133,7 +133,10 @@ class Model(Data):
         for c in dfs_c:
             if c == ignore:
                 continue
-            dfs_r[c] = resample(dfs_c[c], replace=True, n_samples=bigger - dfs_c[c].shape[0], random_state=0)
+            if bigger == dfs_c[c].shape[0]:
+                dfs_r[c] = dfs_c[c]
+            else:
+                dfs_r[c] = resample(dfs_c[c], replace=True, n_samples=bigger - dfs_c[c].shape[0], random_state=0)
         return pd.concat([dfs_r[c] for c in dfs_r] + [_df])
 
     def fit_transform(self, df: Optional[pd.DataFrame] = None, val: bool = False
