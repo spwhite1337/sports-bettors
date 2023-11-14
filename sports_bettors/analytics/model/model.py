@@ -182,7 +182,6 @@ class Model(Data):
 
         # Drop nas
         df = df[~df[self.line_col].isna() & ~df[self.response_col].isna()]
-        import ipdb; ipdb.set_trace()
         for col in self.features:
             df = df[~df[col].isna()]
 
