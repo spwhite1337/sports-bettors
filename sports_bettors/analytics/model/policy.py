@@ -31,6 +31,26 @@ class Policy(Validate):
                         'threshold': None
                     }
                 },
+                'top_decile': {
+                    'left': {
+                        'name': 'Underdog',
+                        'threshold': None
+                    },
+                    'right': {
+                        'name': 'Favorite',
+                        'threshold': None
+                    }
+                },
+                'top_quartile': {
+                    'left': {
+                        'name': 'Underdog',
+                        'threshold': None
+                    },
+                    'right': {
+                        'name': 'Favorite',
+                        'threshold': None
+                    }
+                },
                 'top_half': {
                     'left': {
                         'name': 'Underdog',
@@ -54,6 +74,26 @@ class Policy(Validate):
             },
             'over': {
                 'max_return': {
+                    'left': {
+                        'name': 'Under',
+                        'threshold': None
+                    },
+                    'right': {
+                        'name': 'Over',
+                        'threshold': None
+                    }
+                },
+                'top_decile': {
+                    'left': {
+                        'name': 'Under',
+                        'threshold': None
+                    },
+                    'right': {
+                        'name': 'Over',
+                        'threshold': None
+                    }
+                },
+                'top_quartile': {
                     'left': {
                         'name': 'Under',
                         'threshold': None
@@ -180,13 +220,18 @@ class Policy(Validate):
             self.policies['min_risk']['right']['threshold'] = df_min_risk['right_threshold'].iloc[0]
 
         # Save results for thresholded cutoffs
-        if 'top_half' in self.policies.keys():
-            df_top_half = df_policy.copy()
-            df_top_half['diff'] = (df_top_half['num_bets'] / df_top_half['num_games'] - 0.5).abs()
-            df_top_half = df_top_half[df_top_half['diff'] == df_top_half['diff'].min()]
-            df_top_half = df_top_half[df_top_half['expected_return'] == df_top_half['expected_return'].max()]
-            self.policies['top_half']['left']['threshold'] = df_top_half['left_threshold'].iloc[0]
-            self.policies['top_half']['right']['threshold'] = df_top_half['right_threshold'].iloc[0]
+        for t_name, t in [
+            ('top_decile', 0.1),
+            ('top_quartile', 0.25),
+            ('top_half', 0.5),
+        ]:
+            if t_name in self.policies.keys():
+                df_t = df_policy.copy()
+                df_t['diff'] = (df_t['num_bets'] / df_t['num_games'] - t).abs()
+                df_t = df_t[df_t['diff'] == df_t['diff'].min()]
+                df_t = df_t[df_t['expected_return'] == df_t['expected_return'].max()]
+                self.policies[t_name]['left']['threshold'] = df_t['left_threshold'].iloc[0]
+                self.policies[t_name]['right']['threshold'] = df_t['right_threshold'].iloc[0]
 
         # Make graph with thresholds
         df_plot = []
