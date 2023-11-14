@@ -41,22 +41,6 @@ class Policy(Validate):
                         'threshold': None
                     }
                 },
-                'moderate': {
-                    'left': {
-                        'name': 'Underdog',
-                        'threshold': {
-                            'nfl': -3,
-                            'college_football': -2.5
-                        }[league]
-                    },
-                    'right': {
-                        'name': 'Favorite',
-                        'threshold': {
-                            'nfl': 3.5,
-                            'college_football': 2.0
-                        }[league]
-                    }
-                },
                 'min_risk': {
                     'left': {
                         'name': 'Underdog',
@@ -79,20 +63,14 @@ class Policy(Validate):
                         'threshold': None
                     }
                 },
-                'moderate': {
+                'top_half': {
                     'left': {
                         'name': 'Under',
-                        'threshold': {
-                            'nfl': -1,
-                            'college_football': -4
-                        }[league]
+                        'threshold': None
                     },
                     'right': {
                         'name': 'Over',
-                        'threshold': {
-                            'nfl': 4,
-                            'college_football': 0.5
-                        }[league]
+                        'threshold': None
                     }
                 },
                 'min_risk': {
