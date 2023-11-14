@@ -40,8 +40,8 @@ class Model(Data):
                     # Win-rate ATS / Over
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    'favorite_margin_ats',
-                    'underdog_margin_ats',
+                    'favorite_team_margin_ats',
+                    'underdog_team_margin_ats',
 
                     # PF and PA
                     'favorite_team_over_rate',
@@ -66,8 +66,8 @@ class Model(Data):
                     # Win-rate ATS
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    'favorite_margin_ats',
-                    'underdog_margin_ats',
+                    'favorite_team_margin_ats',
+                    'underdog_team_margin_ats',
 
                     # PF and PA
                     'favorite_team_over_rate',
@@ -94,8 +94,8 @@ class Model(Data):
                     # Win-rate ATS
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    'favorite_margin_ats',
-                    'underdog_margin_ats',
+                    'favorite_team_margin_ats',
+                    'underdog_team_margin_ats',
 
                     # PF and PA
                     'favorite_team_over_rate',
@@ -120,8 +120,8 @@ class Model(Data):
                     # Win-rate ATS
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    'favorite_margin_ats',
-                    'underdog_margin_ats',
+                    'favorite_team_margin_ats',
+                    'underdog_team_margin_ats',
                     # PF and PA
                     'favorite_team_over_rate',
                     'underdog_team_over_rate',
@@ -182,6 +182,7 @@ class Model(Data):
 
         # Drop nas
         df = df[~df[self.line_col].isna() & ~df[self.response_col].isna()]
+        import ipdb; ipdb.set_trace()
         for col in self.features:
             df = df[~df[col].isna()]
 

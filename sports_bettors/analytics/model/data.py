@@ -278,8 +278,8 @@ class Data(Eda):
                 'away_team_losses_ats': away_losses_ats + home_losses_ats,
                 'away_team_losses': home_losses + away_losses,
                 # Rates
-                'away_margin': (home_margin + away_margin) / (home_num_games + away_num_games),
-                'away_margin_ats': (home_margin_ats + away_margin_ats) / (home_num_games + away_num_games),
+                'away_team_margin': (home_margin + away_margin) / (home_num_games + away_num_games),
+                'away_team_margin_ats': (home_margin_ats + away_margin_ats) / (home_num_games + away_num_games),
                 'away_team_win_rate': (home_wins + away_wins) / (home_num_games + away_num_games),
                 'away_team_win_rate_ats': (home_wins_ats + away_wins_ats) / (home_num_games + away_num_games),
                 'away_team_over_rate': (away_over + home_over) / (home_num_games + away_num_games),
@@ -359,16 +359,25 @@ class Data(Eda):
         for col in [
             'away_team_win_rate',
             'away_team_win_rate_ats',
-            'away_over_rate',
+            'away_team_over_rate',
+            'away_team_under_rate',
             'home_team_win_rate',
             'home_team_win_rate_ats',
-            'home_over_rate',
-            'home_margin',
-            'away_margin',
-            'home_margin_ats',
-            'away_margin_ats'
+            'home_team_over_rate',
+            'home_team_under_rate',
+            'home_team_margin',
+            'away_team_margin',
+            'home_team_margin_ats',
+            'away_team_margin_ats',
+            'home_team_total_points',
+            'away_team_total_points',
+            'home_team_total_points_ats',
+            'away_team_total_points_ats',
+            'home_team'
         ]:
             if col in df_out.columns:
+                if df_out[col].isna().mean() > 0:
+                    logger.info(f'{col}: NA RATE: {round(df_out[col].isna().mean(), 3)}')
                 df_out[col] = df_out[col].fillna(0.)
         df_out = df_out[df_out['gameday'] > self.training_start]
 
