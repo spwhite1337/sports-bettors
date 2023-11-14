@@ -31,6 +31,16 @@ class Policy(Validate):
                         'threshold': None
                     }
                 },
+                'top_half': {
+                    'left': {
+                        'name': 'Underdog',
+                        'threshold': None
+                    },
+                    'right': {
+                        'name': 'Favorite',
+                        'threshold': None
+                    }
+                },
                 'moderate': {
                     'left': {
                         'name': 'Underdog',
@@ -134,7 +144,7 @@ class Policy(Validate):
             num_left_wins=('left_correct', 'sum'),
             num_right_wins=('right_correct', 'sum'),
             num_games=('game_id', 'nunique')
-        ).reset_index()
+        ).reset_index().assign(total_num_games=df_policy['game_id'].nunique())
         # Totals for the policy
         df_policy['num_bets'] = df_policy['num_left_bet'] + df_policy['num_right_bet']
         df_policy['num_wins'] = df_policy['num_left_wins'] + df_policy['num_right_wins']
@@ -161,16 +171,14 @@ class Policy(Validate):
         df_policy = df_policy[(df_policy['num_wins'] > 0) & (df_policy['num_bets'] > 0)]
         df_policy['win_rate'] = df_policy['num_wins'] / df_policy['num_bets']
 
-        # P-value assumes a coin-flip is the baseline probability of getting a spread right but we will
-        # be more conservative and set it to 52.5 to account for the vigorish
+        # P-value assumes a coin-flip is the baseline probability of getting a spread right
         # Alternatively you could compare to your own intuition or some policy like, "Always bet right"
         df_policy['p_value'] = df_policy. \
-            apply(lambda r: binomtest(int(r['num_wins']), int(r['num_bets']), p=0.525, alternative='greater').pvalue,
+            apply(lambda r: binomtest(int(r['num_wins']), int(r['num_bets']), p=0.50, alternative='greater').pvalue,
                   axis=1)
         # Expected return with a conservative edge case of 0.5
         df_policy['expected_win_rate'] = (df_policy['win_rate'] * (1 - df_policy['p_value']) + 0.5 * df_policy['p_value'])
-        # Assume payout for a win is ~0.909 to account for vigorish
-        df_policy['expected_return'] = 0.909 * df_policy['expected_win_rate'] * df_policy['num_bets'] - 1 * (
+        df_policy['expected_return'] = 1.0 * df_policy['expected_win_rate'] * df_policy['num_bets'] - 1 * (
                 1 - df_policy['expected_win_rate']) * df_policy['num_bets']
 
         # Save policy-check work
@@ -192,6 +200,15 @@ class Policy(Validate):
         else:
             self.policies['min_risk']['left']['threshold'] = df_min_risk['left_threshold'].iloc[0]
             self.policies['min_risk']['right']['threshold'] = df_min_risk['right_threshold'].iloc[0]
+
+        # Save results for thresholded cutoffs
+        if 'top_half' in self.policies.keys():
+            df_top_half = df_policy.copy()
+            df_top_half['diff'] = (df_top_half['num_bets'] / df_top_half['num_games'] - 0.5).abs()
+            df_top_half = df_top_half[df_top_half['diff'] == df_top_half['diff'].min()]
+            df_top_half = df_top_half[df_top_half['expected_return'] == df_top_half['expected_return'].max()]
+            self.policies['top_half']['left']['threshold'] = df_top_half['left_threshold'].iloc[0]
+            self.policies['top_half']['right']['threshold'] = df_top_half['right_threshold'].iloc[0]
 
         # Make graph with thresholds
         df_plot = []
