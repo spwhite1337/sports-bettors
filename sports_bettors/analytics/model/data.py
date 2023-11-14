@@ -246,6 +246,7 @@ class Data(Eda):
             away_over = ((df_['away_score'] + df_['home_score']) > df_['total_line']).sum()
             away_under = ((df_['away_score'] + df_['home_score']) < df_['total_line']).sum()
             away_total = away_pf + away_pa
+            away_num_games = df_.shape[0]
 
             df_ = df[
                 (df['home_team'] == row['away_team']) &
@@ -260,22 +261,27 @@ class Data(Eda):
             home_over = ((df_['away_score'] + df_['home_score']) > df_['total_line']).sum()
             home_under = ((df_['away_score'] + df_['home_score']) < df_['total_line']).sum()
             home_total = home_pf + home_pa
+            home_num_games = df_.shape[0]
 
             record = {
                 'game_id': row['game_id'],
                 'gameday': row['gameday'],
+                # Totals
                 'away_team_wins': home_wins + away_wins,
                 'away_team_wins_ats': away_wins_ats + home_wins_ats,
                 'away_team_losses_ats': away_losses_ats + home_losses_ats,
                 'away_team_losses': home_losses + away_losses,
-                'away_team_win_rate': (home_wins + away_wins) / (home_wins + away_wins + home_losses + away_losses),
-                'away_team_win_rate_ats': (home_wins_ats + away_wins_ats) / (home_wins_ats + away_wins_ats + home_losses_ats + away_losses_ats),
-                'away_team_over_rate': (away_over + home_over) / (away_over + away_under + home_over + home_under),
-                'away_team_points_for': away_pf + home_pf,
-                'away_team_points_against': home_pa + away_pa,
-                'away_team_total_points': away_total + home_total,
-                'away_team_total_point_rel_over': away_total + home_total - row['total_line'],
-                'away_team_point_differential': away_pf + home_pf - home_pa - away_pa,
+                # Rates
+                'away_team_win_rate': (home_wins + away_wins) / (home_num_games + away_num_games),
+                'away_team_win_rate_ats': (home_wins_ats + away_wins_ats) / (home_num_games + away_num_games),
+                'away_team_over_rate': (away_over + home_over) / (home_num_games + away_num_games),
+                'away_team_under_rate': (away_under + home_under) / (home_num_games + away_num_games),
+                'away_team_points_for': (away_pf + home_pf) / (home_num_games + away_num_games),
+                'away_team_points_against': (home_pa + away_pa) / (home_num_games + away_num_games),
+                'away_team_total_points': (away_total + home_total) / (home_num_games + away_num_games),
+                'away_team_total_point_rel_over': (away_total + home_total - row['total_line']) / (home_num_games + away_num_games),
+                'away_team_point_differential': (away_pf + home_pf - home_pa - away_pa) / (home_num_games + away_num_games),
+                # Lines
                 'money_line': self._calc_payout(row['away_moneyline']),
                 'away_money_line': self._calc_payout(row['away_moneyline']),
                 'away_spread_line': row['spread_line'],  # spread-line is from perspective of away team
@@ -294,6 +300,7 @@ class Data(Eda):
             away_pa = df_['home_score'].sum()
             away_over = ((df_['away_score'] + df_['home_score']) > df_['total_line']).sum()
             away_under = ((df_['away_score'] + df_['home_score']) < df_['total_line']).sum()
+            away_num_games = df_.shape[0]
             away_total = away_pf + away_pa
 
             df_ = df[
@@ -308,20 +315,25 @@ class Data(Eda):
             home_pa = df_['away_score'].sum()
             home_over = ((df_['away_score'] + df_['home_score']) > df_['total_line']).sum()
             home_under = ((df_['away_score'] + df_['home_score']) < df_['total_line']).sum()
+            home_num_games = df_.shape[0]
             home_total = home_pf + home_pa
 
+            # Totals
             record['home_team_wins'] = home_wins + away_wins
             record['home_team_losses'] = home_losses + away_losses
             record['home_team_wins_ats'] = home_wins_ats + away_wins_ats
             record['home_team_losses_ats'] = home_losses_ats + away_losses_ats
-            record['home_team_win_rate'] = (home_wins + away_wins) / (home_wins + away_wins + home_losses + away_losses)
-            record['home_team_win_rate_ats'] = (home_wins_ats + away_wins_ats) / (home_wins_ats + away_wins_ats + home_losses_ats + away_losses_ats)
-            record['home_team_over_rate'] = (away_over + home_over) / (home_over + away_over + home_under + away_under)
-            record['home_team_points_for'] = away_pf + home_pf
-            record['home_team_points_against'] = home_pa + home_pa
-            record['home_team_point_differential'] = home_pf + away_pf - home_pa - away_pa
-            record['home_team_total_points'] = away_total + home_total
-            record['home_team_total_point_rel_over'] = away_total + home_total - row['total_line']
+            # Rates
+            record['home_team_win_rate'] = (home_wins + away_wins) / (home_num_games + away_num_games)
+            record['home_team_win_rate_ats'] = (home_wins_ats + away_wins_ats) / (home_num_games + away_num_games)
+            record['home_team_over_rate'] = (away_over + home_over) / (home_num_games + away_num_games)
+            record['home_team_under_rate'] = (away_under + home_under) / (home_num_games + away_num_games)
+            record['home_team_points_for'] = (away_pf + home_pf) / (home_num_games + away_num_games)
+            record['home_team_points_against'] = (away_pa + home_pa) / (home_num_games + away_num_games)
+            record['home_team_point_differential'] = (home_pf + away_pf - home_pa - away_pa) / (home_num_games + away_num_games)
+            record['home_team_total_points'] = (away_total + home_total) / (home_num_games + away_num_games)
+            record['home_team_total_point_rel_over'] = (away_total + home_total - row['total_line']) / (home_num_games + away_num_games)
+            # Lines
             record['home_money_line'] = self._calc_payout(row['home_moneyline'])
             record['home_spread_line'] = -row['spread_line']  # spread line if from perspective of away team
             records.append(record)

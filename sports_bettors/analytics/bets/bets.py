@@ -39,8 +39,8 @@ class Bets(object):
             parse_dates=['Date']
         )
         df = df[[
-            'Date', 'Money', 'Bet_Type', 'Number', 'Odds', 'Supporting Team',
-            'Opposing Team', 'League', 'Result', 'Amount', 'Model_Agree'
+            'Date', 'Money', 'Bet_Type', 'Number', 'Odds', 'Supporting_Team',
+            'Opposing_Team', 'League', 'Result', 'Amount', 'Model_Agree'
         ]]
         df = df[df['Odds'].between(-130, 300)].copy()
         df['payout'] = df['Odds'].apply(self._calc_payout)
