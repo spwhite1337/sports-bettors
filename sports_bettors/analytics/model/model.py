@@ -36,17 +36,22 @@ class Model(Data):
                     # Lines
                     'spread_favorite',
                     'total_line',
-                    'away_is_favorite',
+                    # 'away_is_favorite',
                     # Win-rate ATS / Over
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
+                    'favorite_margin_ats',
+                    'underdog_margin_ats',
+
+                    # PF and PA
                     'favorite_team_over_rate',
                     'underdog_team_over_rate',
-                    # PF and PA
-                    'favorite_team_points_for',
-                    'underdog_team_points_for',
-                    'favorite_team_points_against',
-                    'underdog_team_points_against',
+                    'favorite_team_total_points_ats',
+                    'underdog_team_total_points_ats',
+                    # 'favorite_team_points_for',
+                    # 'underdog_team_points_for',
+                    # 'favorite_team_points_against',
+                    # 'underdog_team_points_against',
                 ]
             },
             'over': {
@@ -57,17 +62,22 @@ class Model(Data):
                     # Lines
                     'spread_favorite',
                     'total_line',
-                    'away_is_favorite',
+                    # 'away_is_favorite',
                     # Win-rate ATS
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
+                    'favorite_margin_ats',
+                    'underdog_margin_ats',
+
+                    # PF and PA
                     'favorite_team_over_rate',
                     'underdog_team_over_rate',
-                    # PF and PA
-                    'favorite_team_points_for',
-                    'underdog_team_points_for',
-                    'favorite_team_points_against',
-                    'underdog_team_points_against',
+                    'favorite_team_total_points_ats',
+                    'underdog_team_total_points_ats',
+                    # 'favorite_team_points_for',
+                    # 'underdog_team_points_for',
+                    # 'favorite_team_points_against',
+                    # 'underdog_team_points_against',
                 ]
             }
         },
@@ -80,17 +90,22 @@ class Model(Data):
                     # Lines
                     'spread_favorite',
                     'total_line',
-                    'away_is_favorite',
+                    # 'away_is_favorite',
                     # Win-rate ATS
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
+                    'favorite_margin_ats',
+                    'underdog_margin_ats',
+
+                    # PF and PA
                     'favorite_team_over_rate',
                     'underdog_team_over_rate',
-                    # PF and PA
-                    'favorite_team_points_for',
-                    'underdog_team_points_for',
-                    'favorite_team_points_against',
-                    'underdog_team_points_against',
+                    'favorite_team_total_points_ats',
+                    'underdog_team_total_points_ats',
+                    # 'favorite_team_points_for',
+                    # 'underdog_team_points_for',
+                    # 'favorite_team_points_against',
+                    # 'underdog_team_points_against',
                 ]
         },
             'over': {
@@ -101,17 +116,21 @@ class Model(Data):
                     # Lines
                     'spread_favorite',
                     'total_line',
-                    'away_is_favorite',
+                    # 'away_is_favorite',
                     # Win-rate ATS
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
+                    'favorite_margin_ats',
+                    'underdog_margin_ats',
+                    # PF and PA
                     'favorite_team_over_rate',
                     'underdog_team_over_rate',
-                    # PF and PA
-                    'favorite_team_points_for',
-                    'underdog_team_points_for',
-                    'favorite_team_points_against',
-                    'underdog_team_points_against',
+                    'favorite_team_total_points_ats',
+                    'underdog_team_total_points_ats',
+                    # 'favorite_team_points_for',
+                    # 'underdog_team_points_for',
+                    # 'favorite_team_points_against',
+                    # 'underdog_team_points_against',
                 ]
             }
         }

@@ -241,11 +241,14 @@ class Data(Eda):
             away_losses = (df_['away_score'] < df_['home_score']).sum()
             away_wins_ats = ((df_['away_score'] + df_['spread_line']) > df_['home_score']).sum()
             away_losses_ats = ((df_['away_score'] + df_['spread_line']) < df_['home_score']).sum()
+            away_margin = (df_['away_score'] - df_['home_score']).sum()
+            away_margin_ats = (df_['away_score'] + df_['spread_line'] - df_['home_score']).sum()
             away_pf = df_['away_score'].sum()
             away_pa = df_['home_score'].sum()
             away_over = ((df_['away_score'] + df_['home_score']) > df_['total_line']).sum()
             away_under = ((df_['away_score'] + df_['home_score']) < df_['total_line']).sum()
             away_total = away_pf + away_pa
+            away_total_ats = (df_['away_score'] + df_['home_score'] - df_['total_line']).sum()
             away_num_games = df_.shape[0]
 
             df_ = df[
@@ -256,11 +259,14 @@ class Data(Eda):
             home_losses = (df_['home_score'] < df_['away_score']).sum()
             home_wins_ats = (df_['home_score'] > (df_['away_score'] + df_['spread_line'])).sum()
             home_losses_ats = (df_['home_score'] < (df_['away_score'] + df_['spread_line'])).sum()
+            home_margin = (df_['home_score'] - df_['away_score']).sum()
+            home_margin_ats = (df_['home_score'] - (df_['away_score'] + df_['spread_line'])).sum()
             home_pf = df_['home_score'].sum()
             home_pa = df_['away_score'].sum()
             home_over = ((df_['away_score'] + df_['home_score']) > df_['total_line']).sum()
             home_under = ((df_['away_score'] + df_['home_score']) < df_['total_line']).sum()
             home_total = home_pf + home_pa
+            home_total_ats = (df_['away_score'] + df_['home_score'] - df_['total_line']).sum()
             home_num_games = df_.shape[0]
 
             record = {
@@ -272,6 +278,8 @@ class Data(Eda):
                 'away_team_losses_ats': away_losses_ats + home_losses_ats,
                 'away_team_losses': home_losses + away_losses,
                 # Rates
+                'away_margin': (home_margin + away_margin) / (home_num_games + away_num_games),
+                'away_margin_ats': (home_margin_ats + away_margin_ats) / (home_num_games + away_num_games),
                 'away_team_win_rate': (home_wins + away_wins) / (home_num_games + away_num_games),
                 'away_team_win_rate_ats': (home_wins_ats + away_wins_ats) / (home_num_games + away_num_games),
                 'away_team_over_rate': (away_over + home_over) / (home_num_games + away_num_games),
@@ -279,7 +287,7 @@ class Data(Eda):
                 'away_team_points_for': (away_pf + home_pf) / (home_num_games + away_num_games),
                 'away_team_points_against': (home_pa + away_pa) / (home_num_games + away_num_games),
                 'away_team_total_points': (away_total + home_total) / (home_num_games + away_num_games),
-                'away_team_total_point_rel_over': (away_total + home_total - row['total_line']) / (home_num_games + away_num_games),
+                'away_team_total_points_ats': (away_total_ats + home_total_ats) / (home_num_games + away_num_games),
                 'away_team_point_differential': (away_pf + home_pf - home_pa - away_pa) / (home_num_games + away_num_games),
                 # Lines
                 'money_line': self._calc_payout(row['away_moneyline']),
@@ -296,12 +304,15 @@ class Data(Eda):
             away_losses = (df_['away_score'] < df_['home_score']).sum()
             away_wins_ats = ((df_['away_score'] + df_['spread_line']) > df_['home_score']).sum()
             away_losses_ats = ((df_['away_score'] + df_['spread_line']) < df_['home_score']).sum()
+            away_margin = (df_['away_score'] - df_['home_score']).sum()
+            away_margin_ats = (df_['away_score'] + df_['spread_line'] - df_['home_score']).sum()
             away_pf = df_['away_score'].sum()
             away_pa = df_['home_score'].sum()
             away_over = ((df_['away_score'] + df_['home_score']) > df_['total_line']).sum()
             away_under = ((df_['away_score'] + df_['home_score']) < df_['total_line']).sum()
             away_num_games = df_.shape[0]
             away_total = away_pf + away_pa
+            away_total_ats = (df_['away_score'] + df_['home_score'] - df_['total_line']).sum()
 
             df_ = df[
                 (df['home_team'] == row['home_team']) &
@@ -311,12 +322,15 @@ class Data(Eda):
             home_losses = (df_['home_score'] < df_['away_score']).sum()
             home_wins_ats = (df_['home_score'] > (df_['away_score'] + df_['spread_line'])).sum()
             home_losses_ats = (df_['home_score'] < (df_['away_score'] + df_['spread_line'])).sum()
+            home_margin = (df_['home_score'] - df_['away_score']).sum()
+            home_margin_ats = (df_['home_score'] - (df_['away_score'] + df_['spread_line'])).sum()
             home_pf = df_['home_score'].sum()
             home_pa = df_['away_score'].sum()
             home_over = ((df_['away_score'] + df_['home_score']) > df_['total_line']).sum()
             home_under = ((df_['away_score'] + df_['home_score']) < df_['total_line']).sum()
             home_num_games = df_.shape[0]
             home_total = home_pf + home_pa
+            home_total_ats = (df_['away_score'] + df_['home_score'] - df_['total_line']).sum()
 
             # Totals
             record['home_team_wins'] = home_wins + away_wins
@@ -324,6 +338,8 @@ class Data(Eda):
             record['home_team_wins_ats'] = home_wins_ats + away_wins_ats
             record['home_team_losses_ats'] = home_losses_ats + away_losses_ats
             # Rates
+            record['home_team_margin'] = (home_margin + away_margin) / (home_num_games + away_num_games)
+            record['home_team_margin_ats'] = (home_margin_ats + away_margin_ats) / (home_num_games + away_num_games)
             record['home_team_win_rate'] = (home_wins + away_wins) / (home_num_games + away_num_games)
             record['home_team_win_rate_ats'] = (home_wins_ats + away_wins_ats) / (home_num_games + away_num_games)
             record['home_team_over_rate'] = (away_over + home_over) / (home_num_games + away_num_games)
@@ -332,7 +348,7 @@ class Data(Eda):
             record['home_team_points_against'] = (away_pa + home_pa) / (home_num_games + away_num_games)
             record['home_team_point_differential'] = (home_pf + away_pf - home_pa - away_pa) / (home_num_games + away_num_games)
             record['home_team_total_points'] = (away_total + home_total) / (home_num_games + away_num_games)
-            record['home_team_total_point_rel_over'] = (away_total + home_total - row['total_line']) / (home_num_games + away_num_games)
+            record['home_team_total_points_ats'] = (away_total_ats + home_total_ats) / (home_num_games + away_num_games)
             # Lines
             record['home_money_line'] = self._calc_payout(row['home_moneyline'])
             record['home_spread_line'] = -row['spread_line']  # spread line if from perspective of away team
@@ -347,6 +363,10 @@ class Data(Eda):
             'home_team_win_rate',
             'home_team_win_rate_ats',
             'home_over_rate',
+            'home_margin',
+            'away_margin',
+            'home_margin_ats',
+            'away_margin_ats'
         ]:
             if col in df_out.columns:
                 df_out[col] = df_out[col].fillna(0.)
