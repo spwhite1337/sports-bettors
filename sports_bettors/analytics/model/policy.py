@@ -228,7 +228,8 @@ class Policy(Validate):
             if t_name in self.policies.keys():
                 df_t = df_policy.copy()
                 df_t['diff'] = (df_t['num_bets'] / df_t['num_games'] - t).abs()
-                df_t = df_t[df_t['diff'] == df_t['diff'].min()]
+                # +/- 10% of threshold
+                df_t = df_t[df_t['diff'].between(df_t['diff'].min() * 0.9, df_t['diff'].min() * 1.1)]
                 df_t = df_t[df_t['expected_return'] == df_t['expected_return'].max()]
                 self.policies[t_name]['left']['threshold'] = df_t['left_threshold'].iloc[0]
                 self.policies[t_name]['right']['threshold'] = df_t['right_threshold'].iloc[0]
