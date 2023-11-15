@@ -203,10 +203,9 @@ class Policy(Validate):
         df_policy.to_csv(os.path.join(self.save_dir, f'df_policy_check.csv'), index=False)
 
         # save results to policy for max-expected-return
-        self.policies['max_return']['left']['threshold'] = \
-            df_policy[df_policy['expected_return'] == df_policy['expected_return'].max()]['left_threshold'].iloc[0]
-        self.policies['max_return']['right']['threshold'] = \
-            df_policy[df_policy['expected_return'] == df_policy['expected_return'].max()]['right_threshold'].iloc[0]
+        df_max_return = df_policy[df_policy['expected_return'] == df_policy['expected_return'].max()]
+        self.policies['max_return']['left']['threshold'] = df_max_return['left_threshold'].iloc[0]
+        self.policies['max_return']['right']['threshold'] = df_max_return['right_threshold'].iloc[0]
 
         # Save results to policy for min_risk
         # Must have a positive return with a decent p-value
