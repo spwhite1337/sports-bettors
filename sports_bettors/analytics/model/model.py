@@ -90,22 +90,22 @@ class Model(Data):
                     # Lines
                     'spread_favorite',
                     'total_line',
-                    # 'away_is_favorite',
+                    'away_is_favorite',
                     # Win-rate ATS
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    # 'favorite_team_margin_ats',
-                    # 'underdog_team_margin_ats',
+                    'favorite_team_margin_ats',
+                    'underdog_team_margin_ats',
 
                     # PF and PA
                     # 'favorite_team_over_rate',
                     # 'underdog_team_over_rate',
-                    # 'favorite_team_total_points_ats',
-                    # 'underdog_team_total_points_ats',
-                    'favorite_team_points_for',
-                    'underdog_team_points_for',
-                    'favorite_team_points_against',
-                    'underdog_team_points_against',
+                    'favorite_team_total_points_ats',
+                    'underdog_team_total_points_ats',
+                    # 'favorite_team_points_for',
+                    # 'underdog_team_points_for',
+                    # 'favorite_team_points_against',
+                    # 'underdog_team_points_against',
                 ]
         },
             'over': {
@@ -120,8 +120,8 @@ class Model(Data):
                     # Win-rate ATS
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
-                    # 'favorite_team_margin_ats',
-                    # 'underdog_team_margin_ats',
+                    'favorite_team_margin_ats',
+                    'underdog_team_margin_ats',
                     # PF and PA
                     # 'favorite_team_over_rate',
                     # 'underdog_team_over_rate',
@@ -226,7 +226,7 @@ class Model(Data):
             'model__kernel': ['rbf', 'poly', 'sigmoid'],
             'model__gamma': ['scale', 'auto'],
             'model__epsilon': [0.05, 0.1, 0.2],
-            'model__C': [0.1, 0.5, 1, 2, 3, 5, 10]
+            'model__C': [0.1, 0.5, 1, 2, 3]
         }
         gkf = GroupKFold(n_splits=group.nunique())
         grid = GridSearchCV(

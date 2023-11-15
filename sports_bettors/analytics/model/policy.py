@@ -70,6 +70,16 @@ class Policy(Validate):
                         'name': 'Favorite',
                         'threshold': None
                     }
+                },
+                'all_in': {
+                    'left': {
+                        'name': 'Underdog',
+                        'threshold': 0
+                    },
+                    'right': {
+                        'name': 'Favorite',
+                        'threshold': 0
+                    }
                 }
             },
             'over': {
@@ -121,6 +131,16 @@ class Policy(Validate):
                     'right': {
                         'name': 'Over',
                         'threshold': None
+                    }
+                },
+                'all_in': {
+                    'left': {
+                        'name': 'Under',
+                        'threshold': 0
+                    },
+                    'right': {
+                        'name': 'Over',
+                        'threshold': 0
                     }
                 },
             }
