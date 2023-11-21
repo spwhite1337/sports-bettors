@@ -201,12 +201,12 @@ class Model(Data):
         self.scaler = StandardScaler()
         self.scaler.fit(df_[self.features])
 
-        if self.response == 'spread':
-            # Clip training data so it doesn't over-penalize bad spreads
-            df_[self.response_col] = df_[self.response_col].clip(-7, 7)
-        elif self.response == 'over':
-            # Clip training data so it doesn't over-penalize bad over totals
-            df_[self.response_col] = df_[self.response_col].clip(df_[self.line_col] - 20, df_[self.line_col] + 20)
+        # if self.response == 'spread':
+        #     # Clip training data so it doesn't over-penalize bad spreads
+        #     df_[self.response_col] = df_[self.response_col].clip(-7, 7)
+        # elif self.response == 'over':
+        #     # Clip training data so it doesn't over-penalize bad over totals
+        #     df_[self.response_col] = df_[self.response_col].clip(df_[self.line_col] - 20, df_[self.line_col] + 20)
 
         return df_, df_val, df
 
