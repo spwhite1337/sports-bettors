@@ -31,36 +31,36 @@ class Policy(Validate):
                         'threshold': None
                     }
                 },
-                'top_decile': {
-                    'left': {
-                        'name': 'Underdog',
-                        'threshold': None
-                    },
-                    'right': {
-                        'name': 'Favorite',
-                        'threshold': None
-                    }
-                },
-                'top_quartile': {
-                    'left': {
-                        'name': 'Underdog',
-                        'threshold': None
-                    },
-                    'right': {
-                        'name': 'Favorite',
-                        'threshold': None
-                    }
-                },
-                'top_half': {
-                    'left': {
-                        'name': 'Underdog',
-                        'threshold': None
-                    },
-                    'right': {
-                        'name': 'Favorite',
-                        'threshold': None
-                    }
-                },
+                # 'top_decile': {
+                #     'left': {
+                #         'name': 'Underdog',
+                #         'threshold': None
+                #     },
+                #     'right': {
+                #         'name': 'Favorite',
+                #         'threshold': None
+                #     }
+                # },
+                # 'top_quartile': {
+                #     'left': {
+                #         'name': 'Underdog',
+                #         'threshold': None
+                #     },
+                #     'right': {
+                #         'name': 'Favorite',
+                #         'threshold': None
+                #     }
+                # },
+                # 'top_half': {
+                #     'left': {
+                #         'name': 'Underdog',
+                #         'threshold': None
+                #     },
+                #     'right': {
+                #         'name': 'Favorite',
+                #         'threshold': None
+                #     }
+                # },
                 'min_risk': {
                     'left': {
                         'name': 'Underdog',
@@ -93,36 +93,36 @@ class Policy(Validate):
                         'threshold': None
                     }
                 },
-                'top_decile': {
-                    'left': {
-                        'name': 'Under',
-                        'threshold': None
-                    },
-                    'right': {
-                        'name': 'Over',
-                        'threshold': None
-                    }
-                },
-                'top_quartile': {
-                    'left': {
-                        'name': 'Under',
-                        'threshold': None
-                    },
-                    'right': {
-                        'name': 'Over',
-                        'threshold': None
-                    }
-                },
-                'top_half': {
-                    'left': {
-                        'name': 'Under',
-                        'threshold': None
-                    },
-                    'right': {
-                        'name': 'Over',
-                        'threshold': None
-                    }
-                },
+                # 'top_decile': {
+                #     'left': {
+                #         'name': 'Under',
+                #         'threshold': None
+                #     },
+                #     'right': {
+                #         'name': 'Over',
+                #         'threshold': None
+                #     }
+                # },
+                # 'top_quartile': {
+                #     'left': {
+                #         'name': 'Under',
+                #         'threshold': None
+                #     },
+                #     'right': {
+                #         'name': 'Over',
+                #         'threshold': None
+                #     }
+                # },
+                # 'top_half': {
+                #     'left': {
+                #         'name': 'Under',
+                #         'threshold': None
+                #     },
+                #     'right': {
+                #         'name': 'Over',
+                #         'threshold': None
+                #     }
+                # },
                 'min_risk': {
                     'left': {
                         'name': 'Under',
@@ -275,7 +275,10 @@ class Policy(Validate):
         pdf.savefig()
         plt.close()
 
-    def apply_policy(self, p: float, policy: str) -> str:
+    def apply_policy(self, p: float, policy: str) -> Optional[str]:
+        if p is None:
+            return None
+
         l_threshold = self.policies[policy]['left']['threshold']
         r_threshold = self.policies[policy]['right']['threshold']
         if l_threshold is not None:

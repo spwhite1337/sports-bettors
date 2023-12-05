@@ -55,9 +55,13 @@ class Model(object):
                 for feature in model.features:
                     df = df[~df[feature].isna()]
                 # Get preds as expected "actual" spread / total from model
-                df['preds'] = model.predict(df)
-                # Get diff from odds-line
-                df['preds_against_line'] = df['preds'] - df[model.line_col]
+                if df.shape[0] == 0:
+                    df['preds'] = None
+                    df['preds_against_line'] = None
+                else:
+                    df['preds'] = model.predict(df)
+                    # Get diff from odds-line
+                    df['preds_against_line'] = df['preds'] - df[model.line_col]
                 # Label bets based on human-derived thresholds
                 for policy, p_params in model.policies.items():
                     df[f'Bet_{policy}'] = df['preds_against_line'].apply(lambda p: model.apply_policy(p, policy))
