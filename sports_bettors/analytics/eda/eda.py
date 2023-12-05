@@ -74,6 +74,20 @@ class Eda(object):
         else:
             return 'Over'
 
+    def _result_spread_total_parlay_category(self, row: Dict) -> str:
+        spread = self._result_spread_category(row)
+        total = self._result_total_category(row)
+        if spread == 'Underdog Covered' and total == 'Under':
+            return 'Underdog and Under'
+        elif spread == 'Underdog Covered' and total == 'Over':
+            return 'Underdog and Over'
+        elif spread == 'Favorite Covered' and total == 'Under':
+            return 'Favorite and Under'
+        elif spread == 'Favorite Covered' and total == 'Over':
+            return 'Favorite and Over'
+        else:
+            return 'Push'
+
     def _download_college_football(self, predict: bool = False) -> pd.DataFrame:
         """
         Pull data from https://github.com/CFBD/cfbd-python
@@ -238,10 +252,11 @@ class Eda(object):
 
     def analyze(self):
         df = self.etl()
-        # Moneyline accuracy
-        df_ml = self.moneyline_accuracy(df)
         # Validate
         with PdfPages(os.path.join(self.save_dir, 'eda.pdf')) as pdf:
+            # Moneyline
+            # Moneyline accuracy
+            df_ml = self.moneyline_accuracy(df)
             plt.figure()
             df_ml['win_prob_bucket'] = df_ml['win_prob_bucket'].astype(str)
             plt.bar(df_ml['win_prob_bucket'], df_ml['win_actual'])
@@ -305,5 +320,18 @@ class Eda(object):
             plt.xlabel('Margin of Victory Against the Spread')
             plt.ylabel('Fraction of Games')
             plt.grid(True)
+            pdf.savefig()
+            plt.close()
+
+            df_cm = self._calc_metrics(df)
+            df_cm['parlay'] = df_cm.apply(self._result_spread_total_parlay_category, axis=1)
+            df_cm = df_cm.groupby('parlay').agg(num_games=('game_id', 'nunique')).reset_index()
+            df_cm['frac_games'] = df_cm['num_games'] / df['game_id'].nunique()
+            plt.figure()
+            plt.bar(df_cm['parlay'], df_cm['frac_games'])
+            plt.grid(True)
+            plt.title('Parlay Outcomes')
+            plt.xticks(rotation=90)
+            plt.tight_layout()
             pdf.savefig()
             plt.close()

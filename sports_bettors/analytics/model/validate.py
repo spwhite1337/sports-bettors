@@ -184,6 +184,7 @@ class Validate(Model):
         df_plot = df_plot.groupby('month').agg(win_rate=(self.classifier_response, 'mean')).reset_index()
         plt.figure()
         plt.bar(df_plot['month'], df_plot['win_rate'])
+        plt.hlines(0.5, df_plot['month'].min(), df_plot['month'].max(), color='black')
         plt.title('Bias check')
         plt.xlabel('Month')
         plt.ylabel('Win Rate')

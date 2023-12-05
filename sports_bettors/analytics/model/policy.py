@@ -15,7 +15,7 @@ from config import logger, Config
 
 class Policy(Validate):
 
-    bias_correction = True
+    bias_correction = False
 
     def __init__(self, league: str = 'nfl', response: str = 'spread', overwrite: bool = False):
         super().__init__(league=league, response=response, overwrite=overwrite)
@@ -216,7 +216,7 @@ class Policy(Validate):
                   axis=1)
         # Expected return with a conservative edge case of 0.5
         df_policy['expected_win_rate'] = (df_policy['win_rate'] * (1 - df_policy['p_value']) + 0.5 * df_policy['p_value'])
-        df_policy['expected_return'] = 1.0 * df_policy['expected_win_rate'] * df_policy['num_bets'] - 1 * (
+        df_policy['expected_return'] = .909 * df_policy['expected_win_rate'] * df_policy['num_bets'] - 1 * (
                 1 - df_policy['expected_win_rate']) * df_policy['num_bets']
 
         # Save policy-check work
