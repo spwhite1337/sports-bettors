@@ -335,3 +335,26 @@ class Eda(object):
             plt.tight_layout()
             pdf.savefig()
             plt.close()
+
+            # Policy with spread
+            df_p = self._calc_metrics(df).copy()
+            df_p['spread_result'] = df_p.apply(lambda r: self._result_spread_category(r), axis=1)
+            df_p['favorite_wins'] = (df_p['spread_result'] == 'Favorite Covered').astype(int)
+            df_plot = []
+            for threshold in np.linspace(0, 20, 21):
+                df_ = df_p[(df_p['spread_line'].abs() >= threshold) & (df_p['spread_result'] != 'Push')]
+                record = {
+                    'threshold': threshold,
+                    'wins': df_['favorite_wins'].mean(),
+                    'n_games': df_.shape[0]
+                }
+                df_plot.append(record)
+            df_plot = pd.DataFrame.from_records(df_plot)
+            plt.figure()
+            plt.bar(df_plot['threshold'], df_plot['wins'])
+            plt.grid(True)
+            plt.hlines(y=0.5, xmin=0, xmax=25)
+            plt.title('Favorite wins at Spread')
+            plt.tight_layout()
+            pdf.savefig()
+            plt.close()
