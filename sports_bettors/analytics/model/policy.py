@@ -326,7 +326,6 @@ class Policy(Validate):
                 df_policy = df_val[['game_id', 'gameday', 'preds_c', self.classifier_response]].copy()
                 df_policy['Bet'] = df_policy['preds_c'].apply(lambda p: self.apply_policy(p, policy))
                 df_policy['Bet_result'] = self.assess_policy(df_policy, policy)
-
                 # Get win-rate and records for a few time-frames
                 # Whole year
                 # Note: No Bet is a null so it won't be summed
@@ -382,6 +381,9 @@ class Policy(Validate):
                 df_policy['Bet_result'] = self.assess_policy(df_policy, policy)
                 # Note: No Bet is a null so it won't be summed
                 df_plot = df_policy.copy()
+                # If running at the start of the season this will return nothing
+                if df_policy.shape[0] == 0:
+                    continue
                 num_wins = df_plot['Bet_result'].sum()
                 num_losses = (1 - df_plot['Bet_result']).sum()
                 num_bets = df_plot[~df_plot['Bet_result'].isna()].shape[0]

@@ -76,6 +76,19 @@ class Eda(object):
 
     def _result_spread_total_parlay_category(self, row: Dict) -> str:
         spread = self._result_spread_category(row)
+        if spread == 'Underdog Covered' and row['spread_line'] < 0:
+            return 'Home Underdog Covered'
+        elif spread == 'Underdog Covered' and row['spread_line'] > 0:
+            return 'Away Underdog Covered'
+        elif spread == 'Favorite Covered' and row['spread_line'] < 0:
+            return 'Away Favorite Covered'
+        elif spread == 'Favorite Covered' and row['spread_line'] > 0:
+            return 'Home Favorite Covered'
+        else:
+            return 'Push'
+        
+    def _result_spread_by_home(self, row: Dict) -> str:
+        spread = self._result_spread_category(row)
         total = self._result_total_category(row)
         if spread == 'Underdog Covered' and total == 'Under':
             return 'Underdog and Under'
@@ -331,6 +344,19 @@ class Eda(object):
             plt.bar(df_cm['parlay'], df_cm['frac_games'])
             plt.grid(True)
             plt.title('Parlay Outcomes')
+            plt.xticks(rotation=90)
+            plt.tight_layout()
+            pdf.savefig()
+            plt.close()
+
+            df_cm = self._calc_metrics(df)
+            df_cm['home_spread'] = df_cm.apply(self._result_spread_by_home, axis=1)
+            df_cm = df_cm.groupby('home_spread').agg(num_games=('game_id', 'nunique')).reset_index()
+            df_cm['frac_games'] = df_cm['num_games'] / df['game_id'].nunique()
+            plt.figure()
+            plt.bar(df_cm['home_spread'], df_cm['frac_games'])
+            plt.grid(True)
+            plt.title('Home Spread Outcomes')
             plt.xticks(rotation=90)
             plt.tight_layout()
             pdf.savefig()

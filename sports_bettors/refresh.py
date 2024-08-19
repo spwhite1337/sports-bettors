@@ -58,6 +58,8 @@ def refresh_college_data():
 def refresh():
     analysis()
     for league in ['nfl', 'college_football']:
+        if league != 'nfl':
+            continue
         for model in ['spread', 'over']:
             logger.info(f'Creating Model for {league}, {model}')
             run(league, model, overwrite=True)

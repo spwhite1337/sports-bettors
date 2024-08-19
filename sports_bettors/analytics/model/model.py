@@ -36,7 +36,7 @@ class Model(Data):
                     # Lines
                     'spread_favorite',
                     'total_line',
-                    # 'away_is_favorite',
+                    'away_is_favorite',
                     # Win-rate ATS / Over
                     'favorite_team_win_rate_ats',
                     'underdog_team_win_rate_ats',
